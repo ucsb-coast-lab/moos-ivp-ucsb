@@ -1,0 +1,1 @@
+AUV_VEHICLE_ID = 0

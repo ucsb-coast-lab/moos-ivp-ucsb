@@ -1,0 +1,28 @@
+PROJECT(iAIS)
+
+#what files are needed?
+##this
+# tcpsocket.c
+# main_tcp.c  <-- evolved to ParseAIS.c 
+##or this
+# main_stdin.c 
+# 
+SET(SRCS
+ vdm_parse.h vdm_parse.c
+ nmea.h nmea.c
+ sixbit.h sixbit.c
+ portable.h  
+ tcpsocket.c
+ ParseAIS.c
+)
+
+ADD_EXECUTABLE(iAIS ${SRCS})
+
+# indicate how to link
+TARGET_LINK_LIBRARIES(iAIS MOOS MOOSGen MOOSUtility pthread)
+
+INSTALL(TARGETS
+iAIS
+RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+)
+

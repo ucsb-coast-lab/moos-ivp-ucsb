@@ -1,0 +1,25 @@
+//------------------------------------------
+// iRecon config block
+
+ProcessConfig = iReconS
+{
+  AppTick = 1
+  CommsTick = 1
+  
+  remus_host = 128.128.204.100
+  remus_port = 23456
+  local_port = 23456
+  
+  keep_alive = true
+  
+  ready_var = BACKSEAT_READY
+  ready_numeric = true
+
+  // set to 'meters/sec' or 'rpm'
+  speed_mode = rpm
+
+// The following is for simulating random yaw oscillations
+  random_hdg = false
+  hdg_amplitude = 5
+  hdg_period = 20
+}

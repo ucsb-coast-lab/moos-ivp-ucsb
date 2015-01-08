@@ -1,0 +1,151 @@
+l//*******************************************************
+// Shoreside mission display computer
+// 
+// 
+
+ServerHost = localhost
+ServerPort = 9000
+Community  = shoreside
+
+MOOSTimeWarp = 1
+LatOrigin  = 0
+LongOrigin = 0
+
+
+
+ 
+//------------------------------------------
+// Antler configuration  block
+ProcessConfig = ANTLER
+{
+// CONTROL
+  MSBetweenLaunches = 200 
+
+
+  Run = MOOSDB          @ NewConsole = true, XConfig=DBXConsoleSettingsDB
+  Run = pMarineViewer   @ NewConsole = true, XConfig=DBXConsoleSettingsView
+  Run = uSimROMS2       @ NewConsole = false
+  Run = pDataWatch      @ NewConsole = true
+  Run = uSimMarine      @ NewConsole = true
+  Run = pHelmIvP        @ NewConsole = true
+  Run = pMarinePID      @ NewConsole = true
+
+}
+
+
+
+
+//--------------------------------------------------------
+ProcessConfig = pMarineViewer
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+  TIFF_FILE            = /home/nidzieko/Dropbox/projects/auv/charts/choptankHPL.tif
+  set_pan_x            = -100
+  set_pan_y            = 80
+  zoom                 = 50
+  vehicle_shape_scale  = 3
+  trail_color	       = black
+  trail_point_size     = 3
+  seglist_edge_width   = 2.0
+  seglist_vertex_size  = 4
+  seglist_vertex_color = red
+  point_vertex_size    = 12
+  hash_delta           = 500
+  hash_shade           = 0.8
+  hash_view            = true
+  connection_posting   = IMS_REPOST=true
+  vehicle_active_color = yellow
+  vehicle_inactive_color = gray
+  
+
+  SCOPE  = NODE_REPORT
+
+  scope  = NAV_X
+  scope  = NAV_Y
+
+  left_context = return_point
+
+
+}
+ProcessConfig = uSimROMS2                                     
+{                                                               
+  AppTick   = 4                                                 
+  CommsTick = 4                                                 
+                                                                
+  CURRENT_FIELD = bravo.cfd                                     
+  SIM_START_TIME = 2013-10-17+12:00
+
+  SCALAR_FIELD_ACTIVE = true
+  SCALAR_FILE_NAME = salinity.txt
+}                                           
+
+ProcessConfig = pDataWatch
+{
+AppTick = 4
+CommsTick = 4 
+
+THRESHOLD = 1
+}
+
+ProcessConfig = pHelmIvP
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+  Behaviors  = alpha.bhv
+  Verbose    = true
+  Domain     = course:0:359:360
+  Domain     = speed:0:3:31
+  Domain     = depth:0:500:5001
+
+}
+
+
+ProcessConfig = uSimMarine
+{
+  AppTick	= 4
+  CommsTick	= 4
+
+  start_x       = 0
+  start_y       = 0
+  start_speed   = 0
+  start_heading = 180
+
+  prefix        = NAV
+
+  turn_rate     = 40
+  thrust_map    = 0:0, 20:1, 40:2, 60:3, 80:4, 100:5
+}
+
+ProcessConfig = pMarinePID
+{
+  AppTick    = 20
+  CommsTick  = 20
+
+  VERBOSE       = true
+  DEPTH_CONTROL = false
+
+  // SIM_INSTABILITY = 20
+
+  // Yaw PID controller
+  YAW_PID_KP		 = 1.2
+  YAW_PID_KD		 = 0.0
+  YAW_PID_KI		 = 0.3
+  YAW_PID_INTEGRAL_LIMIT = 0.07
+
+  // Speed PID controller
+  SPEED_PID_KP		 = 1.0
+  SPEED_PID_KD		 = 0.0
+  SPEED_PID_KI		 = 0.0
+  SPEED_PID_INTEGRAL_LIMIT = 0.07
+
+  //MAXIMUMS
+  MAXRUDDER    = 100
+  MAXTHRUST    = 100
+
+  // A non-zero SPEED_FACTOR overrides use of SPEED_PID
+  // Will set DESIRED_THRUST = DESIRED_SPEED * SPEED_FACTOR
+  SPEED_FACTOR = 20
+}

@@ -1,0 +1,13 @@
+//------------------------------------------
+// iAIS config block
+
+ProcessConfig = iAIS
+{
+  AppTick = 1
+  CommsTick = 1
+
+  ais_host = "76.103.90.196"
+  ais_port = 9009
+
+}
+
