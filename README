@@ -31,14 +31,14 @@ src              - Directory for source code
 # Build Instructions
 #=============================================================================
 
-To build on Linux and Apple platforms, make an empty build drectory and execute 
-the build script within this directory:
-   $ mkdir build
+To build on Linux and Apple platforms, execute the build script within this
+directory:
+
    $ ./build.sh
 
 To build without using the supplied script, execute the following commands
 within this directory:
-   $ mkdir build
+
    $ cd build
    $ cmake ../
    $ make
