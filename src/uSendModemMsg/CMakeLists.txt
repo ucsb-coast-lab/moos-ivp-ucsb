@@ -1,7 +1,3 @@
-#--------------------------------------------------------
-# The CMakeLists.txt for:                    uSendModemMsg
-# Author(s):                                Mike Benjamin
-#--------------------------------------------------------
 
 # Set System Specific Libraries
 if (${WIN32})
