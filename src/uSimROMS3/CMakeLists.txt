@@ -1,8 +1,3 @@
-#--------------------------------------------------------
-# The CMakeLists.txt for:                    uSimCurrent_Scalar
-# Author(s):                                Mike Benjamin
-#--------------------------------------------------------
-
 # Set System Specific Libraries
 if (${WIN32})
   SET(SYSTEM_LIBS
