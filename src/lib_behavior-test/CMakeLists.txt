@@ -46,11 +46,27 @@ TARGET_LINK_LIBRARIES(BHV_SimpleWaypoint
    geometry 
    ${SYSTEM_LIBS} )
 #--------------------------------------------------------
-#                                      BHV_SimpleWaypoint
+#                                      BHV_ConstantAltitude
 #--------------------------------------------------------
 ADD_LIBRARY(BHV_ConstantAltitude SHARED 
    BHV_ConstantAltitude.cpp)
  TARGET_LINK_LIBRARIES(BHV_ConstantAltitude
+   helmivp
+   behaviors 
+   ivpbuild 
+   logic 
+   ivpcore 
+   bhvutil 
+   mbutil 
+   geometry 
+   ${SYSTEM_LIBS} )
+
+#--------------------------------------------------------
+#                                      BHV_FollowCurrent
+#--------------------------------------------------------
+ADD_LIBRARY(BHV_FollowCurrent SHARED 
+   BHV_FollowCurrent.cpp)
+TARGET_LINK_LIBRARIES(BHV_FollowCurrent
    helmivp
    behaviors 
    ivpbuild 
