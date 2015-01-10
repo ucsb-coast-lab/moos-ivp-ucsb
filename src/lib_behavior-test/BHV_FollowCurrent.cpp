@@ -14,7 +14,7 @@ using namespace std;
 //-----------------------------------------------------------
 // Procedure: Constructor
 
-BHV_SimpleWaypoint::BHV_SimpleWaypoint(IvPDomain gdomain) : 
+BHV_FollowCurrent::BHV_FollowCurrent(IvPDomain gdomain) : 
   IvPBehavior(gdomain)
 {
   IvPBehavior::setParam("name", "simple_waypoint");
@@ -37,7 +37,7 @@ BHV_SimpleWaypoint::BHV_SimpleWaypoint(IvPDomain gdomain) :
 //---------------------------------------------------------------
 // Procedure: setParam - handle behavior configuration parameters
 
-bool BHV_SimpleWaypoint::setParam(string param, string val) 
+bool BHV_FollowCurrent::setParam(string param, string val) 
 {
   // Convert the parameter to lower case for more general matching
   param = tolower(param);
@@ -72,7 +72,7 @@ bool BHV_SimpleWaypoint::setParam(string param, string val)
 //-----------------------------------------------------------
 // Procedure: onIdleState
 
-void BHV_SimpleWaypoint::onIdleState() 
+void BHV_FollowCurrent::onIdleState() 
 {
   postViewPoint(false);
 }
@@ -80,7 +80,7 @@ void BHV_SimpleWaypoint::onIdleState()
 //-----------------------------------------------------------
 // Procedure: postViewPoint
 
-void BHV_SimpleWaypoint::postViewPoint(bool viewable) 
+void BHV_FollowCurrent::postViewPoint(bool viewable) 
 {
   m_nextpt.set_label(m_us_name + "'s next waypoint");
   
@@ -95,7 +95,7 @@ void BHV_SimpleWaypoint::postViewPoint(bool viewable)
 //-----------------------------------------------------------
 // Procedure: onRunState
 
-IvPFunction *BHV_SimpleWaypoint::onRunState() 
+IvPFunction *BHV_FollowCurrent::onRunState() 
 {
   // Part 1: Get vehicle position from InfoBuffer and post a 
   // warning if problem is encountered
@@ -140,7 +140,7 @@ IvPFunction *BHV_SimpleWaypoint::onRunState()
 //-----------------------------------------------------------
 // Procedure: buildFunctionWithZAIC
 
-IvPFunction *BHV_SimpleWaypoint::buildFunctionWithZAIC() 
+IvPFunction *BHV_FollowCurrent::buildFunctionWithZAIC() 
 {
   ZAIC_PEAK spd_zaic(m_domain, "speed");
   spd_zaic.setSummit(m_desired_speed);
