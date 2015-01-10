@@ -13,10 +13,16 @@ void showSynopsis()
 {
   blk("SYNOPSIS:                                                       ");
   blk("------------------------------------                            ");
-  blk("  The new uSimROMS3 application is a simple simulator of water      ");
-  blk("  conditions. Based on a netCDF file that contains output from"  );
-  blk("  ROMS it repeately reads the vehicle's present position and "   );
-  blk("  takes a inverse weighted average of all nearby points");
+  blk("  The new uSimROMS3 application is a simple simulator of water  ");
+  blk("  conditions. Based on a netCDF file that contains output from  ");
+  blk("  ROMS it repeately reads the vehicle's present position and    ");
+  blk("  takes a inverse weighted average of all nearby points         ");
+  blk("                                                                ");
+  blk("  Also implemented is a look forward function, which takes bathy");
+  blk("  data from the NC file and checks a specified distance forward ");
+  blk("  of the AUV for the minimum safe depth that can be expected.   ");
+  blk("  the program simply publishes the variable, the user must check");
+  blk("  it and take appropriate action themselves.                    ");
 }
 
 //----------------------------------------------------------------
@@ -66,10 +72,15 @@ void showExampleConfigAndExit()
   blk("  AppTick   = 4                                                 ");
   blk("  CommsTick = 4                                                 ");
   blk("                                                                ");
-  blk("  NC_FILE_NAME = latest.nc                                      ");
-  blk("  OUTPUT_VAIBALE = SCALAR_VALUE                                 ");
+  blk("  NC_FILE_NAME = file.nc                                        ");
+  blk("  OUTPUT_VARIABLE = SALINITY                                    ");
+  blk("  SAFE_DEPTH_OUTPUT = SAFE_DEPTH                                ");
+  blk("  SCALAR_VARIABLE = salt                                        ");
+  blk("  BAD_VALUE = -1                                                ");
+  blk("  LOOK_FORWARD = 20                                             ");
   blk("                                                                ");
   blk("                                                                ");
+  blk("                                                                "); 
   blk("                                                                ");
   blk("}                                                               ");
   blk("                                                                ");
@@ -80,7 +91,6 @@ void showExampleConfigAndExit()
 //----------------------------------------------------------------
 // Procedure: showInterfaceAndExit
 
-//SG 1/9/2015 : THIS NEEDS UPDATING!
 
 void showInterfaceAndExit()
 {

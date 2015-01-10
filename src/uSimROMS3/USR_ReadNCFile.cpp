@@ -34,7 +34,7 @@ bool USR_MOOSApp::ReadNcFile()
     }else cout << "uSimROMS3: variable \"" << varName << "\" found" << endl; 
 
   
-  //get the size of the array our variable is stored in, edge lenths apply to lat/lon and time variables too
+  //get the size of the array our variable is stored in, edge lengths apply to lat/lon and time variables too
    long* edge;
    edge =  scalar_var->edges();
    if(time_override == false){ 

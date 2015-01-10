@@ -133,8 +133,8 @@ bool USR_MOOSApp::OnStartUp()
     if(param == "BATHY_VARIABLE"){ //ditto LAT_VARIABLE
       bathyVarName = value;
     }
-    //for all the [something]_VALUES the program can find the number of variables automatically, so I wouldn't
-    //recommend messing with them unless you have a good reason.
+    //for all the *_VALUES the program can find the number of variables automatically, so I wouldn't
+    //recommend messing with them unless you have a reason.
     if(param == "TIME_VALUES"){  
        time_vals = atoi(value.c_str());
        cout << "uSimROMS3: manually overriding auto allocation : using " << time_vals << " time values " << endl;
@@ -155,7 +155,8 @@ bool USR_MOOSApp::OnStartUp()
        xi_rho = atoi(value.c_str());
        xi_override = true;
      }
-     //this specifies the value that the ROMS file uses as a "bad" value, defaults to zero
+     //this specifies the value that the ROMS file uses as a "bad" value, which for most applications is the
+     //value the NC file uses to mean land , defaults to zero
      if(param == "BAD_VALUE"){
        bad_val = atof(value.c_str());
        cout << "uSimROMS3: using " << bad_val << " as the bad value" << endl;
@@ -182,9 +183,10 @@ bool USR_MOOSApp::OnStartUp()
   geodesy.Initialise(latOrigin, longOrigin);  //initializes the geodesy class  
 
   if(!ReadNcFile()){    //loads all the data into local memory that we can actually use
-    std::exit(0);        //if we can't read the file, exit the program so it's clear something went wrong and
-  }                     //so we don't publish misleading or dangerous values, using exit() probably isn't the
-                        //best way, but it works
+    std::exit(0);       //if we can't read the file, exit the program so it's clear something went wrong and
+  }                     //so we don't publish misleading or dangerous values, not sure if MOOS applications have
+                        //someway they are "supposed" to quit, but this works fine
+                        
   ConvertToMeters();
 
   registerVariables();    
