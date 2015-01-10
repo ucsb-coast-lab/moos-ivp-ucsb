@@ -1,9 +1,7 @@
 #===========================================================================
-# FILE:  moos-ivp-extend/CMakeLists.txt
-# DATE:  2012/07/24
-# INFO:  Top-level CMakeLists.txt file for the moos-ivp-extend project
-# NAME:  Maintained by Mike Benjamin - Original setup by Christian Convey
-#        Chris Gagner, and tips borrowed from Dave Billin
+# FILE:  moos-ivp-hpl/CMakeLists.txt
+# DATE:  1/10/15
+# INFO:  Top-level CMakeLists.txt file for the moos-ivp-hpl project
 #===========================================================================
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
