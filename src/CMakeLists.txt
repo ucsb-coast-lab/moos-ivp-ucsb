@@ -1,7 +1,7 @@
 ##############################################################################
-# FILE:        moos-ivp-extend/src/CMakeLists.txt
+# FILE:        moos-ivp-hpl/src/CMakeLists.txt
 # DATE:        2010/09/07
-# DESCRIPTION: CMakeLists.txt file for the moos-ivp-extend source directory
+# DESCRIPTION: CMakeLists.txt file for the moos-ivp-hpl source directory
 ##############################################################################
 
 
@@ -22,9 +22,7 @@ link_directories(${MOOSGeodesy_LIBRARY_PATH})
  ADD_SUBDIRECTORY(iAIS)
  ADD_SUBDIRECTORY(iRecon)
  ADD_SUBDIRECTORY(iGPSd)
-#ADD_SUBDIRECTORY(netcdf_test)
  ADD_SUBDIRECTORY(pDataWatch)
-#ADD_SUBDIRECTORY(pNodeReporter_log)
  ADD_SUBDIRECTORY(uSimROMS3)
  ADD_SUBDIRECTORY(iWhoiMicroModem)
  ADD_SUBDIRECTORY(lib_YellowSubUtils)
