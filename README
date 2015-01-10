@@ -6,9 +6,26 @@
 ##############################################################################
 
 #=============================================================================
+# Important
+#=============================================================================
+This reposistory uses resources from other 3rd party MOOS Apps:
+
+iRecon: comes from the moos-ivp-remus tree, we've made minor tweaks to it but
+        remains largely unchanged. original files can be found at:
+	http://oceanai.mit.edu/moos-ivp/pmwiki/pmwiki.php?n=Tree.Remus
+	
+iWhoiMicroModem/lib_YellowSubUtil: comes from the moos-ivp-uidaho tree, minor
+        changes were made to get the libraries to build correctly on our system.
+	the original files can be found at:
+	http://oceanai.mit.edu/moos-ivp/pmwiki/pmwiki.php?n=Tree.Idaho
+	
+
+
+
+#=============================================================================
 # Introduction
 #=============================================================================
-i made a change
+TODO: write something nice here
 
 #=============================================================================
 # Directory Structure
@@ -19,11 +36,8 @@ bin              - Directory for generated executable files
 build            - Directory for build object files
 build.sh         - Script for building moos-ivp-extend
 CMakeLists.txt   - CMake configuration file for the project
-data             - Directory for storing data
 lib              - Directory for generated library files
-missions         - Directory for mission files
 README           - Contains helpful information - (this file).
-scripts          - Directory for script files
 src              - Directory for source code
 
 
