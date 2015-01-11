@@ -8,6 +8,7 @@
 #include "BuildUtils.h"
 #include "ZAIC_PEAK.h"
 #include "OF_Coupler.h"
+#include <stdio.h>
 
 using namespace std;
 
@@ -103,9 +104,9 @@ IvPFunction *BHV_FollowCurrent::onRunState()
 
   string current_vec = getBufferStringVal("USM_FORCE_VECTOR", ok1);
 
-  string x_str, y_str;
-  if(parseCurrentVector(current_vec, x_str, y_str))
-    cout<< "returned true!" << endl;
+  string x_str;
+  string y_str;
+  parseCurrentVector(current_vec, x_str, y_str);
   
   
   
@@ -179,8 +180,15 @@ IvPFunction *BHV_FollowCurrent::buildFunctionWithZAIC()
 
 //-----------------------------------------------------------
 // Procedure: parseCurrentString
-// notes: just a helper function, might be moved to external file if I make any more.
 
 bool BHV_FollowCurrent::parseCurrentVector(string vector, string& x_str, string& y_str){
+  int i;
+  for(i = 0; vector[i] != ',';i++);
+  x_str = vector.substr(0 , i);
+  
+  int comma_pos = i;
+  for(; i < vector.length(); i++);
+  y_str = vector.substr((comma_pos + 1), (i - comma_pos));//a bit ugly, but it works
+  
   return true;
 }
