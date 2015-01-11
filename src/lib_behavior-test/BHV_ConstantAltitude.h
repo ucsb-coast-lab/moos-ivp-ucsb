@@ -49,6 +49,14 @@ public:
  protected: // State variables
   double      m_osd;
 };
+
+
+extern "C" {
+  IVP_EXPORT_FUNCTION IvPBehavior * createBehavior(std::string name, IvPDomain domain) 
+  {return new BHV_ConstantAltitude(domain);}
+}
+#endif
+
 #endif
 
 

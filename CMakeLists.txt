@@ -1,6 +1,10 @@
 #===========================================================================
 # FILE:  moos-ivp-hpl/CMakeLists.txt
+<<<<<<< HEAD
 # DATE:  1/10/15
+=======
+# DATE:  2012/07/24
+>>>>>>> BHV_FollowCurrent
 # INFO:  Top-level CMakeLists.txt file for the moos-ivp-hpl project
 #===========================================================================
 
