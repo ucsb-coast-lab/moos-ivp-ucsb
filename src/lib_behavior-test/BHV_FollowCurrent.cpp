@@ -30,7 +30,7 @@ BHV_FollowCurrent::BHV_FollowCurrent(IvPDomain gdomain) :
   m_osx  = 0;
   m_osy  = 0;
 
-  addInfoVars("NAV_X, NAV_Y");
+  addInfoVars("NAV_X, NAV_Y,USM_FORCE_VECTOR");
   cout << "constructed" << endl;
 }
 
@@ -90,6 +90,7 @@ void BHV_FollowCurrent::postViewPoint(bool viewable)
 
 IvPFunction *BHV_FollowCurrent::onRunState() 
 {
+
   // Part 1: Get vehicle position from InfoBuffer and post a 
   // warning if problem is encountered
   bool ok1, ok2;
@@ -99,6 +100,9 @@ IvPFunction *BHV_FollowCurrent::onRunState()
     postWMessage("No ownship X/Y info in info_buffer.");
     return(0);
   }
+
+  std::string current_vec = getBufferStringVal("USM_FORCE_VECTOR", ok1);
+  cout << "found current vector : " << current_vec << endl;
   
   // Part 2: Determine if the vehicle has reached the destination 
   // point and if so, declare completion.
@@ -120,7 +124,7 @@ IvPFunction *BHV_FollowCurrent::onRunState()
   // Part 4: Build the IvP function with either the ZAIC tool 
   // or the Reflector tool.
   IvPFunction *ipf = 0;
-  if(m_ipf_type == "zaic")
+  if(m_ipf_type == "zaic")//took out reflector, still keeping this for now
     ipf = buildFunctionWithZAIC();
   if(ipf == 0) 
     postWMessage("Problem Creating the IvP Function");
