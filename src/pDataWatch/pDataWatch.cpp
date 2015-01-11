@@ -173,7 +173,6 @@ void DW_MOOSApp::RegisterVariables()
 
 //------------------------------------------------------------------------
 // Procedure: OnDisconnectFromServer
-//     notes: doesn't do much, but everything gets upset if this isn't here I think
 bool DW_MOOSApp::OnDisconnectFromServer()
 {
   fout.close();

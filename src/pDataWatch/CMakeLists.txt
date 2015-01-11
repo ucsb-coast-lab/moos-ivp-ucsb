@@ -15,7 +15,7 @@ endif (${WIN32})
 
 SET(SRC
    pDataWatch.h pDataWatch.cpp
-   main.cpp
+   main.cpp PDW_Info.cpp PDW_Info.h
 )
 
 ADD_EXECUTABLE(pDataWatch ${SRC})

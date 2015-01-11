@@ -1,6 +1,6 @@
  
-#ifndef USIM_CURRENT_INFO_HEADER
-#define USIM_CURRENT_INFO_HEADER
+#ifndef PDATAWATCH_INFO_HEADER
+#define PDATAWATCH_INFO_HEADER
 
 void showSynopsis();
 void showHelpAndExit();
