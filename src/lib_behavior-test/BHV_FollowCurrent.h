@@ -5,10 +5,10 @@
 #include "IvPBehavior.h"
 #include "XYPoint.h"
 
-class BHV_SimpleWaypoint : public IvPBehavior {
+class BHV_FollowCurrent : public IvPBehavior {
 public:
-  BHV_SimpleWaypoint(IvPDomain);
-  ~BHV_SimpleWaypoint() {};
+  BHV_FollowCurrent(IvPDomain);
+  ~BHV_FollowCurrent() {};
   
   bool         setParam(std::string, std::string);
   void         onIdleState();
