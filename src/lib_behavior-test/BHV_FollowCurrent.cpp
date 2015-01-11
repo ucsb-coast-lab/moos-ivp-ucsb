@@ -59,13 +59,6 @@ bool BHV_FollowCurrent::setParam(string param, string val)
     m_arrival_radius = double_val;
     return(true);
   }
-  else if(param == "ipf_type") {
-    val = tolower(val);    
-    if((val == "zaic") || (val == "reflector")) {
-      m_ipf_type = val;
-      return(true);
-    }
-  }
   return(false);
 }
 
