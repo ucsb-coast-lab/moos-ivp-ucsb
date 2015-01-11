@@ -17,6 +17,7 @@ public:
 protected:
   void         postViewPoint(bool viewable=true);
   IvPFunction* buildFunctionWithZAIC();
+  bool parseCurrentVector(std::string, std::string&, std::string&);
 protected: // Configuration parameters
   double       m_arrival_radius;
   double       m_desired_speed;
@@ -27,6 +28,8 @@ protected: // State variables
   double   m_osx;
   double   m_osy;
 };
+
+
 
 #ifdef WIN32
 	// Windows needs to explicitly specify functions to export from a dll

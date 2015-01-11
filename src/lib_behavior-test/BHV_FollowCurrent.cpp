@@ -30,7 +30,7 @@ BHV_FollowCurrent::BHV_FollowCurrent(IvPDomain gdomain) :
   m_osx  = 0;
   m_osy  = 0;
 
-  addInfoVars("NAV_X, NAV_Y,USM_FORCE_VECTOR");
+  addInfoVars("NAV_X, NAV_Y,USM_FORCE_VECTOR"); //will probably need to move this later
   cout << "constructed" << endl;
 }
 
@@ -101,8 +101,13 @@ IvPFunction *BHV_FollowCurrent::onRunState()
     return(0);
   }
 
-  std::string current_vec = getBufferStringVal("USM_FORCE_VECTOR", ok1);
-  cout << "found current vector : " << current_vec << endl;
+  string current_vec = getBufferStringVal("USM_FORCE_VECTOR", ok1);
+
+  string x_str, y_str;
+  if(parseCurrentVector(current_vec, x_str, y_str))
+    cout<< "returned true!" << endl;
+  
+  
   
   // Part 2: Determine if the vehicle has reached the destination 
   // point and if so, declare completion.
@@ -172,3 +177,10 @@ IvPFunction *BHV_FollowCurrent::buildFunctionWithZAIC()
   return(ivp_function);
 }
 
+//-----------------------------------------------------------
+// Procedure: parseCurrentString
+// notes: just a helper function, might be moved to external file if I make any more.
+
+bool BHV_FollowCurrent::parseCurrentVector(string vector, string& x_str, string& y_str){
+  return true;
+}
