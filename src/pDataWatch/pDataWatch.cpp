@@ -6,6 +6,8 @@
 // NJN:2014-12-10: Corrected some hi/lo threshold confusion... 
 //
 
+//SG 1/10/15: TODO: refactor to include function pointers to a user defined function? maybe that's doing too much? 
+
 
 #include <cmath>
 #include <ctime>
