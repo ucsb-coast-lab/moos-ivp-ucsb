@@ -60,7 +60,7 @@ void showExampleConfigAndExit()
 {
   blk("                                                                ");
   blu("=============================================================== ");
-  blu("pDatawatch Example MOOS Configuration                          ");
+  blu("pDataWatch Example MOOS Configuration                          ");
   blu("=============================================================== ");
   blk("                                                                ");
   blk("ProcessConfig = pDataWatch                                      ");
