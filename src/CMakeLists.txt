@@ -21,14 +21,14 @@ link_directories(${MOOSGeodesy_LIBRARY_PATH})
 #============================================================================
  ADD_SUBDIRECTORY(iAIS)
  ADD_SUBDIRECTORY(iRecon)
- ADD_SUBDIRECTORY(iGPSd)
+# ADD_SUBDIRECTORY(iGPSd)
  ADD_SUBDIRECTORY(pDataWatch)
  ADD_SUBDIRECTORY(uSimROMS3)
  ADD_SUBDIRECTORY(iWhoiMicroModem)
  ADD_SUBDIRECTORY(lib_YellowSubUtils)
  ADD_SUBDIRECTORY(uSendModemMsg)
  ADD_SUBDIRECTORY(pNodeZip)
- ADD_SUBDIRECTORY(lib_behavior-test)
+# ADD_SUBDIRECTORY(lib_behavior-test)
 ##############################################################################
 #                           END of CMakeLists.txt
 ##############################################################################
