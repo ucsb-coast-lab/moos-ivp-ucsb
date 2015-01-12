@@ -11,7 +11,7 @@ endif (${WIN32})
 
 SET(SRC
    USM_MOOSApp.h USM_MOOSApp.cpp
-   main.cpp
+   main.cpp USM_Info.cpp USM_Info.h
 )
 
 ADD_EXECUTABLE(uSendModemMsg ${SRC})
