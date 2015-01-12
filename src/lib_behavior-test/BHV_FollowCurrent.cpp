@@ -107,7 +107,10 @@ IvPFunction *BHV_FollowCurrent::onRunState()
   string x_str;
   string y_str;
   parseCurrentVector(current_vec, x_str, y_str);
-  
+
+  m_nextpt.shift_x(atof(x_str.c_str()));
+  m_nextpt.shift_y(atof(y_str.c_str()));
+ 
   
   
   // Part 2: Determine if the vehicle has reached the destination 
@@ -136,6 +139,11 @@ IvPFunction *BHV_FollowCurrent::onRunState()
     postWMessage("Problem Creating the IvP Function");
   if(ipf)
     ipf->setPWT(m_priority_wt);
+
+  m_nextpt.shift_x(-(atof(x_str.c_str())));
+  m_nextpt.shift_y(-(atof(y_str.c_str())));
+ 
+  
   
   return(ipf);
 }
