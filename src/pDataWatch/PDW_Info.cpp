@@ -13,7 +13,7 @@ void showSynopsis()
 {
   blk("SYNOPSIS:                                                       ");
   blk("------------------------------------                            ");
-  blk(" pDatawatch is a utility for analyzing data collected in real   ");
+  blk(" pDataWatch is a utility for analyzing data collected in real   ");
   blk(" time to adaptively change behavior mid-mission. at present     ");
   blk(" the app is hard coded to bounce back and forth between two     ");
   blk(" thresholds of salinity or some other scalar variable. In the   ");
@@ -28,7 +28,7 @@ void showHelpAndExit()
 {
   blk("                                                                ");
   blu("=============================================================== ");
-  blu("Usage: new pDatawatch file.moos [OPTIONS]                          ");
+  blu("Usage: new pDataWatch file.moos [OPTIONS]                          ");
   blu("=============================================================== ");
   blk("                                                                ");
   showSynopsis();
@@ -117,7 +117,7 @@ void showInterfaceAndExit()
 
 void showReleaseInfoAndExit()
 {
-  showReleaseInfo("new pDatawatch  ", "gpl");
+  showReleaseInfo("new pDataWatch  ", "gpl");
   exit(0);
 }
 
