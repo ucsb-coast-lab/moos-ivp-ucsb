@@ -1,5 +1,5 @@
 //NodeZip will take a standard node report and compress to less than 31 bytes (the maximum that can be sent to 
-//Callie acousticlly. it can be recovered by full by NodeUnZip.
+//Callie acoustically. it can be recovered in full by using this same process with the MODE param set to unzip
 
 #include "NZ_MOOSApp.h" 
 using namespace std;
@@ -97,9 +97,9 @@ bool NZ_MOOSApp::OnStartUp()
   // look for latitude, longitude global variables
   
   if(!m_MissionReader.GetValue("LatOrigin", latOrigin))
-    cout << "uSimROMS2: LatOrigin not set in *.moos file." << endl;
+    cout << "pNodeZip: LatOrigin not set in *.moos file." << endl;
   else if(!m_MissionReader.GetValue("LongOrigin", lonOrigin))
-    cout << "uSimROMS2: LongOrigin not set in *.moos file" << endl;
+    cout << "pNodeZip: LongOrigin not set in *.moos file" << endl;
   else
   geodesy.Initialise(latOrigin, lonOrigin);  //initializes the geodesy class 
 
@@ -135,7 +135,6 @@ void NZ_MOOSApp::RegisterVariables()
   if(zipping)
     m_Comms.Register(nodeReportVar, 0); // may change that zero later, or maybe change the APP/COMMS tick
   
-
   if(!zipping)
     m_Comms.Register(zipReportVar, 0);
 }
@@ -157,13 +156,11 @@ bool NZ_MOOSApp::OnDisconnectFromServer()
 
 bool NZ_MOOSApp::Iterate()
 {
-  
     if(zipping)
       ReportZip();
 
     if(!zipping)
-      ReportUnZip();
-  
+      ReportUnZip(); 
 }
 
 //------------------------------------------------------------------------
@@ -173,27 +170,7 @@ bool NZ_MOOSApp::ReportZip(){
   if(node_report.length() == 0){
     cout << "couldn't find node report with name : " << nodeReportVar << endl;
   }
-
-  //all of the ___pos variables should represent the position of the comma at the end of each field, though
-  //in hindsight it may have been more natural to make them correspond to the comma before the field. oh well
-  /*
-  int namepos = node_report.find_first_of(",", 0);
-  int xpos = node_report.find_first_of("," , namepos + 1);
-  int ypos = node_report.find_first_of("," , xpos + 1);
-  int spdpos = node_report.find_first_of(",", ypos + 1);
-  int hdgpos = node_report.find_first_of(",", spdpos + 1);
-  int deppos = node_report.find_first_of("," , hdgpos + 1);
-  int latpos = node_report.find_first_of("," , deppos + 1);
-  int lonpos = node_report.find_first_of("," , latpos + 1);
-  int typepos = node_report.find_first_of("," , lonpos + 1);
-  int modepos = node_report.find_first_of("," , typepos + 1);
-  int stoppos = node_report.find_first_of("," , modepos + 1);
-  int indexpos = node_report.find_first_of(",", stoppos + 1);
-  int yawpos = node_report.find_first_of("," ,indexpos + 1);
-  int timepos = node_report.find_first_of("," ,yawpos + 1);
-  int lengthpos = node_report.length();
-  */
-
+ 
   int namepos = node_report.find("NAME=", 0);
   int spdpos = node_report.find("SPD=", 0);
   int hdgpos = node_report.find("HDG=" , 0);
@@ -223,7 +200,7 @@ bool NZ_MOOSApp::ReportZip(){
      spdf*=10;
 
      stringstream ss;  //to_string is still not working
-     ss << (int) spdf; // aught to cut off the decimal if there is one
+     ss << (int) spdf; // ought to cut off the decimal if there is one
      spdfield = ss.str();
    
   
@@ -238,6 +215,15 @@ bool NZ_MOOSApp::ReportZip(){
 
   int decpos = latfield.find_first_of(".", 0);
   eqpos = latfield.find_first_of("=" , 0);
+
+
+  /*basically I'm assuming here the AUV won't be going on missions where it travels more than (worst case)50ish miles from the lat/long origin,
+  this allows us to chop off a the part of latitude/longitude before the decimal. however "crossing over" a degree of latitude or longitude can
+  occur at any distance, and will result in an inaccurate node report. the first number in the zipped lat/lon field encodes whether to add or
+  subtract from the lat/lon origin upon unzipping. of course moving 2 or more degrees away from the origin will still make problems, so if we
+  start running extremely long mission this section will need to be updated
+  */
+
   int biglat = atoi(latfield.substr(eqpos + 1, decpos - eqpos - 1).c_str());
      string firstdig;
      if (biglat > (int) latOrigin)
@@ -274,7 +260,7 @@ bool NZ_MOOSApp::ReportZip(){
 
  //------------------------------------------------------------------------
  //ReportUnZip
- //recovers a zipped node report
+ //recovers a zipped node report, assuming of course it was zipped by this same process 
 
 bool NZ_MOOSApp::ReportUnZip(){
 
@@ -298,6 +284,8 @@ bool NZ_MOOSApp::ReportUnZip(){
  string latfield = zip_report.substr(hdgpos + 1, latpos - hdgpos - 1);
  string lonfield = zip_report.substr(latpos +1, lonpos - latpos - 1);
 
+
+ //see comment in ReportZip method if the biglat / biglon stuff is confusing. 
  string biglat$;
  int biglat;
  if(latfield.compare(0 , 1 , "2" , 0 , 1) == 0)
@@ -317,7 +305,7 @@ bool NZ_MOOSApp::ReportUnZip(){
  if(lonfield.compare(0 , 1 , "2" , 0 , 1) == 0)
    biglon = (int) lonOrigin + 1;
  else if(lonfield.compare(0, 1 , "1" , 0 , 1) == 0)
-   biglon = (int) lonOrigin;
+   biglon = (int) lonOrigin - 1;
  else biglon = (int) lonOrigin;
 
  ss.str("");
@@ -359,7 +347,7 @@ bool NZ_MOOSApp::ReportUnZip(){
   ss << MOOSTime();
   string timefield = ss.str();
 
-
+  //making some conservative assumptions about the vehicle. 
   node_report = ("NAME=" + namefield + ",X=" + xfield + ",Y=" + yfield + ",SPD=" + spdfield + ",DEP=0"
                  + ",LAT=" + latfield + ",LON=" + lonfield + "TYPE=CONTACT,MODE=DRIVE,ALLSTOP=clear,index="
                  + indexfield + ",YAW=180,TIME=" + timefield + ",LENGTH=100");
@@ -368,7 +356,4 @@ bool NZ_MOOSApp::ReportUnZip(){
 
    return true;
 
-  
- 
-   
  }

@@ -17,6 +17,8 @@ SET(SRC
    NZ_MOOSApp.cpp
    NZ_MOOSApp.h
    main.cpp
+   NZ_Info.cpp
+   NZ_Info.h
 )
 
 ADD_EXECUTABLE(pNodeZip ${SRC})
