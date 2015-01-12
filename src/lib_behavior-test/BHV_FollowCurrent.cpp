@@ -18,20 +18,19 @@ using namespace std;
 BHV_FollowCurrent::BHV_FollowCurrent(IvPDomain gdomain) : 
   IvPBehavior(gdomain)
 {
-  IvPBehavior::setParam("name", "simple_waypoint");
+  IvPBehavior::setParam("name", "follow_current");
   m_domain = subDomain(m_domain, "course,speed");
 
   // All distances are in meters, all speed in meters per second
   // Default values for configuration parameters 
   m_desired_speed  = 0; 
   m_arrival_radius = 10;
-  m_ipf_type       = "zaic";
-
   // Default values for behavior state variables
   m_osx  = 0;
   m_osy  = 0;
 
-  addInfoVars("NAV_X, NAV_Y,USM_FORCE_VECTOR"); //will probably need to move this later
+
+  addInfoVars("NAV_X, NAV_Y"); //will probably need to move this later
   cout << "constructed" << endl;
 }
 
@@ -42,7 +41,6 @@ bool BHV_FollowCurrent::setParam(string param, string val)
 {
   // Convert the parameter to lower case for more general matching
   param = tolower(param);
-
   double double_val = atof(val.c_str());
   if((param == "ptx")  && (isNumber(val))) {
     m_nextpt.set_vx(double_val);
@@ -58,6 +56,11 @@ bool BHV_FollowCurrent::setParam(string param, string val)
   }
   else if((param == "radius") && (double_val > 0) && (isNumber(val))) {
     m_arrival_radius = double_val;
+    return(true);
+  }
+  else if(param == "current_var"){
+    m_invar = val;
+    addInfoVars(m_invar);
     return(true);
   }
   return(false);
@@ -90,8 +93,7 @@ void BHV_FollowCurrent::postViewPoint(bool viewable)
 // Procedure: onRunState
 
 IvPFunction *BHV_FollowCurrent::onRunState() 
-{
-
+{ 
   // Part 1: Get vehicle position from InfoBuffer and post a 
   // warning if problem is encountered
   bool ok1, ok2;
@@ -102,15 +104,17 @@ IvPFunction *BHV_FollowCurrent::onRunState()
     return(0);
   }
 
-  string current_vec = getBufferStringVal("USM_FORCE_VECTOR", ok1);
+  string current_vec = getBufferStringVal(m_invar, ok1);
+  
 
   string x_str;
   string y_str;
-  parseCurrentVector(current_vec, x_str, y_str);
-
-  m_nextpt.shift_x(atof(x_str.c_str()));
-  m_nextpt.shift_y(atof(y_str.c_str()));
- 
+  
+  if(ok1){
+    parseCurrentVector(current_vec, x_str, y_str); 
+    m_nextpt.shift_x(atof(x_str.c_str()));
+    m_nextpt.shift_y(atof(y_str.c_str()));
+  }
   
   
   // Part 2: Determine if the vehicle has reached the destination 
@@ -133,16 +137,18 @@ IvPFunction *BHV_FollowCurrent::onRunState()
   // Part 4: Build the IvP function with either the ZAIC tool 
   // or the Reflector tool.
   IvPFunction *ipf = 0;
-  if(m_ipf_type == "zaic")//took out reflector, still keeping this for now
+  
     ipf = buildFunctionWithZAIC();
+    
   if(ipf == 0) 
     postWMessage("Problem Creating the IvP Function");
   if(ipf)
     ipf->setPWT(m_priority_wt);
 
-  m_nextpt.shift_x(-(atof(x_str.c_str())));
-  m_nextpt.shift_y(-(atof(y_str.c_str())));
- 
+  if(ok1){
+    m_nextpt.shift_x(-(atof(x_str.c_str())));
+    m_nextpt.shift_y(-(atof(y_str.c_str())));
+  }
   
   
   return(ipf);
@@ -197,6 +203,6 @@ bool BHV_FollowCurrent::parseCurrentVector(string vector, string& x_str, string&
   int comma_pos = i;
   for(; i < vector.length(); i++);
   y_str = vector.substr((comma_pos + 1), (i - comma_pos));//a bit ugly, but it works
-  
+
   return true;
 }

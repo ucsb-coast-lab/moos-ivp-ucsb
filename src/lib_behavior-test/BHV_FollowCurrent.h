@@ -22,8 +22,7 @@ protected: // Configuration parameters
   double       m_arrival_radius;
   double       m_desired_speed;
   XYPoint      m_nextpt;
-  std::string  m_ipf_type;
-
+  std::string  m_invar;
 protected: // State variables
   double   m_osx;
   double   m_osy;
