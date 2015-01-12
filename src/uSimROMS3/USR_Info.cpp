@@ -64,10 +64,10 @@ void showExampleConfigAndExit()
 {
   blk("                                                                ");
   blu("=============================================================== ");
-  blu("uSimCurrent Example MOOS Configuration                          ");
+  blu("uSimROMS3 Example MOOS Configuration                            ");
   blu("=============================================================== ");
   blk("                                                                ");
-  blk("ProcessConfig = uSimCurrent                                     ");
+  blk("ProcessConfig = uSimROMS3                                       ");
   blk("{                                                               ");
   blk("  AppTick   = 4                                                 ");
   blk("  CommsTick = 4                                                 ");
@@ -96,7 +96,7 @@ void showInterfaceAndExit()
 {
   blk("                                                                ");
   blu("=============================================================== ");
-  blu("uSimCurrent INTERFACE                                           ");
+  blu("uSimROMS INTERFACE                                              ");
   blu("=============================================================== ");
   blk("                                                                ");
   showSynopsis();
