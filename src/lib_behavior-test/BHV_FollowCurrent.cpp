@@ -104,7 +104,7 @@ IvPFunction *BHV_FollowCurrent::onRunState()
     return(0);
   }
 
-  string current_vec = getBufferStringVal(m_invar, ok1);
+  string current_vec = getBufferStringVal(m_invar, ok1); //re assigns ok1
   
 
   string x_str;
@@ -115,7 +115,7 @@ IvPFunction *BHV_FollowCurrent::onRunState()
     m_nextpt.shift_x(atof(x_str.c_str()));
     m_nextpt.shift_y(atof(y_str.c_str()));
   }
-  
+  cout << "after shift: x = " << m_nextpt.x() << "  y = " << m_nextpt.y() << endl;
   
   // Part 2: Determine if the vehicle has reached the destination 
   // point and if so, declare completion.
@@ -149,7 +149,7 @@ IvPFunction *BHV_FollowCurrent::onRunState()
     m_nextpt.shift_x(-(atof(x_str.c_str())));
     m_nextpt.shift_y(-(atof(y_str.c_str())));
   }
-  
+  cout << "after shiftback: x = " << m_nextpt.x() << "  y = " << m_nextpt.y() << endl;
   
   return(ipf);
 }
