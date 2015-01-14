@@ -30,7 +30,7 @@ BHV_FollowCurrent::BHV_FollowCurrent(IvPDomain gdomain) :
   m_osy  = 0;
 
 
-  addInfoVars("NAV_X, NAV_Y"); //will probably need to move this later
+  addInfoVars("NAV_X, NAV_Y");
   cout << "constructed" << endl;
 }
 
@@ -44,10 +44,12 @@ bool BHV_FollowCurrent::setParam(string param, string val)
   double double_val = atof(val.c_str());
   if((param == "ptx")  && (isNumber(val))) {
     m_nextpt.set_vx(double_val);
+    m_origpt.set_vx(double_val);
     return(true);
   }
   else if((param == "pty") && (isNumber(val))) {
     m_nextpt.set_vy(double_val);
+    m_origpt.set_vy(double_val);
     return(true);
   }
   else if((param == "speed") && (double_val > 0) && (isNumber(val))) {
@@ -56,6 +58,7 @@ bool BHV_FollowCurrent::setParam(string param, string val)
   }
   else if((param == "radius") && (double_val > 0) && (isNumber(val))) {
     m_arrival_radius = double_val;
+    cout << "BHV_FollowCurrent : using " << m_arrival_radius << " as the radius" << endl; 
     return(true);
   }
   else if(param == "current_var"){
@@ -122,14 +125,18 @@ IvPFunction *BHV_FollowCurrent::onRunState()
 #ifdef WIN32
   double dist = _hypot((m_nextpt.x()-m_osx), (m_nextpt.y()-m_osy));
 #else
-  double dist = hypot((m_nextpt.x()-m_osx), (m_nextpt.y()-m_osy));
+  double dist = hypot((m_origpt.x()-m_osx), (m_origpt.y()-m_osy));
+  cout << "dist = " << dist << endl;
+  cout << "origpoint x , y = " << m_origpt.x() << " " << m_origpt.y() << endl;
+  cout << "osx = " << m_osx << endl;
+  cout << "osy = " << m_osy << endl;
 #endif
   if(dist <= m_arrival_radius) {
     setComplete();
+    cout << "all done!" << endl;
     postViewPoint(false);
     return(0);
   }
-
   // Part 3: Post the waypoint as a string for consumption by 
   // a viewer application.
   postViewPoint(true);
