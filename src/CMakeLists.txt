@@ -27,6 +27,7 @@ link_directories(${MOOSGeodesy_LIBRARY_PATH})
  ADD_SUBDIRECTORY(iWhoiMicroModem)
  ADD_SUBDIRECTORY(lib_YellowSubUtils)
  ADD_SUBDIRECTORY(uSendModemMsg)
+ ADD_SUBDIRECTORY(pSendModemMsg)
  ADD_SUBDIRECTORY(pNodeZip)
 # ADD_SUBDIRECTORY(lib_behavior-test)
 ##############################################################################
