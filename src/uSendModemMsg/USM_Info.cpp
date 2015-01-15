@@ -13,7 +13,7 @@ void showSynopsis()
 {
   blk("SYNOPSIS:                                                       ");
   blk("------------------------------------                            ");
-  blk("uSendModemMessage is a utility for sending custom messages over ");
+  blk("uSendModemMsg is a utility for sending custom messages over ");
   blk("a WHOI acoustic modem. it must be run in parallel with the      ");
   blk("iWhoiMicroModem process. supports packet types 0,2,and 6. the   ");
   blk("process converts your string into hex for you.                  ");
@@ -26,15 +26,15 @@ void showHelpAndExit()
 {
   blk("                                                                ");
   blu("=============================================================== ");
-  blu("Usage: new uSendModemMessage file.moos [OPTIONS]                          ");
+  blu("Usage: new uSendModemMsg file.moos [OPTIONS]                          ");
   blu("=============================================================== ");
   blk("                                                                ");
   showSynopsis();
   blk("                                                                ");
   blk("Options:                                                        ");
   mag("  --alias","=<ProcessName>                                      ");
-  blk("      Launch new uSendModemMessage with the given process name rather     ");
-  blk("      than new uSendModemMessage.                                         ");
+  blk("      Launch new uSendModemMsg with the given process name rather     ");
+  blk("      than new uSendModemMsg.                                         ");
   mag("  --example, -e                                                 ");
   blk("      Display example MOOS configuration block.                 ");
   mag("  --help, -h                                                    ");
@@ -42,7 +42,7 @@ void showHelpAndExit()
   mag("  --interface, -i                                               ");
   blk("      Display MOOS publications and subscriptions.              ");
   mag("  --version,-v                                                  ");
-  blk("      Display the release version of uSendModemMessage.               ");
+  blk("      Display the release version of uSendModemMsg.               ");
   blk("                                                                ");
   blk("Note: If argv[2] does not otherwise match a known option,       ");
   blk("      then it will be interpreted as a run alias. This is       ");
@@ -58,10 +58,10 @@ void showExampleConfigAndExit()
 {
   blk("                                                                ");
   blu("=============================================================== ");
-  blu("uSendModemMessage Example MOOS Configuration                          ");
+  blu("uSendModemMsg Example MOOS Configuration                          ");
   blu("=============================================================== ");
   blk("                                                                ");
-  blk("ProcessConfig = uSendModemMessage                               ");
+  blk("ProcessConfig = uSendModemMsg                               ");
   blk("{                                                               ");
   blk("  AppTick   = 4                                                 ");
   blk("  CommsTick = 4                                                 ");
@@ -84,7 +84,7 @@ void showInterfaceAndExit()
 {
   blk("                                                                ");
   blu("=============================================================== ");
-  blu("uSendModemMessage INTERFACE                                     ");
+  blu("uSendModemMsg INTERFACE                                     ");
   blu("=============================================================== ");
   blk("                                                                ");
   blk("                                                                ");
@@ -104,7 +104,7 @@ void showInterfaceAndExit()
 
 void showReleaseInfoAndExit()
 {
-  showReleaseInfo("new uSendModemMessage  ", "gpl");
+  showReleaseInfo("new uSendModemMsg  ", "gpl");
   exit(0);
 }
 
