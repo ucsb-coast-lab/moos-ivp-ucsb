@@ -1,6 +1,5 @@
 #--------------------------------------------------------
 # The CMakeLists.txt for:                    uSendModemMsg
-# Author(s):                                Mike Benjamin
 #--------------------------------------------------------
 
 # Set System Specific Libraries
@@ -15,7 +14,7 @@ endif (${WIN32})
 
 SET(SRC
    PSM_MOOSApp.h PSM_MOOSApp.cpp
-   main.cpp
+   main.cpp PSM_Info.cpp PSM_Info.h
 )
 
 ADD_EXECUTABLE(pSendModemMsg ${SRC})
