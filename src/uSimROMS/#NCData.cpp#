@@ -58,7 +58,7 @@ NCData::NCData()
 // notes: stores the 4 closest index pairs well as their distance from the given x , y coordinate. if no lat lon pairs are within 
 //        1 (may be lowered) then we assume we are outside the grid, and return false. this is very primitive
 //        (read: slow) right  now, but may be sped up later using a more sophisticated data structure if this
-//        way is not tenable.
+//        way is not tennable.
 
 bool NCData::LatLontoIndex(int eta[4], int xi[4], double dist[4], double x , double y)
 {

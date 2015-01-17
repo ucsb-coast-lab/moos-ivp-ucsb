@@ -42,7 +42,7 @@ bool ReadNcFile(std::string ncFileName, std::string varName); //this is defined 
  protected: // Configuration variables
 // std::string ncFileName;
 //  std::string varName; 
-  std::string maskRhoVarName;
+ std::string maskRhoVarName;
   std::string latVarName;
   std::string lonVarName;
   std::string timeVarName;

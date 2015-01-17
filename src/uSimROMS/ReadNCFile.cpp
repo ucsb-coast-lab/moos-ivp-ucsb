@@ -35,8 +35,22 @@ bool NCData::ReadNcFile(string ncFileName, string varName)
 
   
   //get the size of the array our variable is stored in, edge lengths apply to lat/lon and time variables too
-   long* edge;
+  long* edge;
+  edge =  scalar_var->edges();
   
+  time_vals = edge[0];
+  cout << "uSimROMS3: using "  << time_vals << " time values"  << endl;
+  
+  s_rho = edge[1];
+  cout << "uSimROMS3: using " << s_rho << " s values" << endl;
+    
+  eta_rho = edge[2];
+  cout << "uSimROMS3: using " << eta_rho << " eta values" << endl;
+  
+  xi_rho = edge[3];
+  cout << "uSimROMS3: using " << xi_rho << " xi_values" << endl;
+  
+   
   //find mask_rho variable
   NcVar* maskRho_var = File.get_var((const char*) maskRhoVarName.c_str()); 
   if(!(maskRho_var->is_valid())) //check if variable was valid
