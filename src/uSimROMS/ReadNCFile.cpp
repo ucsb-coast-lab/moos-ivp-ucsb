@@ -75,15 +75,15 @@ bool NCData::ReadNcFile(string ncFileName, string varName)
       cout << "NCData: error reading longitude variable, exiting" << endl;
       return false;
     }else cout << "NCData: longitude variable found" << endl;
-
+  
   //find time variable
   NcVar* time_var = File.get_var((const char*) timeVarName.c_str());
-    if(!(time_var->is_valid())) //check if variable was valid
+  if(!(time_var->is_valid())) //check if variable was valid
     {
       cout << "NCData: error reading time variable, exiting" << endl;
       return false;
     }else cout << "NCData: time variable found" << endl;
-
+  
   //find depth variable 
   NcVar* s_var = File.get_var((const char*) sVarName.c_str());
   if(!(s_var->is_valid()))
@@ -91,8 +91,8 @@ bool NCData::ReadNcFile(string ncFileName, string varName)
       cout << "NCData: error reading depth variable, exiting" << endl;
       return false;
     }else cout << "NCData: depth variable found" << endl;
-
-   NcVar* bathy_var = File.get_var((const char*) bathyVarName.c_str());
+  
+  NcVar* bathy_var = File.get_var((const char*) bathyVarName.c_str());
   if(!bathy_var->is_valid())
     {
       cout << "NCData: error reading bathymetry variable, exiting" << endl;
@@ -143,9 +143,9 @@ bool NCData::ReadNcFile(string ncFileName, string varName)
       maskRho_var->set_cur(j,0);
       maskRho_var->get(&maskRho[j][0], 1, xi_rho);
     }
-
+  
   cout << "NCData: land mask field populated" << endl;
-
+  
   //create lat array in local memory, read in lat values
   lat = new double* [eta_rho];
   for(int j = 0; j < eta_rho; j++)
