@@ -1,6 +1,6 @@
 #ifndef USC_MOOSAPP_HEADER
 #define USR_MOOSAPP_HEADER
-#include "NCData.h"
+
 #include <string>
 #include <string.h>//not totally sure why this needs to be here, but strcmp isn't found when it's not
 #include "MOOS/libMOOS/MOOSLib.h" 
@@ -14,27 +14,25 @@
 #include <fstream>
 
 
-class USR_MOOSApp : public CMOOSApp  
+class NCData  
 {
 public:
-  USR_MOOSApp();
-  virtual ~USR_MOOSApp() {};
-
+  NCData();
+  virtual ~NCData() {};
+/*
   bool Iterate();
   bool OnConnectToServer();
   bool OnDisconnectFromServer();
   bool OnStartUp();
   bool OnNewMail(MOOSMSG_LIST &NewMail);
-
- protected:
+*/
   void registerVariables();
   bool LatLontoIndex(int eta[4], int xi[4], double dist[4], double, double);
   bool LatlontoMeters();
   bool GetS_rho();
   double GetValue();
-  bool ReadNcFile(); //this is defined in a seperate file 
+bool ReadNcFile(std::string ncFileName, std::string varName); //this is defined in a seperate file 
   double GetValueAtTime(int);
-  double WeightedAvg(double*,double*, int*, int);
   bool GetTimeInfo();
   bool GetBathy(int eta[4], int xi[4], double dist[4], double &depth);
   bool GetSafeDepth();
@@ -42,8 +40,8 @@ public:
   
 
  protected: // Configuration variables
-  std::string ncFileName;
-  std::string varName; 
+// std::string ncFileName;
+//  std::string varName; 
   std::string maskRhoVarName;
   std::string latVarName;
   std::string lonVarName;
@@ -58,11 +56,6 @@ public:
   int eta_rho;//number of eta_rho points
   int xi_rho; //number of xi_rho points
 
-  //determines if the user wants to override the size of the matrix
-  bool time_override;
-  bool s_override;
-  bool eta_override;
-  bool xi_override;
   
   bool bathy_only;
 
@@ -121,13 +114,13 @@ public:
   double*      time;
   double*      s_values;
   
-  NCData ncdata;
+
 
   friend bool CMOOSGeodesy::LocalGrid2LatLong(double dfEast, double dfNorth, double &dfLat, double &dfLon) ;
 
 };
 
- 
+double WeightedAvg(double*,double*, int*, int); 
 
 
 #endif

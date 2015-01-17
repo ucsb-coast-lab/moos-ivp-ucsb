@@ -1,6 +1,6 @@
 #ifndef USC_MOOSAPP_HEADER
 #define USR_MOOSAPP_HEADER
-#include "NCData.h"
+
 #include <string>
 #include <string.h>//not totally sure why this needs to be here, but strcmp isn't found when it's not
 #include "MOOS/libMOOS/MOOSLib.h" 
@@ -121,7 +121,7 @@ public:
   double*      time;
   double*      s_values;
   
-  NCData ncdata;
+
 
   friend bool CMOOSGeodesy::LocalGrid2LatLong(double dfEast, double dfNorth, double &dfLat, double &dfLon) ;
 

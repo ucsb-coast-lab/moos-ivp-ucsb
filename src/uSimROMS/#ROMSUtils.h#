@@ -1,0 +1,3 @@
+//
+
+ bool ReadNcFile(); //this is defined in a seperate file 

@@ -12,6 +12,8 @@ SET(SRC
    USR_MOOSApp.h USR_MOOSApp.cpp
    USR_Info.h USR_Info.cpp
    main.cpp USR_ReadNCFile.cpp
+   NCData.cpp NCData.h
+   ReadNCFile.cpp
 )
 
 ADD_EXECUTABLE(uSimROMS ${SRC})

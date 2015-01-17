@@ -1,4 +1,4 @@
-//new uSimROMS reads in data from a specified NCFile that contains ROMS output. right now the program can only read
+//new uSimROMS3 reads in data from a specified NCFile that contains ROMS output. right now the program can only read
 //in scalar ROMS variables but this may be updated in future versions. the program first finds the 4 closest 
 //points to the current lat/lon position, and using depth and altitude finds the closest 2 depth levels. it then 
 // does an inverse weighted average of the values at all these points based on the distance from the current
@@ -87,7 +87,7 @@ bool USR_MOOSApp::OnNewMail(MOOSMSG_LIST &NewMail)
 
 bool USR_MOOSApp::OnStartUp()
 {
-  cout << "uSimROMS: SimROMS3 Starting" << endl;
+  cout << "uSimROMS3: SimROMS3 Starting" << endl;
   
   STRING_LIST sParams;
   m_MissionReader.GetConfiguration(GetAppName(), sParams);
@@ -106,11 +106,11 @@ bool USR_MOOSApp::OnStartUp()
      }
     if(param == "OUTPUT_VARIABLE"){  //defaults to SCALAR_VALUE
        scalarOutputVar = value;
-       cout << "uSimROMS: publishing under name: " << scalarOutputVar;
+       cout << "uSimROMS3: publishing under name: " << scalarOutputVar;
      }
     if(param == "SAFE_DEPTH_OUTPUT"){
       safeDepthVar = value;
-      cout << "uSimROMS: publishing safe depth under name: " << safeDepthVar << endl;
+      cout << "uSimROMS3: publishing safe depth under name: " << safeDepthVar << endl;
     }
     if(param == "SCALAR_VARIABLE"){  //e.g. salt or temprature
        varName = value;
@@ -133,11 +133,33 @@ bool USR_MOOSApp::OnStartUp()
     if(param == "BATHY_VARIABLE"){ //ditto LAT_VARIABLE
       bathyVarName = value;
     }
+    //for all the *_VALUES the program can find the number of variables automatically, so I wouldn't
+    //recommend messing with them unless you have a reason.
+    if(param == "TIME_VALUES"){  
+       time_vals = atoi(value.c_str());
+       cout << "uSimROMS3: manually overriding auto allocation : using " << time_vals << " time values " << endl;
+       time_override = true;
+     }
+     if(param == "DEPTH_VALUES"){
+       s_rho = atoi(value.c_str());
+       cout << "uSimROMS3: manually overriding auto allocation : using " << s_rho << "depth values " << endl;
+       s_override = true;
+     }
+     if(param == "ETA_VALUES"){
+       cout << "uSimROMS3: manaully overriding auto allocation : using " << value.c_str() << " eta values" << endl;
+       eta_rho = atoi(value.c_str());
+       eta_override = true;
+     }
+     if(param == "XI_VALUES"){
+       cout << "uSimROMS3: manually overriding auto allocation : using "   << value.c_str() << " xi values" << endl;
+       xi_rho = atoi(value.c_str());
+       xi_override = true;
+     }
      //this specifies the value that the ROMS file uses as a "bad" value, which for most applications is the
      //value the NC file uses to mean land , defaults to zero
      if(param == "BAD_VALUE"){
        bad_val = atof(value.c_str());
-       cout << "uSimROMS: using " << bad_val << " as the bad value" << endl;
+       cout << "uSimROMS3: using " << bad_val << " as the bad value" << endl;
      }
      //not currently implemeted 
      if(param == "BATHY_ONLY"){
@@ -147,32 +169,29 @@ bool USR_MOOSApp::OnStartUp()
      }
      if(param == "LOOK_FORWARD"){
        look_fwd = atof(value.c_str());
-       cout << "uSimROMS: using " << look_fwd << " as the LOOK_FORWARD distance" << endl; 
+       cout << "uSimROMS3: using " << look_fwd << " as the LOOK_FORWARD distance" << endl; 
      }
      
   }
   // look for latitude, longitude global variables
   double latOrigin, longOrigin;
   if(!m_MissionReader.GetValue("LatOrigin", latOrigin))
-    cout << "uSimROMS: LatOrigin not set in *.moos file." << endl;
+    cout << "uSimROMS3: LatOrigin not set in *.moos file." << endl;
   else if(!m_MissionReader.GetValue("LongOrigin", longOrigin))
-    cout << "uSimROMS: LongOrigin not set in *.moos file" << endl;
+    cout << "uSimROMS3: LongOrigin not set in *.moos file" << endl;
   else
-  geodesy.Initialise(latOrigin, longOrigin);  //initializes the geodesy class
+  geodesy.Initialise(latOrigin, longOrigin);  //initializes the geodesy class  
 
-   ncdata = NCData();
-
-   if(!ncdata.ReadNcFile(ncFileName, varName)){    //loads all the data into local memory that we can actually use
+  if(!ReadNcFile()){    //loads all the data into local memory that we can actually use
     std::exit(0);       //if we can't read the file, exit the program so it's clear something went wrong and
   }                     //so we don't publish misleading or dangerous values, not sure if MOOS applications have
                         //someway they are "supposed" to quit, but this works fine
                         
-  ncdata.ConvertToMeters();
+  ConvertToMeters();
 
   registerVariables();    
 
-  
-  cout << "uSimROMS: SimROMS3 started" << endl;
+  cout << "uSimROMS3: SimROMS3 started" << endl;
   return(true);
 }
 
@@ -183,7 +202,7 @@ bool USR_MOOSApp::OnStartUp()
 
 bool USR_MOOSApp::OnConnectToServer()
 {  
-  cout << "uSimROMS: SimROMS3 connected" << endl; 
+  cout << "uSimROMS3: SimROMS3 connected" << endl; 
   return(true);
 }
 
@@ -207,7 +226,7 @@ void USR_MOOSApp::registerVariables()
 
 bool USR_MOOSApp::OnDisconnectFromServer()
 {
-  cout << "uSimROMS: new uSimROMS is leaving" << endl;
+  cout << "uSimROMS3: new uSimROMS3 is leaving" << endl;
   return(true);
 }
 
@@ -219,28 +238,28 @@ bool USR_MOOSApp::Iterate()
 {
   double  value; 
   //cout << "USR: Getting time..." << endl;
-  ncdata.GetTimeInfo(); 
+  GetTimeInfo(); 
   //cout << "USR: REMUS_TIME: " << m_rTime.c_str() << " at index=" << time_step << endl;
   
   geodesy.LocalGrid2LatLong( m_posx,  m_posy, current_lat , current_lon );  //returns lat and lon
   //cout << "USR: converted lat/long to northing/easting" << endl;
 
 
-  if(!ncdata.LatLontoIndex(closest_eta , closest_xi, closest_distance, m_posx, m_posy)){  //returns eta and xi, returns false if we're outside the ROMS grid, in which case 
-    cout << "uSimROMS: no value found at current location" << endl;               //let the user know and don't publish
+  if(!LatLontoIndex(closest_eta , closest_xi, closest_distance, m_posx, m_posy)){  //returns eta and xi, returns false if we're outside the ROMS grid, in which case 
+    cout << "uSimROMS3: no value found at current location" << endl;               //let the user know and don't publish
     return false;
   }          
-  ncdata.GetBathy(closest_eta, closest_xi,closest_distance, floor_depth);
+  GetBathy(closest_eta, closest_xi,closest_distance, floor_depth);
   m_altitude = floor_depth - m_depth;     
-  ncdata.GetS_rho();
+  GetS_rho();
 
-  if(!ncdata.GetSafeDepth()){
+  if(!GetSafeDepth()){
     cout << "no value found at check location, refusing to publish new values" << endl; 
     return false;
   }
-  value = ncdata.GetValue();
+  value = GetValue();
   if(value == bad_val){  //if the value is good, go ahead and publish it
-    cout << "uSimROMS: all local values are bad, refusing to publish new values" << endl;
+    cout << "uSimROMS3: all local values are bad, refusing to publish new values" << endl;
     return false;
   }
   
@@ -251,7 +270,7 @@ bool USR_MOOSApp::Iterate()
   
   return(true);
 }
-/*
+
 //---------------------------------------------------------------------
 // Procedure: LatLongtoIndex
 // notes: stores the 4 closest index pairs well as their distance from the given x , y coordinate. if no lat lon pairs are within 
@@ -322,7 +341,7 @@ bool USR_MOOSApp::LatLontoIndex(int eta[4], int xi[4], double dist[4], double x 
   //if none of the values were close return false
   if(dist[0] ==  chk_dist || dist[1] == chk_dist || dist[2] == chk_dist || dist[1] == chk_dist)
     {
-     cout <<"uSimROMS: error : current lat lon pair not found in nc file " << endl;
+     cout <<"uSimROMS3: error : current lat lon pair not found in nc file " << endl;
      for(int i = 0; i < 4; i ++)
        {
        eta[i]  = 0; //these zeroes aren't used for anything, but having junk values is bad
@@ -466,7 +485,7 @@ double USR_MOOSApp::GetValue(){
   }else{//if no future time values exist, just average the values around us at the most recent time step
     value = GetValueAtTime(time_step);
     if(!time_message_posted){
-      cout << "uSimROMS: warning: current time is past the last time step, now using data only data from last time step" << endl;
+      cout << "uSimROMS3: warning: current time is past the last time step, now using data only data from last time step" << endl;
       time_message_posted = true; // we only want to give this warning once
     }
    }
@@ -521,7 +540,7 @@ double USR_MOOSApp::GetValueAtTime(int t){
   // Average the values at the two s_level
   value_t = WeightedAvg(s_z , dz , good_z, 2);
   if (value_t == bad_val){
-    cout << "uSimROMS: Bad value at time step " << time_step << endl;
+    cout << "uSimROMS3: Bad value at time step " << time_step << endl;
   }
   
   return value_t;
@@ -610,4 +629,3 @@ bool USR_MOOSApp::ConvertToMeters()
     }
   }
 }
-*/
