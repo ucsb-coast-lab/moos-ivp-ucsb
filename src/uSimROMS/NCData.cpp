@@ -43,7 +43,7 @@ NCData::NCData()
   bathyVarName = "h";
   scalarOutputVar = "SCALAR_VALUE";
   safeDepthVar = "SAFE_DEPTH";
-  look_fwd = 50;
+  //look_fwd = 50;
 
   time_message_posted = false;      
 
@@ -58,7 +58,7 @@ NCData::NCData()
 // notes: stores the 4 closest index pairs well as their distance from the given x , y coordinate. if no lat lon pairs are within 
 //        1 (may be lowered) then we assume we are outside the grid, and return false. this is very primitive
 //        (read: slow) right  now, but may be sped up later using a more sophisticated data structure if this
-//        way is not tennable.
+//        way is not tenable.
 
 bool NCData::LatLontoIndex(int eta[4], int xi[4], double dist[4], double x , double y)
 {
@@ -69,13 +69,16 @@ bool NCData::LatLontoIndex(int eta[4], int xi[4], double dist[4], double x , dou
     eta[i] = 0;
     xi[i] = 0;
     dist[i] = chk_dist;
-  }  
+  }
 
   //these nested fors go through the entire ROMS grid searching for the 4 closest index pairs to the current lat
   //lon coordinate.
   for(int j = 0; j < eta_rho; j++)
     {
       for(int i = 0; i < xi_rho; i++){
+	//cout << "seeing a distance of : " << pow(meters_n[j][i] - y,2) + pow(meters_e[j][i] - x, 2) < pow(dist[0],2) << endl;
+	//cout << "meters_n = " << meters_n[j][i] << endl;
+	//cout << "meters_e = " << meters_e[j][i] << endl;
        if(pow(meters_n[j][i] - y,2) + pow(meters_e[j][i] - x, 2) < pow(dist[0],2)){
 	dist[3] = dist[2];
 	   eta[3] = eta[2];
@@ -118,10 +121,10 @@ bool NCData::LatLontoIndex(int eta[4], int xi[4], double dist[4], double x , dou
     }     
 } 
 
-  // printf("distances in latlon to index\n: , %f %f %f %f" , dist[0], dist[1], dist[2], dist[3]);
+  printf("distances in latlon to index\n: , %f %f %f %f" , dist[0], dist[1], dist[2], dist[3]);
   //when the loop exits the index with the closest lat/lon pair to the current position will be in i and j 
   //if none of the values were close return false
-  if(dist[0] ==  chk_dist || dist[1] == chk_dist || dist[2] == chk_dist || dist[1] == chk_dist)
+  if(dist[0] ==  chk_dist || dist[1] == chk_dist || dist[2] == chk_dist || dist[3] == chk_dist)
     {
      cout <<"NCData: error : current lat lon pair not found in nc file " << endl;
      for(int i = 0; i < 4; i ++)
@@ -272,7 +275,6 @@ double NCData::GetValue(){
     }
    }
   return value;
-
 }
 //---------------------------------------------------------------------
 //GetValueAtTime
@@ -358,8 +360,8 @@ bool NCData::GetSafeDepth()
   int chk_xi[4];
   double chk_dist[4];
   double headRad = (90 - m_head)/180*3.1415; // convert from geo to math coords, then to radians
-  chk_x = look_fwd*cos(headRad) + m_posx;
-  chk_y = look_fwd*sin(headRad) + m_posy;
+  //chk_x = look_fwd*cos(headRad) + m_posx;
+  //chk_y = look_fwd*sin(headRad) + m_posy;
   LatLontoIndex(chk_eta, chk_xi, chk_dist, chk_x, chk_y);
   GetBathy(chk_eta, chk_xi, chk_dist, safe_depth);
   //cout << "Local bathy depth = " << floor_depth << endl;
@@ -383,6 +385,8 @@ bool NCData::ConvertToMeters()
   for(int j = 0; j < eta_rho; j++){
     for(int i = 0; i < xi_rho; i++){
       geodesy.LatLong2LocalGrid(lat[j][i], lon[j][i], meters_n[j][i], meters_e[j][i]);
+      cout << "meters_n " << meters_n[j][i] << endl;
+      cout << "meters_e " << meters_e[j][i] << endl;
     }
   }
 }

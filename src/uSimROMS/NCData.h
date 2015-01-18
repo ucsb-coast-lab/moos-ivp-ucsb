@@ -19,13 +19,6 @@ class NCData
 public:
   NCData();
   virtual ~NCData() {};
-/*
-  bool Iterate();
-  bool OnConnectToServer();
-  bool OnDisconnectFromServer();
-  bool OnStartUp();
-  bool OnNewMail(MOOSMSG_LIST &NewMail);
-*/
   void registerVariables();
   bool LatLontoIndex(int eta[4], int xi[4], double dist[4], double, double);
   bool LatlontoMeters();
@@ -39,10 +32,8 @@ bool ReadNcFile(std::string ncFileName, std::string varName); //this is defined 
   bool ConvertToMeters();
   
 
- protected: // Configuration variables
-// std::string ncFileName;
-//  std::string varName; 
- std::string maskRhoVarName;
+ protected: // Configuration variables 
+  std::string maskRhoVarName;
   std::string latVarName;
   std::string lonVarName;
   std::string timeVarName;
@@ -56,9 +47,6 @@ bool ReadNcFile(std::string ncFileName, std::string varName); //this is defined 
   int eta_rho;//number of eta_rho points
   int xi_rho; //number of xi_rho points
 
-  
-  bool bathy_only;
-
  protected: // State variables
 
   double start_time;
@@ -71,7 +59,6 @@ bool ReadNcFile(std::string ncFileName, std::string varName); //this is defined 
   double       m_head;
   std::string  m_rTime;
   double       floor_depth;
-  double       look_fwd; //distance forward (in meters) to check for dangerous bathymetry
   double       safe_depth; //deepest safe depth based on the distance in safe_dist
   double       m_altitude;    
 

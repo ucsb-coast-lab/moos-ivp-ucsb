@@ -87,7 +87,7 @@ bool USR_MOOSApp::OnNewMail(MOOSMSG_LIST &NewMail)
 
 bool USR_MOOSApp::OnStartUp()
 {
-  cout << "uSimROMS: SimROMS3 Starting" << endl;
+  cout << "uSimROMS: SimROMS Starting" << endl;
   
   STRING_LIST sParams;
   m_MissionReader.GetConfiguration(GetAppName(), sParams);
@@ -247,10 +247,7 @@ bool USR_MOOSApp::Iterate()
   //if nothing has failed we can safely publish
   Notify(safeDepthVar.c_str(), safe_depth);
   Notify(scalarOutputVar.c_str(), value);
-  //cout << "uSR: uSimROMS is publishing value :" << value << endl;
+  cout << "uSR: uSimROMS is publishing value :" << value << endl;
   
   return(true);
 }
-
-
-
