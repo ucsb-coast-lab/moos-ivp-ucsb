@@ -237,18 +237,18 @@ bool USR_MOOSApp::OnDisconnectFromServer()
 bool USR_MOOSApp::Iterate()
 {
   double  value; 
-  //cout << "USR: Getting time..." << endl;
+  cout << "USR: Getting time..." << endl;
   GetTimeInfo(); 
-  //cout << "USR: REMUS_TIME: " << m_rTime.c_str() << " at index=" << time_step << endl;
+  cout << "USR: REMUS_TIME: " << m_rTime.c_str() << " at index=" << time_step << endl;
   
   geodesy.LocalGrid2LatLong( m_posx,  m_posy, current_lat , current_lon );  //returns lat and lon
-  //cout << "USR: converted lat/long to northing/easting" << endl;
+  cout << "USR: converted lat/long to northing/easting" << endl;
 
 
   if(!LatLontoIndex(closest_eta , closest_xi, closest_distance, m_posx, m_posy)){  //returns eta and xi, returns false if we're outside the ROMS grid, in which case 
     cout << "uSimROMS3: no value found at current location" << endl;               //let the user know and don't publish
     return false;
-  }          
+  }
   GetBathy(closest_eta, closest_xi,closest_distance, floor_depth);
   m_altitude = floor_depth - m_depth;     
   GetS_rho();
@@ -257,16 +257,18 @@ bool USR_MOOSApp::Iterate()
     cout << "no value found at check location, refusing to publish new values" << endl; 
     return false;
   }
+
+  
   value = GetValue();
   if(value == bad_val){  //if the value is good, go ahead and publish it
     cout << "uSimROMS3: all local values are bad, refusing to publish new values" << endl;
     return false;
   }
-  
+
   //if nothing has failed we can safely publish
   Notify(safeDepthVar.c_str(), safe_depth);
   Notify(scalarOutputVar.c_str(), value);
-  //cout << "uSR: uSimROMS is publishing value :" << value << endl;
+  cout << "uSR: uSimROMS is publishing value :" << value << endl;
   
   return(true);
 }
@@ -447,15 +449,15 @@ bool USR_MOOSApp::GetTimeInfo(){
 
   // mktime converts to time_t
   current_time = difftime(mktime(remusTime), mktime(&epoch));
-  //cout << "USR::GetTimeInfo: current time = " << current_time << endl;
+  cout << "USR::GetTimeInfo: current time = " << current_time << endl;
 
   for(int i = 0; i < time_vals; i++){
-  //  cout << time[n] << endl;
+    cout << "time[" << i << "] = " << time[i] << endl;
     if(current_time > time[i]){
       time_step = i;
     }
   }
-  if (current_time > time[time_vals - 1]){ //if the current time is larger than the last time step then there are no
+  if (current_time > time[time_vals - 1] || time_vals == 1){ //if the current time is larger than the last time step then there are no
     more_time = false;                     //more time steps
   }else more_time = true;
   
@@ -471,10 +473,14 @@ bool USR_MOOSApp::GetTimeInfo(){
 //notes: gets values at both the two closest time steps and does an inverse weighted average on them
 double USR_MOOSApp::GetValue(){
   double value;
+  
   if(more_time){  //if theres more time we need to interpolate over time
+    //cout << "trying GetValueAtTime(time_step)" << endl;
+    //cout << "time_step = " << time_step << endl;
     double val1 = GetValueAtTime(time_step);
+    //cout << "time_step + 1 = " << time_step + 1<< endl;
+    //cout << "trying GetValueAtTime(time_step + 1)" << endl;
     double val2  = GetValueAtTime(time_step + 1);
-    
     if (val1 == bad_val || val2 == bad_val){ // if either of the values are bad, return bad so we don't publish bad data
       return bad_val;
     }
@@ -507,9 +513,10 @@ double USR_MOOSApp::GetValueAtTime(int t){
   double s_xy[4];
   int good_xy[4]; //keeps track of how many good values we have so they don't skew the returned value
   double value_t; // To be returned
-  
   for(int k = 0; k < s_rho; k++){
-    //    cout << "i,j,k: " << closest_xi[0] << ", " << closest_eta[0] << ", " << k << "; salt: " << vals[t][k][closest_eta[0]][closest_xi[0]] << endl; 
+    
+    //cout << "i,j,k: " << closest_xi[0] << ", " << closest_eta[0] << ", " << k << "; salt: " << vals[t][k][closest_eta[0]][closest_xi[0]] << endl;
+    //cout <<"but not here" << endl;
   }
   for(int k = 0; k < 2; k++){
     // Initialize
@@ -533,12 +540,13 @@ double USR_MOOSApp::GetValueAtTime(int t){
       good_z[k] = 1;
     }
   }
-
-  //cout << "uSR: s_z  " << s_z[0] << ", " << s_z[1] << endl;
-  //cout << "uSR: dz  " << dz[0] << ", " << dz[1] << endl;
-  //cout << "uSR: good_z  " << good_z[0] << ", " << good_z[1] << endl;
+  
+  // cout << "uSR: s_z  " << s_z[0] << ", " << s_z[1] << endl;
+  // cout << "uSR: dz  " << dz[0] << ", " << dz[1] << endl;
+  // cout << "uSR: good_z  " << good_z[0] << ", " << good_z[1] << endl;
   // Average the values at the two s_level
   value_t = WeightedAvg(s_z , dz , good_z, 2);
+  cout << "value_t : " << value_t << endl;
   if (value_t == bad_val){
     cout << "uSimROMS3: Bad value at time step " << time_step << endl;
   }
