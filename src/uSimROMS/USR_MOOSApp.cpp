@@ -30,27 +30,10 @@ USR_MOOSApp::USR_MOOSApp()
   m_posx     = 0;
   m_posy     = 0;
   m_depth    = 0;
-  m_head     = 0;
-  m_rTime = "2010-10-30 12:34:56";
   time_step = 0;
 
   //defualt values for things
-  maskRhoVarName = "mask_rho";        
-  latVarName = "lat_rho";        
-  lonVarName = "lon_rho";
-  sVarName = "s_rho";
-  timeVarName = "ocean_time";
-  bathyVarName = "h";
   scalarOutputVar = "SCALAR_VALUE";
-  safeDepthVar = "SAFE_DEPTH";
-  look_fwd = 50;
-
-  time_message_posted = false;      
-
-  time_override = false;
-  s_override = false;
-  eta_override = false;
-  xi_override = false;
 
   bad_val = -1;
 
@@ -74,9 +57,6 @@ bool USR_MOOSApp::OnNewMail(MOOSMSG_LIST &NewMail)
     if(key == "NAV_X") m_posx = dval; 
     else if(key == "NAV_Y") m_posy = dval;
     else if(key == "NAV_DEPTH") m_depth = dval;
-    else if(key == "NAV_HEADING") m_head = dval;
-    else if(key == "REMUS_TIME") m_rTime = sval;
-    
   }
     return(true);
 }
@@ -108,66 +88,31 @@ bool USR_MOOSApp::OnStartUp()
        scalarOutputVar = value;
        cout << "uSimROMS: publishing under name: " << scalarOutputVar;
      }
-    if(param == "SAFE_DEPTH_OUTPUT"){
-      safeDepthVar = value;
-      cout << "uSimROMS: publishing safe depth under name: " << safeDepthVar << endl;
-    }
+  
     if(param == "SCALAR_VARIABLE"){  //e.g. salt or temprature
        varName = value;
      }
-    if(param == "MASK_VARIABLE"){   //name of variable holding land mask = 0
-       maskRhoVarName = value;
-     }
-    if(param == "LAT_VARIABLE"){   //name of variable holding latitude data
-       latVarName = value;
-     }
-    if(param == "LON_VARIABLE"){ //ditto LAT_VARIABLE
-       lonVarName = value;
-     }
-    if(param == "TIME_VARIABLE"){ //ditto LAT_VARIABLE
-       timeVarName = value;
-     }
-    if(param == "DEPTH_VARIABLE"){ //ditto LAT_VARIABLE
-       sVarName = value;
-     }
-    if(param == "BATHY_VARIABLE"){ //ditto LAT_VARIABLE
-      bathyVarName = value;
-    }
      //this specifies the value that the ROMS file uses as a "bad" value, which for most applications is the
      //value the NC file uses to mean land , defaults to zero
      if(param == "BAD_VALUE"){
        bad_val = atof(value.c_str());
        cout << "uSimROMS: using " << bad_val << " as the bad value" << endl;
      }
-     //not currently implemeted 
-     if(param == "BATHY_ONLY"){
-       if (strcmp(value.c_str() , "TRUE") ==  0){
-	 bathy_only = true;
-       }else bathy_only = false;
-     }
-     if(param == "LOOK_FORWARD"){
-       look_fwd = atof(value.c_str());
-       cout << "uSimROMS: using " << look_fwd << " as the LOOK_FORWARD distance" << endl; 
-     }
      
   }
   // look for latitude, longitude global variables
   double latOrigin, longOrigin;
-  if(!m_MissionReader.GetValue("LatOrigin", latOrigin))
+  if(!m_MissionReader.GetValue("LatOrigin", latOrigin)){
     cout << "uSimROMS: LatOrigin not set in *.moos file." << endl;
-  else if(!m_MissionReader.GetValue("LongOrigin", longOrigin))
+    exit(0);
+  }
+  else if(!m_MissionReader.GetValue("LongOrigin", longOrigin)){
     cout << "uSimROMS: LongOrigin not set in *.moos file" << endl;
-  else
-  geodesy.Initialise(latOrigin, longOrigin);  //initializes the geodesy class
-
-   ncdata = NCData();
-
-   if(!ncdata.ReadNcFile(ncFileName, varName)){    //loads all the data into local memory that we can actually use
-    std::exit(0);       //if we can't read the file, exit the program so it's clear something went wrong and
-  }                     //so we don't publish misleading or dangerous values, not sure if MOOS applications have
-                        //someway they are "supposed" to quit, but this works fine
-                        
-  ncdata.ConvertToMeters();
+    exit(0);
+  }
+  
+  ncdata = NCData();
+  ncdata.Initialise(latOrigin, longOrigin, ncFileName, varName);
 
   registerVariables();    
 
@@ -196,7 +141,6 @@ void USR_MOOSApp::registerVariables()
   m_Comms.Register("NAV_X", 0);
   m_Comms.Register("NAV_Y", 0);
   m_Comms.Register("NAV_DEPTH", 0);
-  m_Comms.Register("NAV_ALTITUDE",0);
   m_Comms.Register("NAV_HEADING",0);
   m_Comms.Register("REMUS_TIME",0);
 }  
@@ -222,22 +166,21 @@ bool USR_MOOSApp::Iterate()
   ncdata.GetTimeInfo(); 
   //cout << "USR: REMUS_TIME: " << m_rTime.c_str() << " at index=" << time_step << endl;
   
-  geodesy.LocalGrid2LatLong( m_posx,  m_posy, current_lat , current_lon );  //returns lat and lon
+  // geodesy.LocalGrid2LatLong( m_posx,  m_posy, current_lat , current_lon );  //returns lat and lon
   //cout << "USR: converted lat/long to northing/easting" << endl;
 
 
-  if(!ncdata.LatLontoIndex(closest_eta , closest_xi, closest_distance, m_posx, m_posy)){  //returns eta and xi, returns false if we're outside the ROMS grid, in which case 
+  if(!ncdata.LatLontoIndex(m_posx, m_posy)){  //returns eta and xi, returns false if we're outside the ROMS grid, in which case 
     cout << "uSimROMS: no value found at current location" << endl;               //let the user know and don't publish
     return false;
-  }          
-  ncdata.GetBathy(closest_eta, closest_xi,closest_distance, floor_depth);
-  m_altitude = floor_depth - m_depth;     
-  ncdata.GetS_rho();
-
-  if(!ncdata.GetSafeDepth()){
-    cout << "no value found at check location, refusing to publish new values" << endl; 
-    return false;
   }
+
+  m_altitude = floor_depth - m_depth;
+  
+  ncdata.GetBathy(floor_depth);
+
+  ncdata.GetS_rho(m_depth, m_altitude);
+
   value = ncdata.GetValue();
   if(value == bad_val){  //if the value is good, go ahead and publish it
     cout << "uSimROMS: all local values are bad, refusing to publish new values" << endl;
@@ -245,7 +188,6 @@ bool USR_MOOSApp::Iterate()
   }
   
   //if nothing has failed we can safely publish
-  Notify(safeDepthVar.c_str(), safe_depth);
   Notify(scalarOutputVar.c_str(), value);
   cout << "uSR: uSimROMS is publishing value :" << value << endl;
   

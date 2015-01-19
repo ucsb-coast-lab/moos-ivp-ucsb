@@ -1,4 +1,4 @@
-#ifndef USC_MOOSAPP_HEADER
+#ifndef USR_MOOSAPP_HEADER
 #define USR_MOOSAPP_HEADER
 #include "NCData.h"
 #include <string>
@@ -28,58 +28,19 @@ public:
 
  protected:
   void registerVariables();
-  bool LatLontoIndex(int eta[4], int xi[4], double dist[4], double, double);
-  bool LatlontoMeters();
-  bool GetS_rho();
-  double GetValue();
-  bool ReadNcFile(); //this is defined in a seperate file 
-  double GetValueAtTime(int);
-  double WeightedAvg(double*,double*, int*, int);
-  bool GetTimeInfo();
-  bool GetBathy(int eta[4], int xi[4], double dist[4], double &depth);
-  bool GetSafeDepth();
-  bool ConvertToMeters();
-  
-
+ 
  protected: // Configuration variables
   std::string ncFileName;
   std::string varName; 
-  std::string maskRhoVarName;
-  std::string latVarName;
-  std::string lonVarName;
-  std::string timeVarName;
-  std::string sVarName;
-  std::string bathyVarName;
+
   std::string scalarOutputVar;
-  std::string safeDepthVar;
-
-  int time_vals; //number of time vals
-  int s_rho;  //number of s_rho points
-  int eta_rho;//number of eta_rho points
-  int xi_rho; //number of xi_rho points
-
-  //determines if the user wants to override the size of the matrix
-  bool time_override;
-  bool s_override;
-  bool eta_override;
-  bool xi_override;
-  
-  bool bathy_only;
 
  protected: // State variables
-
-  double start_time;
-  double current_time;
-
   // x/y positions, dpeth, and altitude of current location 
   double       m_posx;
   double       m_posy;
   double       m_depth;
-  double       m_head;
-  std::string  m_rTime;
   double       floor_depth;
-  double       look_fwd; //distance forward (in meters) to check for dangerous bathymetry
-  double       safe_depth; //deepest safe depth based on the distance in safe_dist
   double       m_altitude;    
 
   //current depth level, and distances to nearest s_levels

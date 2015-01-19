@@ -11,7 +11,7 @@ endif (${WIN32})
 SET(SRC
    USR_MOOSApp.h USR_MOOSApp.cpp
    USR_Info.h USR_Info.cpp
-   main.cpp USR_ReadNCFile.cpp
+   main.cpp 
    NCData.cpp NCData.h
    ReadNCFile.cpp
 )

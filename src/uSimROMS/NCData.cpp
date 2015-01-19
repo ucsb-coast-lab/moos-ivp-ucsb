@@ -22,14 +22,14 @@
 using namespace std;
 
 //------------------------------------------------------------------------
-// Constructor
+// Constructor, requires lat and lon origin
 
 NCData::NCData() 
 {
   // Initialize state vars
-  m_posx     = 0;
-  m_posy     = 0;
-  m_depth    = 0;
+  // m_posx     = 0;
+  // m_posy     = 0;
+  //m_depth    = 0;
   m_head     = 0;
   m_rTime = "2010-10-30 12:34:56";
   time_step = 0;
@@ -48,11 +48,21 @@ NCData::NCData()
   time_message_posted = false;      
 
   bad_val = -1;
-
- 
 }
 
 
+bool NCData::Initialise(double latOrigin, double longOrigin, string ncFileName, string varName){
+  geodesy.Initialise(latOrigin, longOrigin);
+
+  if(!ReadNcFile(ncFileName, varName)){
+    cout << "error readin NC file, exiting" << endl;//loads all the data into local memory that we can actually use
+    std::exit(0);       //if we can't read the file, exit the program so it's clear something went wrong and
+  }                     //so we don't publish misleading or dangerous values, not sure if MOOS applications have
+                        //someway they are "supposed" to quit, but this works fine
+  
+    ConvertToMeters();
+    return true;
+}
 //---------------------------------------------------------------------
 // Procedure: LatLongtoIndex
 // notes: stores the 4 closest index pairs well as their distance from the given x , y coordinate. if no lat lon pairs are within 
@@ -60,7 +70,7 @@ NCData::NCData()
 //        (read: slow) right  now, but may be sped up later using a more sophisticated data structure if this
 //        way is not tenable.
 
-bool NCData::LatLontoIndex(int eta[4], int xi[4], double dist[4], double x , double y)
+bool NCData::LatLontoIndex(double x , double y)
 {
 
   int chk_dist = 100000; //distance to check for grid points, if nothing pops up we assume we're outside the grid(hardcoded for now)
@@ -121,7 +131,7 @@ bool NCData::LatLontoIndex(int eta[4], int xi[4], double dist[4], double x , dou
     }     
 } 
 
-  printf("distances in latlon to index\n: , %f %f %f %f" , dist[0], dist[1], dist[2], dist[3]);
+  // printf("distances in latlon to index\n: , %f %f %f %f" , dist[0], dist[1], dist[2], dist[3]);
   //when the loop exits the index with the closest lat/lon pair to the current position will be in i and j 
   //if none of the values were close return false
   if(dist[0] ==  chk_dist || dist[1] == chk_dist || dist[2] == chk_dist || dist[3] == chk_dist)
@@ -142,13 +152,15 @@ bool NCData::LatLontoIndex(int eta[4], int xi[4], double dist[4], double x , dou
 //Procedure: GetS_rho
 //notes: takes altitude and depth along with data on s_values pulled fro the NC file to get the current s_rho coordinate
 // NJN: 2014/12/03: re-wrote routine to find nearest sigma levels
- bool NCData::GetS_rho(){
+bool NCData::GetS_rho(double depth, double altitude){
+   floor_depth = depth + altitude;
    double * s_depths = new double[s_rho];
    for(int i = 0; i < s_rho; i++){
      // sigma[0] = -1 = ocean bottom
      // sigma[s_rho] = 0 = free surface
-     s_depths[i] = -s_values[i] * floor_depth;  
-     //cout << s_depths[i] << endl;
+     s_depths[i] = -s_values[i] * floor_depth;
+     // cout << "floor depth : " << floor_depth << endl;
+     //cout << "s_depths : " << s_depths[i] << endl;
    }
 
    // Find last sigma level deeper than current depth
@@ -157,7 +169,7 @@ bool NCData::LatLontoIndex(int eta[4], int xi[4], double dist[4], double x , dou
    // s_level = 1 (that is: sigma[1] = 1.7 is the
    //                  last depth below.)
    int k = 0;
-   while ((k < s_rho) && (s_depths[k] > m_depth)){
+   while ((k < s_rho) && (s_depths[k] > depth)){
      k++;
    }
    s_level = k - 1;
@@ -165,17 +177,17 @@ bool NCData::LatLontoIndex(int eta[4], int xi[4], double dist[4], double x , dou
    // Check for the special cases of being above the surface bin
    // or below the bottom bin.
    if (s_level > 0){
-     distSigma = s_depths[s_level] - m_depth;
+     distSigma = s_depths[s_level] - depth;
    } else {
      distSigma = -1;
    }
    if (s_level == s_rho - 1){
      distSp1 = -1;
    }else{
-     distSp1 = m_depth - s_depths[s_level + 1];
+     distSp1 = depth - s_depths[s_level + 1];
    }
-
-   //   cout << "uSR: Vehicle depth " << m_depth << endl;
+   
+   //cout << "uSR: Vehicle depth " << depth << endl;
    //cout << "uSR: s_level       " << s_level << endl;
    //cout << "uSR: distSigma     " << distSigma << endl;
    //cout << "uSR: distSp1       " << distSp1 << endl;
@@ -203,22 +215,24 @@ bool NCData::GetTimeInfo(){
 
   std::time_t rt;
   std::time_t et;
-  struct tm * remusTime;
-  struct tm epoch;
+  struct tm *remusTime;
+  struct tm *epoch;
   double current_time;
   int year, month, day, hour, min, sec;
-  
+
+  rt = 1000;//have to initialize these to something 
+  et = 10000;
   //cout << "USR::GetTimeInfo: setting unix epoch" << endl;
-  epoch = *gmtime(&et);
-  epoch.tm_year = 1970 - 1900;
-  epoch.tm_mon = 1 - 1;
-  epoch.tm_mday = 1;
-  epoch.tm_hour = 0;
-  epoch.tm_min = 0;
-  epoch.tm_sec = 0;
+  epoch = gmtime(&et);
+  epoch->tm_year = 1970 - 1900;
+  epoch->tm_mon = 1 - 1;
+  epoch->tm_mday = 1;
+  epoch->tm_hour = 0;
+  epoch->tm_min = 0;
+  epoch->tm_sec = 0;
 
   //cout << "USR::GetTimeInfo: Adjusting REMUS time" << endl;
-  remusTime = std::gmtime(&rt);
+  remusTime = gmtime(&rt);
   sscanf(m_rTime.c_str(), "%d-%d-%d %d:%d:%d",&year,&month,&day,&hour,&min,&sec);
   remusTime->tm_hour = hour;
   remusTime->tm_min = min;
@@ -228,10 +242,10 @@ bool NCData::GetTimeInfo(){
   remusTime->tm_year = year - 1900;
   mktime(remusTime);
   //cout << "USR::GetTimeInfo: REMUS Time = " << asctime(remusTime);
-  //cout << "USR::GetTimeInfo: UNIX epoch = " << asctime(&epoch);
+  //cout << "USR::GetTimeInfo: UNIX epoch = " << asctime(epoch);
 
   // mktime converts to time_t
-  current_time = difftime(mktime(remusTime), mktime(&epoch));
+  current_time = difftime(mktime(remusTime), mktime(epoch));
   //cout << "USR::GetTimeInfo: current time = " << current_time << endl;
 
   for(int i = 0; i < time_vals; i++){
@@ -240,7 +254,7 @@ bool NCData::GetTimeInfo(){
       time_step = i;
     }
   }
-  if (current_time > time[time_vals - 1]){ //if the current time is larger than the last time step then there are no
+  if (current_time > time[time_vals - 1] || time_vals == 1){ //if the current time is larger than the last time step then there are no
     more_time = false;                     //more time steps
   }else more_time = true;
   
@@ -291,10 +305,11 @@ double NCData::GetValueAtTime(int t){
   double s_xy[4];
   int good_xy[4]; //keeps track of how many good values we have so they don't skew the returned value
   double value_t; // To be returned
-  
+  /* 
   for(int k = 0; k < s_rho; k++){
-    //    cout << "i,j,k: " << closest_xi[0] << ", " << closest_eta[0] << ", " << k << "; salt: " << vals[t][k][closest_eta[0]][closest_xi[0]] << endl; 
+       cout << "i,j,k: " << xi[0] << ", " << eta[0] << ", " << k << "; salt: " << vals[t][k][eta[0]][xi[0]] << endl; 
   }
+  */
   for(int k = 0; k < 2; k++){
     // Initialize
     for(int i = 0; i < 4; i++){
@@ -306,14 +321,14 @@ double NCData::GetValueAtTime(int t){
       // Find the four corners
       for(int i = 0; i < 4; i++){
 	// Check for Water = 1
-	if (maskRho[closest_eta[i]][closest_xi[i]]){
+	if (maskRho[eta[i]][xi[i]]){
 	  // Get the value
-	  s_xy[i] = vals[t][s_level + k][closest_eta[i]][closest_xi[i]];
+	  s_xy[i] = vals[t][s_level + k][eta[i]][xi[i]];
 	  good_xy[i] = 1;
 	}
       }
       // Average this level
-      s_z[k] = WeightedAvg(s_xy, closest_distance, good_xy, 4); 
+      s_z[k] = WeightedAvg(s_xy, dist, good_xy, 4); 
       good_z[k] = 1;
     }
   }
@@ -334,40 +349,19 @@ double NCData::GetValueAtTime(int t){
 //procedure : GetBathy
 //notes: gets the bathymetry at the current location. uses an inverse weighted average
 // NJN: 2014/12/03: Doesn't check for good values right now.
-//
-bool NCData::GetBathy(int eta[4], int xi[4], double dist[4], double &depth)
+//SG: for bathymetry bad values should only correspond to points off the grid entirely, including values under the land mask is purposeful.                                                            
+bool NCData::GetBathy(double &depth)
 {
   double local_depths[4];
   int good[4];
   for(int i = 0; i < 4; i++){
-    if (maskRho[eta[i]][xi[i]]){
       local_depths[i] = bathy[eta[i]] [xi[i]];
       good[i] = 1;
-    }
   }
-  depth = WeightedAvg(local_depths, closest_distance, good, 4);
+  
+  depth = WeightedAvg(local_depths, dist, good, 4);
 }
 
-
-//---------------------------------------------------------------------
-//procedure: GetSafeDepth
-//notes:interpolates the current best guess altitude with each of the 4 closest bathymetry points, it then returns the smallest depth found 
-//
-bool NCData::GetSafeDepth()
-{ 
-  int chk_x, chk_y;
-  int chk_eta[4];
-  int chk_xi[4];
-  double chk_dist[4];
-  double headRad = (90 - m_head)/180*3.1415; // convert from geo to math coords, then to radians
-  //chk_x = look_fwd*cos(headRad) + m_posx;
-  //chk_y = look_fwd*sin(headRad) + m_posy;
-  LatLontoIndex(chk_eta, chk_xi, chk_dist, chk_x, chk_y);
-  GetBathy(chk_eta, chk_xi, chk_dist, safe_depth);
-  //cout << "Local bathy depth = " << floor_depth << endl;
-  //cout << "Depth at " << look_fwd << " m ahead is " << safe_depth << endl;
-      
-}
 
 //---------------------------------------------------------------------
 //ConvertToMeters : converts the entire lat/lon grid in order to populate the northings and eastings grid
@@ -385,8 +379,8 @@ bool NCData::ConvertToMeters()
   for(int j = 0; j < eta_rho; j++){
     for(int i = 0; i < xi_rho; i++){
       geodesy.LatLong2LocalGrid(lat[j][i], lon[j][i], meters_n[j][i], meters_e[j][i]);
-      cout << "meters_n " << meters_n[j][i] << endl;
-      cout << "meters_e " << meters_e[j][i] << endl;
+      //cout << "meters_n " << meters_n[j][i] << endl;
+      //cout << "meters_e " << meters_e[j][i] << endl;
     }
   }
 }

@@ -1,5 +1,5 @@
-#ifndef USC_MOOSAPP_HEADER
-#define USR_MOOSAPP_HEADER
+#ifndef NCDATA_HEADER
+#define NCDATA_HEADER
 
 #include <string>
 #include <string.h>//not totally sure why this needs to be here, but strcmp isn't found when it's not
@@ -19,15 +19,15 @@ class NCData
 public:
   NCData();
   virtual ~NCData() {};
-  void registerVariables();
-  bool LatLontoIndex(int eta[4], int xi[4], double dist[4], double, double);
+  bool Initialise(double, double, std::string, std::string);
+  bool LatLontoIndex(double, double);
   bool LatlontoMeters();
-  bool GetS_rho();
+bool GetS_rho(double depth, double altitude);
   double GetValue();
-bool ReadNcFile(std::string ncFileName, std::string varName); //this is defined in a seperate file 
+  bool ReadNcFile(std::string ncFileName, std::string varName); //this is defined in a seperate file 
   double GetValueAtTime(int);
   bool GetTimeInfo();
-  bool GetBathy(int eta[4], int xi[4], double dist[4], double &depth);
+  bool GetBathy(double &depth);
   bool GetSafeDepth();
   bool ConvertToMeters();
   
@@ -52,7 +52,7 @@ bool ReadNcFile(std::string ncFileName, std::string varName); //this is defined 
   double start_time;
   double current_time;
 
-  // x/y positions, dpeth, and altitude of current location 
+  // x/y positions, depth, and altitude of current location 
   double       m_posx;
   double       m_posy;
   double       m_depth;
@@ -69,10 +69,10 @@ bool ReadNcFile(std::string ncFileName, std::string varName); //this is defined 
   bool         above_s_level;
   
   //closest 4 eta/xi pairs(so closest_eta[0] and closest_xi[0] form one pair)and the respecitve distances to them
-  int          closest_eta[4];
-  int          closest_xi[4];
-  double       closest_distance[4];
-  double       closest_dist_meters[4];
+  int          eta[4];
+  int          xi[4];
+  double       distance[4];
+  double       dist[4];
   
   //our current lon/lat coordinate
   double       current_lat;
