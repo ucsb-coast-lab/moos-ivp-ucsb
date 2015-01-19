@@ -69,7 +69,6 @@ bool NCData::Initialise(double latOrigin, double longOrigin, string ncFileName, 
 bool NCData::Update(double x, double y, double h, double time){
   //cout << debugName<< "USR: Getting time..." << endl;
 
-  double value;
   GetTimeInfo(time); 
   
   
@@ -82,8 +81,8 @@ bool NCData::Update(double x, double y, double h, double time){
   m_altitude = floor_depth - h;
   GetS_rho(h, m_altitude);
 
-  value = CalcValue();
-  if(value == bad_val){  //if the value is good, go ahead and publish it
+  m_value = CalcValue();
+  if(m_value == bad_val){  //if the value is good, go ahead and publish it
     cout << debugName<< ":NCData: all local values are bad, refusing to publish new values" << endl;
     return false;
   }
