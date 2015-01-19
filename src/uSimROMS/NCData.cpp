@@ -27,14 +27,10 @@ using namespace std;
 NCData::NCData() 
 {
   // Initialize state vars
-  // m_posx     = 0;
-  // m_posy     = 0;
-  //m_depth    = 0;
-  m_head     = 0;
-  m_rTime = "2010-10-30 12:34:56";
+
   time_step = 0;
 
-  //defualt values for things
+  //default values for things
   maskRhoVarName = "mask_rho";        
   latVarName = "lat_rho";        
   lonVarName = "lon_rho";
@@ -50,12 +46,16 @@ NCData::NCData()
   bad_val = -1;
 }
 
+//---------------------------------------------------------------------
+// Procedure : Initialise
+ //notes : takes origin coordinates, and reads nc data into local memory. the debug name parameter is the name used
+ //        when printing debug info to the console
 
-bool NCData::Initialise(double latOrigin, double longOrigin, string ncFileName, string varName){
+bool NCData::Initialise(double latOrigin, double longOrigin, string ncFileName, string varName, string debugName){
   geodesy.Initialise(latOrigin, longOrigin);
 
   if(!ReadNcFile(ncFileName, varName)){
-    cout << "error readin NC file, exiting" << endl;//loads all the data into local memory that we can actually use
+    cout << debugName << ":NCData: error reading NC file, exiting" << endl;//loads all the data into local memory that we can actually use
     std::exit(0);       //if we can't read the file, exit the program so it's clear something went wrong and
   }                     //so we don't publish misleading or dangerous values, not sure if MOOS applications have
                         //someway they are "supposed" to quit, but this works fine
@@ -63,6 +63,48 @@ bool NCData::Initialise(double latOrigin, double longOrigin, string ncFileName, 
     ConvertToMeters();
     return true;
 }
+//--------------------------------------------------------------------
+//Procedure: Update
+//notes: takes a position and time and updates the current state of the nc data.
+bool NCData::Update(double x, double y, double h, double time){
+  //cout << debugName<< "USR: Getting time..." << endl;
+
+  double value;
+  GetTimeInfo(time); 
+  
+  
+  if(!LatLontoIndex(x, y)){  //returns eta and xi, returns false if we're outside the ROMS grid, in which case 
+    cout << debugName<< ":NCData: no value found at current location" << endl;               //let the user know and don't publish
+    return false;
+  }
+
+  GetBathy();
+  m_altitude = floor_depth - h;
+  GetS_rho(h, m_altitude);
+
+  value = CalcValue();
+  if(value == bad_val){  //if the value is good, go ahead and publish it
+    cout << debugName<< ":NCData: all local values are bad, refusing to publish new values" << endl;
+    return false;
+  }
+ 
+}
+
+//---------------------------------------------------------------------
+// getter methods, call to return values after an update
+double NCData::GetValue(){
+  return m_value;
+}
+
+double NCData::GetAltitude(){
+  return m_altitude;
+}
+
+double NCData::GetFloorDepth(){
+  return floor_depth;
+}
+
+
 //---------------------------------------------------------------------
 // Procedure: LatLongtoIndex
 // notes: stores the 4 closest index pairs well as their distance from the given x , y coordinate. if no lat lon pairs are within 
@@ -86,9 +128,9 @@ bool NCData::LatLontoIndex(double x , double y)
   for(int j = 0; j < eta_rho; j++)
     {
       for(int i = 0; i < xi_rho; i++){
-	//cout << "seeing a distance of : " << pow(meters_n[j][i] - y,2) + pow(meters_e[j][i] - x, 2) < pow(dist[0],2) << endl;
-	//cout << "meters_n = " << meters_n[j][i] << endl;
-	//cout << "meters_e = " << meters_e[j][i] << endl;
+	//cout << debugName<< "seeing a distance of : " << pow(meters_n[j][i] - y,2) + pow(meters_e[j][i] - x, 2) < pow(dist[0],2) << endl;
+	//cout << debugName<< "meters_n = " << meters_n[j][i] << endl;
+	//cout << debugName<< "meters_e = " << meters_e[j][i] << endl;
        if(pow(meters_n[j][i] - y,2) + pow(meters_e[j][i] - x, 2) < pow(dist[0],2)){
 	dist[3] = dist[2];
 	   eta[3] = eta[2];
@@ -136,7 +178,7 @@ bool NCData::LatLontoIndex(double x , double y)
   //if none of the values were close return false
   if(dist[0] ==  chk_dist || dist[1] == chk_dist || dist[2] == chk_dist || dist[3] == chk_dist)
     {
-     cout <<"NCData: error : current lat lon pair not found in nc file " << endl;
+     cout << debugName<<":NCData: error : current lat lon pair not found in nc file " << endl;
      for(int i = 0; i < 4; i ++)
        {
        eta[i]  = 0; //these zeroes aren't used for anything, but having junk values is bad
@@ -150,7 +192,7 @@ bool NCData::LatLontoIndex(double x , double y)
 
 //----------------------------------------------------------------------
 //Procedure: GetS_rho
-//notes: takes altitude and depth along with data on s_values pulled fro the NC file to get the current s_rho coordinate
+//notes: takes altitude and depth along with data on s_values pulled from the NC file to get the current s_rho coordinate
 // NJN: 2014/12/03: re-wrote routine to find nearest sigma levels
 bool NCData::GetS_rho(double depth, double altitude){
    floor_depth = depth + altitude;
@@ -159,8 +201,8 @@ bool NCData::GetS_rho(double depth, double altitude){
      // sigma[0] = -1 = ocean bottom
      // sigma[s_rho] = 0 = free surface
      s_depths[i] = -s_values[i] * floor_depth;
-     // cout << "floor depth : " << floor_depth << endl;
-     //cout << "s_depths : " << s_depths[i] << endl;
+     // cout << debugName<< "floor depth : " << floor_depth << endl;
+     //cout << debugName<< "s_depths : " << s_depths[i] << endl;
    }
 
    // Find last sigma level deeper than current depth
@@ -187,10 +229,10 @@ bool NCData::GetS_rho(double depth, double altitude){
      distSp1 = depth - s_depths[s_level + 1];
    }
    
-   //cout << "uSR: Vehicle depth " << depth << endl;
-   //cout << "uSR: s_level       " << s_level << endl;
-   //cout << "uSR: distSigma     " << distSigma << endl;
-   //cout << "uSR: distSp1       " << distSp1 << endl;
+   //cout << debugName<< ": NCData: Vehicle depth " << depth << endl;
+   //cout << debugName<< ": NCData: s_level       " << s_level << endl;
+   //cout << debugName<< ": NCData: distSigma     " << distSigma << endl;
+   //cout << debugName<< ": NCData: distSp1       " << distSp1 << endl;
    return true;
  }
 
@@ -199,57 +241,10 @@ bool NCData::GetS_rho(double depth, double altitude){
 //GetTimeInfo
 // notes: should check if there are any more time values, determine the current time step, and the time difference 
 //        between the current time and the two nearest time steps.
-bool NCData::GetTimeInfo(){
-
-  // NJN: 20141210: -This was getting the current time to index into
-  //                the ROMS file, but it was getting the MOOStime, 
-  //                not the time that's on REMUS. 
-  //                -Also, without an argument, MOOSTime returns the 
-  //                current time (in UNIX) times the warp.
-  //                -I'll leave this here for debugging.
-  //double current_time = MOOSTime(false);  
-  //std::time_t t = static_cast<time_t>(current_time);
-  //struct tm * moosTime;
-  //moosTime = std::gmtime( &t);
-  //cout << "MOOS Time:  " << asctime(moosTime);
-
-  std::time_t rt;
-  std::time_t et;
-  struct tm *remusTime;
-  struct tm *epoch;
-  double current_time;
-  int year, month, day, hour, min, sec;
-
-  rt = 1000;//have to initialize these to something 
-  et = 10000;
-  //cout << "USR::GetTimeInfo: setting unix epoch" << endl;
-  epoch = gmtime(&et);
-  epoch->tm_year = 1970 - 1900;
-  epoch->tm_mon = 1 - 1;
-  epoch->tm_mday = 1;
-  epoch->tm_hour = 0;
-  epoch->tm_min = 0;
-  epoch->tm_sec = 0;
-
-  //cout << "USR::GetTimeInfo: Adjusting REMUS time" << endl;
-  remusTime = gmtime(&rt);
-  sscanf(m_rTime.c_str(), "%d-%d-%d %d:%d:%d",&year,&month,&day,&hour,&min,&sec);
-  remusTime->tm_hour = hour;
-  remusTime->tm_min = min;
-  remusTime->tm_sec = sec;
-  remusTime->tm_mday = day;
-  remusTime->tm_mon = month - 1;
-  remusTime->tm_year = year - 1900;
-  mktime(remusTime);
-  //cout << "USR::GetTimeInfo: REMUS Time = " << asctime(remusTime);
-  //cout << "USR::GetTimeInfo: UNIX epoch = " << asctime(epoch);
-
-  // mktime converts to time_t
-  current_time = difftime(mktime(remusTime), mktime(epoch));
-  //cout << "USR::GetTimeInfo: current time = " << current_time << endl;
+bool NCData::GetTimeInfo(double current_time){
 
   for(int i = 0; i < time_vals; i++){
-  //  cout << time[n] << endl;
+    //  cout << debugName<< " : NCData" << time[n] << endl;
     if(current_time > time[i]){
       time_step = i;
     }
@@ -268,7 +263,7 @@ bool NCData::GetTimeInfo(){
 //---------------------------------------------------------------------
 //GetValue
 //notes: gets values at both the two closest time steps and does an inverse weighted average on them
-double NCData::GetValue(){
+double NCData::CalcValue(){
   double value;
   if(more_time){  //if theres more time we need to interpolate over time
     double val1 = GetValueAtTime(time_step);
@@ -284,7 +279,7 @@ double NCData::GetValue(){
   }else{//if no future time values exist, just average the values around us at the most recent time step
     value = GetValueAtTime(time_step);
     if(!time_message_posted){
-      cout << "NCData: warning: current time is past the last time step, now using data only data from last time step" << endl;
+      cout << debugName<< " : NCData: warning: current time is past the last time step, now using data only data from last time step" << endl;
       time_message_posted = true; // we only want to give this warning once
     }
    }
@@ -307,7 +302,7 @@ double NCData::GetValueAtTime(int t){
   double value_t; // To be returned
   /* 
   for(int k = 0; k < s_rho; k++){
-       cout << "i,j,k: " << xi[0] << ", " << eta[0] << ", " << k << "; salt: " << vals[t][k][eta[0]][xi[0]] << endl; 
+       cout << debugName << ":i,j,k: " << xi[0] << ", " << eta[0] << ", " << k << "; salt: " << vals[t][k][eta[0]][xi[0]] << endl; 
   }
   */
   for(int k = 0; k < 2; k++){
@@ -333,13 +328,13 @@ double NCData::GetValueAtTime(int t){
     }
   }
 
-  //cout << "uSR: s_z  " << s_z[0] << ", " << s_z[1] << endl;
-  //cout << "uSR: dz  " << dz[0] << ", " << dz[1] << endl;
-  //cout << "uSR: good_z  " << good_z[0] << ", " << good_z[1] << endl;
+  //cout << debugName<< ":NCData: s_z  " << s_z[0] << ", " << s_z[1] << endl;
+  //cout << debugName<< ":NCData: dz  " << dz[0] << ", " << dz[1] << endl;
+  //cout << debugName<< ":NCData: good_z  " << good_z[0] << ", " << good_z[1] << endl;
   // Average the values at the two s_level
   value_t = WeightedAvg(s_z , dz , good_z, 2);
   if (value_t == bad_val){
-    cout << "NCData: Bad value at time step " << time_step << endl;
+    cout << debugName<< ":NCData: Bad value at time step " << time_step << endl;
   }
   
   return value_t;
@@ -350,7 +345,7 @@ double NCData::GetValueAtTime(int t){
 //notes: gets the bathymetry at the current location. uses an inverse weighted average
 // NJN: 2014/12/03: Doesn't check for good values right now.
 //SG: for bathymetry bad values should only correspond to points off the grid entirely, including values under the land mask is purposeful.                                                            
-bool NCData::GetBathy(double &depth)
+bool NCData::GetBathy()
 {
   double local_depths[4];
   int good[4];
@@ -359,7 +354,7 @@ bool NCData::GetBathy(double &depth)
       good[i] = 1;
   }
   
-  depth = WeightedAvg(local_depths, dist, good, 4);
+  floor_depth = WeightedAvg(local_depths, dist, good, 4);
 }
 
 
@@ -379,8 +374,8 @@ bool NCData::ConvertToMeters()
   for(int j = 0; j < eta_rho; j++){
     for(int i = 0; i < xi_rho; i++){
       geodesy.LatLong2LocalGrid(lat[j][i], lon[j][i], meters_n[j][i], meters_e[j][i]);
-      //cout << "meters_n " << meters_n[j][i] << endl;
-      //cout << "meters_e " << meters_e[j][i] << endl;
+      //cout << debugName << ": meters_n " << meters_n[j][i] << endl;
+      //cout << debugName << ": meters_e " << meters_e[j][i] << endl;
     }
   }
 }

@@ -30,14 +30,12 @@ USR_MOOSApp::USR_MOOSApp()
   m_posx     = 0;
   m_posy     = 0;
   m_depth    = 0;
-  time_step = 0;
-
+  m_rTime = "2010-10-30 12:34:56";
   //defualt values for things
   scalarOutputVar = "SCALAR_VALUE";
 
   bad_val = -1;
 
- 
 }
 
 //------------------------------------------------------------------------
@@ -63,7 +61,7 @@ bool USR_MOOSApp::OnNewMail(MOOSMSG_LIST &NewMail)
 
 //------------------------------------------------------------------------
 // Procedure: OnStartUp
-//      Note: initializes paramters based on what it finds in the moos file
+//      Note: initializes parameters based on what it finds in the moos file
 
 bool USR_MOOSApp::OnStartUp()
 {
@@ -88,7 +86,6 @@ bool USR_MOOSApp::OnStartUp()
        scalarOutputVar = value;
        cout << "uSimROMS: publishing under name: " << scalarOutputVar;
      }
-  
     if(param == "SCALAR_VARIABLE"){  //e.g. salt or temprature
        varName = value;
      }
@@ -112,7 +109,7 @@ bool USR_MOOSApp::OnStartUp()
   }
   
   ncdata = NCData();
-  ncdata.Initialise(latOrigin, longOrigin, ncFileName, varName);
+  ncdata.Initialise(latOrigin, longOrigin, ncFileName, varName, "uSimROMS");
 
   registerVariables();    
 
@@ -140,8 +137,7 @@ void USR_MOOSApp::registerVariables()
 {
   m_Comms.Register("NAV_X", 0);
   m_Comms.Register("NAV_Y", 0);
-  m_Comms.Register("NAV_DEPTH", 0);
-  m_Comms.Register("NAV_HEADING",0);
+  m_Comms.Register("NAV_DEPTH", 0);;
   m_Comms.Register("REMUS_TIME",0);
 }  
 
@@ -162,34 +158,63 @@ bool USR_MOOSApp::OnDisconnectFromServer()
 bool USR_MOOSApp::Iterate()
 {
   double  value; 
-  //cout << "USR: Getting time..." << endl;
-  ncdata.GetTimeInfo(); 
-  //cout << "USR: REMUS_TIME: " << m_rTime.c_str() << " at index=" << time_step << endl;
-  
-  // geodesy.LocalGrid2LatLong( m_posx,  m_posy, current_lat , current_lon );  //returns lat and lon
-  //cout << "USR: converted lat/long to northing/easting" << endl;
-
-
-  if(!ncdata.LatLontoIndex(m_posx, m_posy)){  //returns eta and xi, returns false if we're outside the ROMS grid, in which case 
-    cout << "uSimROMS: no value found at current location" << endl;               //let the user know and don't publish
-    return false;
-  }
-
-  m_altitude = floor_depth - m_depth;
-  
-  ncdata.GetBathy(floor_depth);
-
-  ncdata.GetS_rho(m_depth, m_altitude);
-
+  ncdata.Update(m_posx , m_posy, m_depth, m_current_time);
   value = ncdata.GetValue();
-  if(value == bad_val){  //if the value is good, go ahead and publish it
-    cout << "uSimROMS: all local values are bad, refusing to publish new values" << endl;
-    return false;
-  }
   
   //if nothing has failed we can safely publish
   Notify(scalarOutputVar.c_str(), value);
-  cout << "uSR: uSimROMS is publishing value :" << value << endl;
+  cout << "uSimROMS: publishing value :" << value << endl;
   
   return(true);
+}
+    
+bool USR_MOOSApp::AdjustTime()
+{
+  
+  // NJN: 20141210: -This was getting the current time to index into
+  //                the ROMS file, but it was getting the MOOStime, 
+  //                not the time that's on REMUS. 
+  //                -Also, without an argument, MOOSTime returns the 
+  //                current time (in UNIX) times the warp.
+  //                -I'll leave this here for debugging.
+  //double current_time = MOOSTime(false);  
+  //std::time_t t = static_cast<time_t>(current_time);
+  //struct tm * moosTime;
+  //moosTime = std::gmtime( &t);
+  //cout << debugName<< "MOOS Time:  " << asctime(moosTime);
+
+  std::time_t rt;
+  std::time_t et;
+  struct tm *remusTime;
+  struct tm *epoch;
+  double current_time;
+  int year, month, day, hour, min, sec;
+
+  rt = 1000;//have to initialize these to something 
+  et = 10000;
+  //cout << debugName<< "NCData::GetTimeInfo: setting unix epoch" << endl;
+  epoch = gmtime(&et);
+  epoch->tm_year = 1970 - 1900;
+  epoch->tm_mon = 1 - 1;
+  epoch->tm_mday = 1;
+  epoch->tm_hour = 0;
+  epoch->tm_min = 0;
+  epoch->tm_sec = 0;
+
+  //cout << debugName<< "NCData::GetTimeInfo: Adjusting REMUS time" << endl;
+  remusTime = gmtime(&rt);
+  sscanf(m_rTime.c_str(), "%d-%d-%d %d:%d:%d",&year,&month,&day,&hour,&min,&sec);
+  remusTime->tm_hour = hour;
+  remusTime->tm_min = min;
+  remusTime->tm_sec = sec;
+  remusTime->tm_mday = day;
+  remusTime->tm_mon = month - 1;
+  remusTime->tm_year = year - 1900;
+   mktime(remusTime);
+  //cout << debugName<< "NCData::GetTimeInfo: REMUS Time = " << asctime(remusTime);
+  //cout << debugName<< "NCData::GetTimeInfo: UNIX epoch = " << asctime(epoch);
+
+  // mktime converts to time_t
+  m_current_time = difftime(mktime(remusTime), mktime(epoch));
+  //cout << debugName<< "NCData::GetTimeInfo: current time = " << current_time << endl;
 }

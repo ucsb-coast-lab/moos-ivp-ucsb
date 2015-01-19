@@ -19,15 +19,21 @@ class NCData
 public:
   NCData();
   virtual ~NCData() {};
-  bool Initialise(double, double, std::string, std::string);
+  bool Initialise(double, double, std::string, std::string, std::string);
   bool LatLontoIndex(double, double);
   bool LatlontoMeters();
-bool GetS_rho(double depth, double altitude);
+  bool Update(double x, double y , double h , double time);
+  //getters
   double GetValue();
+  double GetFloorDepth();
+  double GetAltitude();
+private: 
+  bool GetS_rho(double depth, double altitude);
+  double CalcValue();
   bool ReadNcFile(std::string ncFileName, std::string varName); //this is defined in a seperate file 
   double GetValueAtTime(int);
-  bool GetTimeInfo();
-  bool GetBathy(double &depth);
+  bool GetTimeInfo(double time);
+  bool GetBathy();
   bool GetSafeDepth();
   bool ConvertToMeters();
   
@@ -42,6 +48,8 @@ bool GetS_rho(double depth, double altitude);
   std::string scalarOutputVar;
   std::string safeDepthVar;
 
+  std::string debugName;
+
   int time_vals; //number of time vals
   int s_rho;  //number of s_rho points
   int eta_rho;//number of eta_rho points
@@ -52,15 +60,10 @@ bool GetS_rho(double depth, double altitude);
   double start_time;
   double current_time;
 
-  // x/y positions, depth, and altitude of current location 
-  double       m_posx;
-  double       m_posy;
   double       m_depth;
-  double       m_head;
-  std::string  m_rTime;
   double       floor_depth;
-  double       safe_depth; //deepest safe depth based on the distance in safe_dist
-  double       m_altitude;    
+  double       m_altitude;
+  double       m_value;
 
   //current depth level, and distances to nearest s_levels
   int          s_level;
