@@ -12,7 +12,7 @@
 #include <iostream>
 #include <cmath>
 #include <fstream>
-
+#include "Utils.h"
 
 class NCData  
 {
@@ -109,9 +109,6 @@ private:
   friend bool CMOOSGeodesy::LocalGrid2LatLong(double dfEast, double dfNorth, double &dfLat, double &dfLon) ;
 
 };
-
-double WeightedAvg(double*,double*, int*, int); 
-
 
 #endif
 

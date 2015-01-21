@@ -6,10 +6,12 @@
 SET(SRC
   NCData.cpp
   ReadNCFile.cpp
+  Utils.cpp
 )
 
 SET(HEADERS
   NCData.h
+  Utils.h
   )
 
 # Build Library
@@ -22,5 +24,6 @@ TARGET_LINK_LIBRARIES(HPLUtils
   mbutil
   ${SYSTEM_LIBS}
   /usr/lib/libnetcdf_c++.a
+  HPLUtils
   netcdf
   )
