@@ -12,8 +12,6 @@ SET(SRC
    USR_MOOSApp.h USR_MOOSApp.cpp
    USR_Info.h USR_Info.cpp
    main.cpp 
-   NCData.cpp NCData.h
-   ReadNCFile.cpp
 )
 
 ADD_EXECUTABLE(uSimROMS ${SRC})
@@ -26,7 +24,8 @@ TARGET_LINK_LIBRARIES(uSimROMS
    mbutil
    ${SYSTEM_LIBS}
    /usr/lib/libnetcdf_c++.a
-   netcdf  )
+   netcdf
+   HPLUtils )
 
 
 # Install Targets
