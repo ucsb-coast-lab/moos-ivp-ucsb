@@ -1,17 +1,9 @@
 #ifndef NCDATA_HEADER
 #define NCDATA_HEADER
 
-#include <string>
-#include <string.h>//not totally sure why this needs to be here, but strcmp isn't found when it's not
 #include "MOOS/libMOOS/MOOSLib.h" 
 #include "netcdfcpp.h"
 #include "MOOSGeodesy.h"
-#include "netcdf.h"
-#include "MBUtils.h"
-#include "AngleUtils.h"
-#include <iostream>
-#include <cmath>
-#include <fstream>
 #include "Utils.h"
 
 class NCData  

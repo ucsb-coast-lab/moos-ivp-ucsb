@@ -24,6 +24,5 @@ TARGET_LINK_LIBRARIES(HPLUtils
   mbutil
   ${SYSTEM_LIBS}
   /usr/lib/libnetcdf_c++.a
-  HPLUtils
   netcdf
   )
