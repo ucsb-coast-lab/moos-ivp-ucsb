@@ -1,16 +1,8 @@
 #ifndef USR_MOOSAPP_HEADER
 #define USR_MOOSAPP_HEADER
+
 #include "NCData.h"
-#include <string>
-#include <string.h>//not totally sure why this needs to be here, but strcmp isn't found when it's not
-#include "MOOS/libMOOS/MOOSLib.h" 
-#include "MBUtils.h"
 #include "AngleUtils.h"
-#include <iostream>
-#include <cmath>
-#include <fstream>
-
-
 class USR_MOOSApp : public CMOOSApp  
 {
 public:

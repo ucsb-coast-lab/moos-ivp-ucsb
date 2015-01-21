@@ -11,13 +11,7 @@
 // NJN:2014-12-11: Fixd indexing to (x,y,z,t) = (i,j,k,n) and corrected distance calculations 
 //                 (x pos was diffing against northing rather than easting)
 
-#include <iostream>
-#include <cmath>
-#include <fstream>
 #include "USR_MOOSApp.h"
-#include "MBUtils.h"
-#include "AngleUtils.h"
-#include <string>
 #include <ctime>
 using namespace std;
 
