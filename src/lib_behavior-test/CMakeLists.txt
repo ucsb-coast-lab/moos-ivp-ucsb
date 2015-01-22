@@ -1,6 +1,6 @@
 #--------------------------------------------------------
 # The CMakeLists.txt for:              lib_behaviors-test
-# Author(s):                                
+# Author(s):                           Sean Gillen, Nick Nidzieko     
 #--------------------------------------------------------
 
 # Set System Specific Libraries
