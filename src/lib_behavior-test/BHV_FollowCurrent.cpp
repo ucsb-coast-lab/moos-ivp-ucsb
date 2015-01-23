@@ -1,3 +1,27 @@
+/*==========================================================================
+File: BHV_FollowCurrent.cpp
+Authors: Nick Nidzieko & Sean Gillen
+Date: Jan/22/15
+Origin: Horn Point Laboratory
+Description: An IvP behavior meant to follow a current until it reaches the
+             original waypoint specified in the bhv file. 
+
+ Copyright 2015 Nick Nidzieko, Sean Gillen
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+==========================================================================*/
 
 #include <cstdlib>
 #include <iostream>
@@ -28,7 +52,6 @@ BHV_FollowCurrent::BHV_FollowCurrent(IvPDomain gdomain) :
   // Default values for behavior state variables
   m_osx  = 0;
   m_osy  = 0;
-
 
   addInfoVars("NAV_X, NAV_Y");
   cout << "constructed" << endl;
@@ -109,7 +132,6 @@ IvPFunction *BHV_FollowCurrent::onRunState()
 
   string current_vec = getBufferStringVal(m_invar, ok1); //re assigns ok1
   
-
   string x_str;
   string y_str;
   
@@ -118,7 +140,7 @@ IvPFunction *BHV_FollowCurrent::onRunState()
     m_nextpt.shift_x(atof(x_str.c_str()));
     m_nextpt.shift_y(atof(y_str.c_str()));
   }
-  cout << "after shift: x = " << m_nextpt.x() << "  y = " << m_nextpt.y() << endl;
+  //cout << "after shift: x = " << m_nextpt.x() << "  y = " << m_nextpt.y() << endl;
   
   // Part 2: Determine if the vehicle has reached the destination 
   // point and if so, declare completion.
