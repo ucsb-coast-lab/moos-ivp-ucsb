@@ -1,10 +1,11 @@
-/*==========================================================================
+/*===================================================================
 File: BHV_FollowCurrent.cpp
 Authors: Nick Nidzieko & Sean Gillen
 Date: Jan/22/15
 Origin: Horn Point Laboratory
-Description: An IvP behavior meant to follow a current until it reaches the
-             original waypoint specified in the bhv file. 
+Description: An IvP behavior meant to follow a current until it 
+             reaches original waypoint specified in the bhv the
+	     file. 
 
  Copyright 2015 Nick Nidzieko, Sean Gillen
 
@@ -21,7 +22,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-==========================================================================*/
+===================================================================*/
 
 #include <cstdlib>
 #include <iostream>
@@ -52,6 +53,7 @@ BHV_FollowCurrent::BHV_FollowCurrent(IvPDomain gdomain) :
   // Default values for behavior state variables
   m_osx  = 0;
   m_osy  = 0;
+  m_dir_set = 0;
 
   addInfoVars("NAV_X, NAV_Y");
   cout << "constructed" << endl;
@@ -89,6 +91,22 @@ bool BHV_FollowCurrent::setParam(string param, string val)
     addInfoVars(m_invar);
     return(true);
   }
+  else if(param == "direction"){
+    if(val == "upstream"){
+      m_dir = 1;
+      m_dir_set = 1;
+      return(true);
+    }
+    else if(val == "downstream"){
+      m_dir = -1;
+      m_dir_set = 1;
+      return(true);
+    }
+    else {
+      cout << "direction value not recognized, please use \"upstream\" or \"downstream\"" << endl;
+      return(false);
+    }
+  }
   return(false);
 }
 
@@ -119,7 +137,12 @@ void BHV_FollowCurrent::postViewPoint(bool viewable)
 // Procedure: onRunState
 
 IvPFunction *BHV_FollowCurrent::onRunState() 
-{ 
+{
+  if(!m_dir_set){      //I'd rather not check this every time, but I can't find a place
+                       //to only call it once within a behavior. 
+    cout << "direction parameter not set please set to \"upstream\" or \"downstream\"" << endl;
+  }
+  
   // Part 1: Get vehicle position from InfoBuffer and post a 
   // warning if problem is encountered
   bool ok1, ok2;
@@ -137,8 +160,8 @@ IvPFunction *BHV_FollowCurrent::onRunState()
   
   if(ok1){
     parseCurrentVector(current_vec, x_str, y_str); 
-    m_nextpt.shift_x(atof(x_str.c_str()));
-    m_nextpt.shift_y(atof(y_str.c_str()));
+    m_nextpt.shift_x(m_dir * atof(x_str.c_str()));
+    m_nextpt.shift_y(m_dir * atof(y_str.c_str()));
   }
   //cout << "after shift: x = " << m_nextpt.x() << "  y = " << m_nextpt.y() << endl;
   
@@ -175,8 +198,8 @@ IvPFunction *BHV_FollowCurrent::onRunState()
     ipf->setPWT(m_priority_wt);
 
   if(ok1){
-    m_nextpt.shift_x(-(atof(x_str.c_str())));
-    m_nextpt.shift_y(-(atof(y_str.c_str())));
+    m_nextpt.shift_x(m_dir * -(atof(x_str.c_str())));
+    m_nextpt.shift_y(m_dir * -(atof(y_str.c_str())));
   }
   cout << "after shiftback: x = " << m_nextpt.x() << "  y = " << m_nextpt.y() << endl;
   
@@ -235,3 +258,6 @@ bool BHV_FollowCurrent::parseCurrentVector(string vector, string& x_str, string&
 
   return true;
 }
+
+
+ 

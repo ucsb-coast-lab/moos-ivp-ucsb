@@ -1,10 +1,10 @@
-/*==========================================================================
+/*====================================================================
 File: BHV_FollowCurrent.h
 Authors: Nick Nidzieko & Sean Gillen
 Date: Jan/22/15
 Origin: Horn Point Laboratory
-Description: An IvP behavior meant to follow a current until it reaches the
-             original waypoint specified in the bhv file. 
+Description: An IvP behavior meant to follow a current until it reaches
+             the original waypoint specified in the bhv file. 
 
  Copyright 2015 Nick Nidzieko, Sean Gillen
 
@@ -21,10 +21,10 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-==========================================================================*/
+====================================================================*/
 
-#ifndef BHV_SIMPLE_WAYPOINT_HEADER
-#define BHV_SIMPLE_WAYPOINT_HEADER
+#ifndef BHV_FOLLOW_CURRENT_HEADER
+#define BHV_FOLLOW_CURRENT_HEADER
 
 #include <string>
 #include "IvPBehavior.h"
@@ -48,11 +48,14 @@ protected: // Configuration parameters
   double       m_desired_speed;
   XYPoint      m_nextpt;
   XYPoint      m_origpt;
+  int          m_dir;
+  bool         m_dir_set;
   
   std::string  m_invar;
 protected: // State variables
   double   m_osx;
   double   m_osy;
+
 };
 
 
