@@ -1,5 +1,5 @@
 #--------------------------------------------------------
-# The CMakeLists.txt for:                    uSendModemMsg
+# The CMakeLists.txt for:                    pSendModemMsg
 #--------------------------------------------------------
 
 # Set System Specific Libraries
