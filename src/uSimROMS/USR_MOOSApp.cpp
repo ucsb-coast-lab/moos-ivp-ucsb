@@ -1,15 +1,28 @@
-//new uSimROMS reads in data from a specified NCFile that contains ROMS output. right now the program can only read
-//in scalar ROMS variables but this may be updated in future versions. the program first finds the 4 closest 
-//points to the current lat/lon position, and using depth and altitude finds the closest 2 depth levels. it then 
-// does an inverse weighted average of the values at all these points based on the distance from the current
-// location. if there are time values in the future from the current time, the program will also take an inverse 
-// weighted average of what the value would be at the two nearest time steps. if there is only one time step, or 
-// if the last time step has been passed, the program simply uses the most recent time step as representing 
-// the most accurate values
-//
-// NJN:2014-12-09: Added check for land values based on mask_rho
-// NJN:2014-12-11: Fixd indexing to (x,y,z,t) = (i,j,k,n) and corrected distance calculations 
-//                 (x pos was diffing against northing rather than easting)
+/*===================================================================
+File: USR_MOOSApp.cpp
+Authors: Nick Nidzieko & Sean Gillen
+Date: Jan-23-15
+Origin: Horn Point Laboratory
+Description: uSimROMS publishes simulated data from a given ROMS file
+             for details on the implementation see the NCData class.
+
+Copyright 2015 Nick Nidzieko, Sean Gillen
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see http://www.gnu.org/licenses/.
+
+===================================================================*/
+
 
 #include "USR_MOOSApp.h"
 #include <ctime>
@@ -93,7 +106,7 @@ bool USR_MOOSApp::OnStartUp()
   }
   // look for latitude, longitude global variables
   double latOrigin, longOrigin;
-  if(!m_MissionReader.GetValue("LatOrigin", latOrigin)){
+  if(!m_MissionReader.GetValue("LatoOrigin", latOrigin)){
     cout << "uSimROMS: LatOrigin not set in *.moos file." << endl;
     exit(0);
   }
