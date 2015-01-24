@@ -1,4 +1,35 @@
-//new uSimROMS3 reads in data from a specified NCFile that contains ROMS output. right now the program can only read
+/*===================================================================
+File: NCData.cpp
+Authors: Nick Nidzieko & Sean Gillen
+Date: Jan-23-15
+Origin: Horn Point Laboratory
+Description: This is a utility class for handling ROMS data. To use
+             the class must first be initialized to a use a given
+             ncFile, variable, and a name to publish debug info
+	     under. 
+	     Every time the the user wants a new value, they must
+             make a call to Update, which changes the state of 
+             NCData. Only then should they call the get methods. 
+
+Copyright 2015 Nick Nidzieko, Sean Gillen
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see http://www.gnu.org/licenses/.
+
+===================================================================*/
+
+
+//To calculate values NCData reads in data from a specified NCFile that contains ROMS output. right now the program can only read
 //in scalar ROMS variables but this may be updated in future versions. the program first finds the 4 closest 
 //points to the current lat/lon position, and using depth and altitude finds the closest 2 depth levels. it then 
 // does an inverse weighted average of the values at all these points based on the distance from the current
@@ -10,6 +41,7 @@
 // NJN:2014-12-09: Added check for land values based on mask_rho
 // NJN:2014-12-11: Fixd indexing to (x,y,z,t) = (i,j,k,n) and corrected distance calculations 
 //                 (x pos was diffing against northing rather than easting)
+
 
 #include <cmath>
 #include "NCData.h"
@@ -66,7 +98,7 @@ bool NCData::Update(double x, double y, double h, double time){
   GetTimeInfo(time); 
   
   
-  if(!LatLontoIndex(x, y)){  //returns eta and xi, returns false if we're outside the ROMS grid, in which case 
+  if(!XYtoIndex(x, y)){  //returns eta and xi, returns false if we're outside the ROMS grid, in which case 
     cout << debugName<< ":NCData: no value found at current location" << endl;               //let the user know and don't publish
     return false;
   }
@@ -99,13 +131,13 @@ double NCData::GetFloorDepth(){
 
 
 //---------------------------------------------------------------------
-// Procedure: LatLongtoIndex
+// Procedure: XYtoIndex
 // notes: stores the 4 closest index pairs well as their distance from the given x , y coordinate. if no lat lon pairs are within 
 //        1 (may be lowered) then we assume we are outside the grid, and return false. this is very primitive
 //        (read: slow) right  now, but may be sped up later using a more sophisticated data structure if this
 //        way is not tenable.
 
-bool NCData::LatLontoIndex(double x , double y)
+bool NCData::XYtoIndex(double x , double y)
 {
 
   int chk_dist = 100000; //distance to check for grid points, if nothing pops up we assume we're outside the grid(hardcoded for now)

@@ -1,3 +1,28 @@
+/*===================================================================
+File: NCData.h
+Authors: Nick Nidzieko & Sean Gillen
+Date: Jan-23-2015
+Origin: Horn Point Laboratory
+Description: a class to deal with ROMS data, see the .cpp file for
+             more details. 
+
+Copyright 2015 Nick Nidzieko, Sean Gillen
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see http://www.gnu.org/licenses/.
+
+===================================================================*/
+
 #ifndef NCDATA_HEADER
 #define NCDATA_HEADER
 
@@ -12,8 +37,8 @@ public:
   NCData();
   virtual ~NCData() {};
   bool Initialise(double, double, std::string, std::string, std::string);
-  bool LatLontoIndex(double, double);
-  bool LatlontoMeters();
+  bool XYtoIndex(double, double);
+  bool LatLontoMeters();
   bool Update(double x, double y , double h , double time);
   //getters
   double GetValue();
@@ -96,8 +121,6 @@ private:
   double*      time;
   double*      s_values;
   
-
-
   friend bool CMOOSGeodesy::LocalGrid2LatLong(double dfEast, double dfNorth, double &dfLat, double &dfLon) ;
 
 };
