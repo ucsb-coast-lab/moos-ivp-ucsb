@@ -44,7 +44,7 @@ public:
   double GetValue();
   double GetFloorDepth();
   double GetAltitude();
-private: 
+protected: 
   bool GetS_rho(double depth, double altitude);
   double CalcValue();
   bool ReadNcFile(std::string ncFileName, std::string varName); //this is defined in a seperate file 
@@ -53,6 +53,13 @@ private:
   bool GetBathy();
   bool GetSafeDepth();
   bool ConvertToMeters();
+
+  NcVar* findNcVar(std::string, NcFile*);
+  
+  double**** readNcVar4(NcVar* , long size[4]);
+  double***  readNcVar3(NcVar* , long size[4]);
+  double**   readNcVar2(NcVar* , long size[4]);
+  double*    readNcVar1(NcVar* , long size[4]);
   
 
  protected: // Configuration variables 
@@ -105,7 +112,7 @@ private:
   bool         more_time;
   bool         time_message_posted;
 
-  //the value represnting a nonexistent value
+  //the value representing a nonexistent value
   double       bad_val;
   //geodesy class
   CMOOSGeodesy geodesy;
