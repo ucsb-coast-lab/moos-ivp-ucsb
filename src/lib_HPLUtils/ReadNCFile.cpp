@@ -12,8 +12,8 @@ using namespace std;
 
 bool NCData::ReadNcFile(string ncFileName, string varName)
 {
-  cout << "NCData: opening file: " << ncFileName << endl;
-  // these  dont actually do anything we need to concern ourselves with, but  the constructor requires them
+  cout << debugName << ": NCData: opening file: " << ncFileName << endl;
+  // these  don't actually do anything we need to concern ourselves with, but  the constructor requires them
   size_t* buffer = NULL;
   size_t size = 0;
 
@@ -21,9 +21,9 @@ bool NCData::ReadNcFile(string ncFileName, string varName)
   NcFile File((const char*)ncFileName.c_str(), NcFile::ReadOnly , buffer , size , NcFile::Netcdf4); 
   if(!(File.is_valid())) //check if file is open
     {
-      cout << "NCData: error reading file!" << endl;
+      cout << debugName << ": NCData: error reading file!" << endl;
       return false;
-    } else cout <<"NCData: file opened successfully" << endl;
+    } else cout << debugName << ": NCData: file opened successfully" << endl;
 
   //find specified variable
   NcVar* scalar_var = findNcVar(varName, &File);
@@ -36,16 +36,16 @@ bool NCData::ReadNcFile(string ncFileName, string varName)
   edge =  scalar_var->edges();
 
   time_vals = edge[0];
-  cout << debugName << ":NCData: using "  << time_vals << " time values"  << endl;
+  cout << debugName << ": NCData: using "  << time_vals << " time values"  << endl;
   
   s_rho = edge[1];
-  cout << debugName << ":NCData: using " << s_rho << " s values" << endl;
+  cout << debugName << ": NCData: using " << s_rho << " s values" << endl;
     
   eta_rho = edge[2];
-  cout << debugName << ":NCData: using " << eta_rho << " eta values" << endl;
+  cout << debugName << ": NCData: using " << eta_rho << " eta values" << endl;
   
   xi_rho = edge[3];
-  cout << debugName << ":NCData: using " << xi_rho << " xi_values" << endl;
+  cout << debugName << ": NCData: using " << xi_rho << " xi_values" << endl;
   
    
   //find the remaining variables.
@@ -58,89 +58,62 @@ bool NCData::ReadNcFile(string ncFileName, string varName)
   
   //make sure nothing came back false, exit if it did.
   if(!maskRho_var || !lat_var || !lon_var || !time_var || !s_var || !bathy_var){
-    cout << debugName << ":NCData: exiting!"<< endl;
+    cout << debugName << ": NCData: exiting!"<< endl;
     return false;
   }
   
   vals = readNcVar4(scalar_var, edge);
-
-  
-  
-  cout << "NCData: field for \"" << varName << "\" populated" << endl;
-  
-  //create maskRho array in local memory, read in maskRho values
-  maskRho = new int* [eta_rho];
-  for(int j = 0; j < eta_rho; j++){
-    maskRho[j] = new int[xi_rho];
+  cout << debugName << ": NCData: field for \"" << varName << "\" populated" << endl;
+  /* 
+  for(int i = 0; i < time_vals; i++){
+    for(int j = 0; j < s_rho; j++){
+      for(int k = 0; k < eta_rho; k++){
+	for(int n = 0; n < xi_rho; n++){
+	  cout << vals[i][j][k][n] << endl; 
+	}
+      }
+    }
   }
+  */
+  maskRho = readNcVar2(maskRho_var, edge);
+  cout << debugName << ": NCData: land mask field populated" << endl;
+
+   for(int k = 0; k < eta_rho; k++){
+	for(int n = 0; n < xi_rho; n++){
+	  cout << maskRho[k][n] << endl; 
+	}
+      }
   
-  // read in row by row
-  for(int j = 0; j < eta_rho; j++){
-      maskRho_var->set_cur(j,0);
-      maskRho_var->get(&maskRho[j][0], 1, xi_rho);
-    }
-  
-  cout << "NCData: land mask field populated" << endl;
-  
-  //create lat array in local memory, read in lat values
-  lat = new double* [eta_rho];
-  for(int j = 0; j < eta_rho; j++)
-    lat[j] = new double[xi_rho];
-  
-  //just like the main variable, lon/lat need to be read in row by row
-  for(int j = 0; j < eta_rho; j++) 
-    {
-      lat_var->set_cur(j,0);
-      lat_var->get(&lat[j][0], 1, xi_rho);
-    }
-  
-  cout << "NCData: latitude field populated" << endl;
-  
-  
-  
-  //create lon array in local memory, read in lon values
-  lon = new double* [eta_rho];
-  for(int j = 0; j < eta_rho; j++)
-    lon[j] = new double[xi_rho];
-  
-  //also needs to be read in row by row
-  for(int j = 0; j < eta_rho; j++)
-    {
-      lon_var->set_cur(j,0);
-      lon_var->get(&lon[j][0], 1 , xi_rho);
-      }       
-  cout << "NCData: longitude field populated" << endl;
+  lat = readNcVar2(lat_var, edge);
+  cout << debugName << ": NCData: latitude field populated" << endl;
+
+  lon = readNcVar2(lon_var, edge);
+  cout << debugName << ": NCData: longitude field populated" << endl;
+
+  bathy = readNcVar2(bathy_var, edge);
+  cout << debugName << ": NCData: bathymetry field populated" << endl;
+
   
   //read in time values 
   time = new double [time_vals]; 
   time_var->get(&time[0], time_vals);
-  cout << "NCData: time field populated" << endl;
+  cout << debugName << ": NCData: time field populated" << endl;
   
   // Adjust from ROMS ocean_time epoch (secs since 2009/1/1) 
   // to unix epoch (seconds since 1970/1/1) used by MOOS
   double utc2009_epoch = 1230768000;
   for(int n = 0; n < time_vals; n++){
     time[n] += utc2009_epoch;
-  }   
+  }
+
   
   //read in s_rho values
   s_values = new double[s_rho];
   s_var->get(&s_values[0], s_rho);
-  cout << "NCData: depth field populated" << endl;
+  cout << debugName << ": NCData: depth field populated" << endl;
   
-  //create bathy array in local memory, read in lat values
-  bathy  = new double* [eta_rho];
-  for(int j = 0; j < eta_rho; j++)
-    bathy[j] = new double[xi_rho];
   
-  //needs to be read in row by row
-  for(int j = 0; j < eta_rho; j++) 
-    {
-      bathy_var->set_cur(j,0);
-      bathy_var->get(&bathy[j][0], 1, xi_rho);
-    }
   
-  cout << "NCData: bathymetry field populated" << endl;    
   return true;
   
  }
@@ -154,9 +127,9 @@ NcVar* NCData::findNcVar(string varName, NcFile *pFile)
   
   var = pFile->get_var((const char*) varName.c_str());
   if(!(var->is_valid())){ //check if we found the variable or not
-    cout << debugName << ":NCData: error reading variable : " << varName << endl;
+    cout << debugName << ": NCData: error reading variable : " << varName << endl;
     return NULL;
-  }else cout << debugName << "NCData: variable : " << varName << "found" << endl;
+  }else cout << debugName << ": NCData: variable : " << varName << " found" << endl;
 
   return var;
 }
@@ -168,16 +141,16 @@ double**** NCData::readNcVar4(NcVar* var, long  size[4])
 {
   
   //create a value array in local memory, read in values
-  double**** vals = new double***[size[0]];
+  double**** values = new double***[size[0]];
   for(int n = 0; n < size[0]; n++)  //dynamic memory must be initialized row by row
     {
-      vals[n] = new double**[size[1]];
+      values[n] = new double**[size[1]];
       for(int k = 0; k < size[1]; k++)
 	{
-	  vals[n][k] = new double*[size[2]];
+	  values[n][k] = new double*[size[2]];
 	  for(int j = 0; j < size[2]; j++)
 	    {
-	      vals[n][k][j] = new double[size[3]];
+	      values[n][k][j] = new double[size[3]];
 	    }
 	}
     }
@@ -192,14 +165,33 @@ double**** NCData::readNcVar4(NcVar* var, long  size[4])
 	  for(int j = 0; j < size[2]; j++)
 	    {
 	      var->set_cur(n,k,j,0);
-	      var->get(&vals[n][k][j][0], 1, 1, 1, size[3]);
+	      var->get(&values[n][k][j][0], 1, 1, 1, size[3]);
 	      
 	    }
 	}
     }
 
+  return values;
+}
+
+//---------------------------------------------------------------------
+//allocates a 2 dimensional array and reads NC data into it, assumes
+//you want xi_rho and eta_rho as your grid boundaries 
+double** NCData::readNcVar2(NcVar* var , long size[4])
+{
+  double **vals = new double* [size[2]];
+  for(int j = 0; j < size[2]; j++){
+    vals[j] = new double[size[3]];
+  }
+  //needs to be read in row by row
+  for(int j = 0; j < size[2]; j++){
+    var->set_cur(j,0);
+    var->get(&vals[j][0], 1, size[3]);
+  }
   return vals;
 }
+
+
 
 
 

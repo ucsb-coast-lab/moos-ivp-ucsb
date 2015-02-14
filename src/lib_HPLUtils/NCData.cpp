@@ -77,9 +77,10 @@ NCData::NCData()
  //notes : takes origin coordinates, and reads nc data into local memory. the debug name parameter is the name used
  //        when printing debug info to the console
 
-bool NCData::Initialise(double latOrigin, double longOrigin, string ncFileName, string varName, string debugName){
+//process 
+bool NCData::Initialise(double latOrigin, double longOrigin, string ncFileName, string varName, string processName){
   geodesy.Initialise(latOrigin, longOrigin);
-
+  debugName = processName;
   if(!ReadNcFile(ncFileName, varName)){
     cout << debugName << ":NCData: error reading NC file, exiting" << endl;//loads all the data into local memory that we can actually use
     std::exit(0);       //if we can't read the file, exit the program so it's clear something went wrong and
@@ -102,12 +103,22 @@ bool NCData::Update(double x, double y, double h, double time){
     cout << debugName<< ":NCData: no value found at current location" << endl;               //let the user know and don't publish
     return false;
   }
+  cout << "x , y = " << x << " " << y << endl;
+  
 
   GetBathy();
   m_altitude = floor_depth - h;
+  cout << "m_alitude = " << m_altitude << endl;
+  cout << "floor_depth" << floor_depth << endl;
+  cout << "h" << h << endl;
   GetS_rho(h, m_altitude);
 
+  
+  cout << "s_rho = " << distSigma << " " <<  distSp1 << endl;
+  
   m_value = CalcValue();
+  cout << "m_value = " << m_value << endl;
+  
   if(m_value == bad_val){  //if the value is good, go ahead and publish it
     cout << debugName<< ":NCData: all local values are bad, refusing to publish new values" << endl;
     return false;
@@ -303,6 +314,7 @@ double NCData::CalcValue(){
     value = WeightedAvg(values , weights , good, 2);
   }else{//if no future time values exist, just average the values around us at the most recent time step
     value = GetValueAtTime(time_step);
+    cout << "value = " << value << " time = " << time_step << endl;
     if(!time_message_posted){
       cout << debugName<< " : NCData: warning: current time is past the last time step, now using data only data from last time step" << endl;
       time_message_posted = true; // we only want to give this warning once
@@ -340,12 +352,14 @@ double NCData::GetValueAtTime(int t){
     if (dz[k] != -1){
       // Find the four corners
       for(int i = 0; i < 4; i++){
+	cout << "got here!!" << endl;
 	// Check for Water = 1
-	if (maskRho[eta[i]][xi[i]]){
+	//	if (maskRho[eta[i]][xi[i]]){
 	  // Get the value
+	  cout << "got here!" << endl;
 	  s_xy[i] = vals[t][s_level + k][eta[i]][xi[i]];
 	  good_xy[i] = 1;
-	}
+	  //	}
       }
       // Average this level
       s_z[k] = WeightedAvg(s_xy, dist, good_xy, 4); 

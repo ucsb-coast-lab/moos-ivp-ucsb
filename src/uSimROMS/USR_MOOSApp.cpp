@@ -106,7 +106,7 @@ bool USR_MOOSApp::OnStartUp()
   }
   // look for latitude, longitude global variables
   double latOrigin, longOrigin;
-  if(!m_MissionReader.GetValue("LatoOrigin", latOrigin)){
+  if(!m_MissionReader.GetValue("LatOrigin", latOrigin)){
     cout << "uSimROMS: LatOrigin not set in *.moos file." << endl;
     exit(0);
   }

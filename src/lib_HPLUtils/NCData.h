@@ -57,9 +57,9 @@ protected:
   NcVar* findNcVar(std::string, NcFile*);
   
   double**** readNcVar4(NcVar* , long size[4]);
-  double***  readNcVar3(NcVar* , long size[4]);
+  // double***  readNcVar3(NcVar* , long size[4]);
   double**   readNcVar2(NcVar* , long size[4]);
-  double*    readNcVar1(NcVar* , long size[4]);
+  // double*    readNcVar1(NcVar* , long size[4]);
   
 
  protected: // Configuration variables 
@@ -119,7 +119,7 @@ protected:
   
   //stores variables from the CDF file
   double****   vals;
-  int**        maskRho;
+  double**     maskRho;
   double**     lat;
   double**     lon;
   double**     meters_n;
