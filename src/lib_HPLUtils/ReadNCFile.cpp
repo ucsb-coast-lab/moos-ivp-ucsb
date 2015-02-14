@@ -64,25 +64,9 @@ bool NCData::ReadNcFile(string ncFileName, string varName)
   
   vals = readNcVar4(scalar_var, edge);
   cout << debugName << ": NCData: field for \"" << varName << "\" populated" << endl;
-  /* 
-  for(int i = 0; i < time_vals; i++){
-    for(int j = 0; j < s_rho; j++){
-      for(int k = 0; k < eta_rho; k++){
-	for(int n = 0; n < xi_rho; n++){
-	  cout << vals[i][j][k][n] << endl; 
-	}
-      }
-    }
-  }
-  */
+
   maskRho = readNcVar2(maskRho_var, edge);
   cout << debugName << ": NCData: land mask field populated" << endl;
-
-   for(int k = 0; k < eta_rho; k++){
-	for(int n = 0; n < xi_rho; n++){
-	  cout << maskRho[k][n] << endl; 
-	}
-      }
   
   lat = readNcVar2(lat_var, edge);
   cout << debugName << ": NCData: latitude field populated" << endl;

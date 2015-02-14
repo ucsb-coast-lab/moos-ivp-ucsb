@@ -38,7 +38,7 @@ USR_MOOSApp::USR_MOOSApp()
   m_posy     = 0;
   m_depth    = 0;
   m_rTime = "2010-10-30 12:34:56";
-  //defualt values for things
+  //default values for things
   scalarOutputVar = "SCALAR_VALUE";
 
   bad_val = -1;
