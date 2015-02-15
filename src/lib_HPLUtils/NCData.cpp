@@ -57,16 +57,19 @@ NCData::NCData()
   time_step = 0;
 
   //default values for things
-  maskRhoVarName = "mask_rho";        
+  maskRhoVarName = "mask_rho";
+  
   latVarName = "lat_rho";        
   lonVarName = "lon_rho";
+  lat_vVarName = "lat_v";
+  lon_vVarName = "lon_v";
+  lat_uVarName = "lat_u";
+  lon_uVarName = "lon_u";
+    
   sVarName = "s_rho";
   timeVarName = "ocean_time";
   bathyVarName = "h";
   scalarOutputVar = "SCALAR_VALUE";
-  safeDepthVar = "SAFE_DEPTH";
-  //look_fwd = 50;
-
   time_message_posted = false;      
 
   bad_val = -1;
@@ -74,14 +77,13 @@ NCData::NCData()
 
 //---------------------------------------------------------------------
 // Procedure : Initialise
- //notes : takes origin coordinates, and reads nc data into local memory. the debug name parameter is the name used
- //        when printing debug info to the console
-
-//process 
-bool NCData::Initialise(double latOrigin, double longOrigin, string ncFileName, string varName, string processName){
+//notes : takes origin coordinates, and reads nc data into local memory. the debug name parameter is the name used
+//        when printing debug info to the console
+ 
+bool NCData::Initialise(double latOrigin, double longOrigin, string ncFileName, string varName, string *vecVarName, string processName){
   geodesy.Initialise(latOrigin, longOrigin);
   debugName = processName;
-  if(!ReadNcFile(ncFileName, varName)){
+  if(!ReadNcFile(ncFileName, varName, vecVarName)){
     cout << debugName << ":NCData: error reading NC file, exiting" << endl;//loads all the data into local memory that we can actually use
     std::exit(0);       //if we can't read the file, exit the program so it's clear something went wrong and
   }                     //so we don't publish misleading or dangerous values, not sure if MOOS applications have

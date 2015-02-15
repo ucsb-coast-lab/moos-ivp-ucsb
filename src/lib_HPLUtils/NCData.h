@@ -36,7 +36,7 @@ class NCData
 public:
   NCData();
   virtual ~NCData() {};
-  bool Initialise(double, double, std::string, std::string, std::string);
+  bool Initialise(double, double, std::string, std::string, std::string*, std::string);
   bool XYtoIndex(double, double);
   bool LatLontoMeters();
   bool Update(double x, double y , double h , double time);
@@ -47,15 +47,16 @@ public:
 protected: 
   bool GetS_rho(double depth, double altitude);
   double CalcValue();
-  bool ReadNcFile(std::string ncFileName, std::string varName); //this is defined in a seperate file 
+  bool ReadNcFile(std::string ncFileName, std::string varName, std::string *vecVarName); //this is defined in a seperate file 
   double GetValueAtTime(int);
   bool GetTimeInfo(double time);
   bool GetBathy();
   bool GetSafeDepth();
   bool ConvertToMeters();
 
-  NcVar* findNcVar(std::string, NcFile*);
-  
+  bool readScalarVar(std::string varName, NcFile *pFile);
+		     
+  NcVar* findNcVar(std::string, NcFile*); 
   double**** readNcVar4(NcVar* , long size[4]);
   // double***  readNcVar3(NcVar* , long size[4]);
   double**   readNcVar2(NcVar* , long size[4]);
@@ -64,14 +65,18 @@ protected:
 
  protected: // Configuration variables 
   std::string maskRhoVarName;
+  
   std::string latVarName;
   std::string lonVarName;
+  std::string lat_vVarName;
+  std::string lon_vVarName;
+  std::string lat_uVarName;
+  std::string lon_uVarName;
+  
   std::string timeVarName;
   std::string sVarName;
   std::string bathyVarName;
   std::string scalarOutputVar;
-  std::string safeDepthVar;
-
   std::string debugName;
 
   int time_vals; //number of time vals
@@ -95,7 +100,7 @@ protected:
   double       distSp1;
   bool         above_s_level;
   
-  //closest 4 eta/xi pairs(so closest_eta[0] and closest_xi[0] form one pair)and the respecitve distances to them
+  //closest 4 eta/xi pairs(so eta[0] and xi[0] form one pair)and the respecitve distances to them
   int          eta[4];
   int          xi[4];
   double       distance[4];

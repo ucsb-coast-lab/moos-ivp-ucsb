@@ -84,7 +84,7 @@ bool USR_MOOSApp::OnStartUp()
     string value  = stripBlankEnds(sLine);
     //double dval   = atof(value.c_str());
 
-    param = toupper(param);
+    param = toupper(param); 
 
     if(param == "NC_FILE_NAME"){  //required
        ncFileName = value;
@@ -92,17 +92,28 @@ bool USR_MOOSApp::OnStartUp()
     if(param == "OUTPUT_VARIABLE"){  //defaults to SCALAR_VALUE
        scalarOutputVar = value;
        cout << "uSimROMS: publishing under name: " << scalarOutputVar;
-     }
-    if(param == "SCALAR_VARIABLE"){  //e.g. salt or temprature
-       varName = value;
-     }
-     //this specifies the value that the ROMS file uses as a "bad" value, which for most applications is the
-     //value the NC file uses to mean land , defaults to zero
-     if(param == "BAD_VALUE"){
-       bad_val = atof(value.c_str());
-       cout << "uSimROMS: using " << bad_val << " as the bad value" << endl;
-     }
-     
+    }
+    if(param == "SCALAR_VARIABLE"){  //e.g. salt or temperature
+      varName = value;
+    }
+    
+    if(param == "VECTOR_VARIABLE_ETA"){
+      vecVarName[0] = value;
+    }
+    if(param == "VECTOR_VARIABLE_XI"){
+      vecVarName[1] = value;
+    }
+    if(param == "VECTOR_VARIABLE_S"){
+      vecVarName[2] = value;
+    }
+    
+    //this specifies the value that the ROMS file uses as a "bad" value, which for most applications is the
+    //value the NC file uses to mean land , defaults to zero
+    if(param == "BAD_VALUE"){
+      bad_val = atof(value.c_str());
+      cout << "uSimROMS: using " << bad_val << " as the bad value" << endl;
+    }
+    
   }
   // look for latitude, longitude global variables
   double latOrigin, longOrigin;
@@ -116,10 +127,10 @@ bool USR_MOOSApp::OnStartUp()
   }
   
   ncdata = NCData();
-  ncdata.Initialise(latOrigin, longOrigin, ncFileName, varName, "uSimROMS");
-
+  ncdata.Initialise(latOrigin, longOrigin, ncFileName, varName, vecVarName, "uSimROMS");
+  
   registerVariables();    
-
+  
   
   cout << "uSimROMS: uSimROMS started" << endl;
   return(true);

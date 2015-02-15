@@ -45,6 +45,7 @@ public:
  protected: // Configuration variables
   std::string ncFileName;
   std::string varName;
+  std::string vecVarName[3];  
   std::string m_rTime;
 
   std::string scalarOutputVar;

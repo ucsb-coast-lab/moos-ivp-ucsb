@@ -10,7 +10,7 @@ using namespace std;
 //         time steps and their values
 // NJN: 20141211: Changed indexing to typical numerical conventions: (x,y,z,t) = (i,j,k,n)
 
-bool NCData::ReadNcFile(string ncFileName, string varName)
+bool NCData::ReadNcFile(string ncFileName, string varName, string vecVarName[3])
 {
   cout << debugName << ": NCData: opening file: " << ncFileName << endl;
   // these  don't actually do anything we need to concern ourselves with, but  the constructor requires them
@@ -24,65 +24,13 @@ bool NCData::ReadNcFile(string ncFileName, string varName)
       cout << debugName << ": NCData: error reading file!" << endl;
       return false;
     } else cout << debugName << ": NCData: file opened successfully" << endl;
+  
 
-  //find specified variable
-  NcVar* scalar_var = findNcVar(varName, &File);
-  if(!scalar_var){
-    cout << debugName << ":NCData: exiting!" << endl;
-  }
-  
-  //get the size of the array our variable is stored in, edge lengths apply to lat/lon and time variables too
-  long* edge;
-  edge =  scalar_var->edges();
+  readScalarVar(varName , &File);
 
-  time_vals = edge[0];
-  cout << debugName << ": NCData: using "  << time_vals << " time values"  << endl;
-  
-  s_rho = edge[1];
-  cout << debugName << ": NCData: using " << s_rho << " s values" << endl;
-    
-  eta_rho = edge[2];
-  cout << debugName << ": NCData: using " << eta_rho << " eta values" << endl;
-  
-  xi_rho = edge[3];
-  cout << debugName << ": NCData: using " << xi_rho << " xi_values" << endl;
-  
-   
-  //find the remaining variables.
-  NcVar* maskRho_var = findNcVar(maskRhoVarName, &File);
-  NcVar* lat_var = findNcVar(latVarName , &File);
-  NcVar* lon_var = findNcVar(lonVarName, &File);
-  NcVar* time_var = findNcVar(timeVarName, &File);
-  NcVar* s_var = findNcVar(sVarName, &File);
-  NcVar* bathy_var = findNcVar(bathyVarName, &File);
-  
-  //make sure nothing came back false, exit if it did.
-  if(!maskRho_var || !lat_var || !lon_var || !time_var || !s_var || !bathy_var){
-    cout << debugName << ": NCData: exiting!"<< endl;
-    return false;
-  }
-  
-  vals = readNcVar4(scalar_var, edge);
-  cout << debugName << ": NCData: field for \"" << varName << "\" populated" << endl;
+  //readVectorVar(vecVarName, &File);
 
-  maskRho = readNcVar2(maskRho_var, edge);
-  cout << debugName << ": NCData: land mask field populated" << endl;
-  
-  lat = readNcVar2(lat_var, edge);
-  cout << debugName << ": NCData: latitude field populated" << endl;
-
-  lon = readNcVar2(lon_var, edge);
-  cout << debugName << ": NCData: longitude field populated" << endl;
-
-  bathy = readNcVar2(bathy_var, edge);
-  cout << debugName << ": NCData: bathymetry field populated" << endl;
-
-  
-  //read in time values 
-  time = new double [time_vals]; 
-  time_var->get(&time[0], time_vals);
-  cout << debugName << ": NCData: time field populated" << endl;
-  
+ 
   // Adjust from ROMS ocean_time epoch (secs since 2009/1/1) 
   // to unix epoch (seconds since 1970/1/1) used by MOOS
   double utc2009_epoch = 1230768000;
@@ -91,16 +39,80 @@ bool NCData::ReadNcFile(string ncFileName, string varName)
   }
 
   
+  
+  return true;
+ }
+
+bool NCData::readScalarVar(string varName , NcFile *pFile)
+{
+  //find specified variable
+  NcVar* scalar_var = findNcVar(varName, pFile);
+  if(!scalar_var){
+    cout << debugName << ":NCData: exiting!" << endl;
+  }
+  
+  //get the size of the array our variable is stored in, edge lengths apply to lat/lon and time variables too
+  
+  long* edge;
+  edge = scalar_var->edges();
+  
+  time_vals = edge[0];
+  cout << debugName << ": NCData: using " << time_vals << " time values" << endl;
+  
+  s_rho = edge[1];
+  cout << debugName << ": NCData: using " << s_rho << " s values" << endl;
+  
+  eta_rho = edge[2];
+  cout << debugName << ": NCData: using " << eta_rho << " eta values" << endl;
+  
+  xi_rho = edge[3];
+  cout << debugName << ": NCData: using " << xi_rho << " xi_values" << endl;
+  
+  //find the remaining variables.
+  NcVar* maskRho_var = findNcVar(maskRhoVarName, pFile);
+  NcVar* lat_var = findNcVar(latVarName , pFile);
+  NcVar* lon_var = findNcVar(lonVarName, pFile);
+  NcVar* time_var = findNcVar(timeVarName, pFile);
+  NcVar* s_var = findNcVar(sVarName, pFile);
+  NcVar* bathy_var = findNcVar(bathyVarName, pFile);
+  //make sure nothing came back false, exit if it did.
+  
+  if(!maskRho_var || !lat_var || !lon_var || !time_var || !s_var || !bathy_var){
+    cout << debugName << ": NCData: exiting!"<< endl;
+    return false;
+  }
+  
+  vals = readNcVar4(scalar_var, edge);
+  cout << debugName << ": NCData: field for \"" << varName << "\" populated" << endl;
+  
+  maskRho = readNcVar2(maskRho_var, edge);
+  cout << debugName << ": NCData: land mask field populated" << endl;
+  
+  lat = readNcVar2(lat_var, edge);
+  cout << debugName << ": NCData: latitude field populated" << endl;
+  
+  lon = readNcVar2(lon_var, edge);
+  cout << debugName << ": NCData: longitude field populated" << endl;
+  
+  bathy = readNcVar2(bathy_var, edge);
+  cout << debugName << ": NCData: bathymetry field populated" << endl;
+
+   //read in time values 
+  time = new double [time_vals]; 
+  time_var->get(&time[0], time_vals);
+  cout << debugName << ": NCData: time field populated" << endl;
+
+  
   //read in s_rho values
   s_values = new double[s_rho];
   s_var->get(&s_values[0], s_rho);
   cout << debugName << ": NCData: depth field populated" << endl;
-  
-  
-  
-  return true;
-  
- }
+    
+
+}
+
+
+
 //---------------------------------------------------------------------
 //attempts to find the specified variable and returns if it's able
 
