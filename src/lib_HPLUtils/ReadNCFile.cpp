@@ -27,10 +27,10 @@ bool NCData::ReadNcFile(string ncFileName, string varName, string vecVarName[3])
   
 
   readScalarVar(varName , &File);
-
-  //readVectorVar(vecVarName, &File);
-
- 
+  
+  readVectorVar(vecVarName, &File);
+  
+  
   // Adjust from ROMS ocean_time epoch (secs since 2009/1/1) 
   // to unix epoch (seconds since 1970/1/1) used by MOOS
   double utc2009_epoch = 1230768000;
@@ -38,8 +38,6 @@ bool NCData::ReadNcFile(string ncFileName, string varName, string vecVarName[3])
     time[n] += utc2009_epoch;
   }
 
-  
-  
   return true;
  }
 
@@ -48,6 +46,7 @@ bool NCData::readScalarVar(string varName , NcFile *pFile)
   //find specified variable
   NcVar* scalar_var = findNcVar(varName, pFile);
   if(!scalar_var){
+    cout << "could not fine main scalar variable! exiting!" << endl;
     cout << debugName << ":NCData: exiting!" << endl;
   }
   
@@ -78,7 +77,7 @@ bool NCData::readScalarVar(string varName , NcFile *pFile)
   //make sure nothing came back false, exit if it did.
   
   if(!maskRho_var || !lat_var || !lon_var || !time_var || !s_var || !bathy_var){
-    cout << debugName << ": NCData: exiting!"<< endl;
+    cout << debugName << ": NCData: exiting!"<< endl; //TODO : check independently, give more accurate errors. 
     return false;
   }
   
@@ -107,11 +106,74 @@ bool NCData::readScalarVar(string varName , NcFile *pFile)
   s_values = new double[s_rho];
   s_var->get(&s_values[0], s_rho);
   cout << debugName << ": NCData: depth field populated" << endl;
-    
 
+  cout << debugName << ": NCData: scalar variable read in successfully " << endl << endl;
+  
+  return true;
 }
 
 
+//---------------------------------------------------------------------
+//reads in a vector valued variable, will override s_rho and time_vals , so make sure your vector variables
+//and your scalar variables are all using the same grid
+
+bool NCData::readVectorVar(string vecVarName[3], NcFile *pFile)
+{
+   NcVar* uVar = findNcVar(vecVarName[0], pFile);
+   if(!uVar){
+     cout << debugName << ":NCData: could not find eta component of vector variable" << endl;
+     return false;
+   }
+   NcVar* vVar = findNcVar(vecVarName[1] , pFile);
+   if(!vVar){
+     cout << debugName << ":NCData: could not find xi component of vector variable" << endl;
+     return false;
+   }
+   NcVar* wVar = findNcVar(vecVarName[2] , pFile);
+   if(!wVar){
+     cout << debugName <<"NCData: could not find w component of vector variable" << endl;
+     return false;
+   }
+
+
+   long* edgeV = vVar->edges();
+   long* edgeU = uVar->edges();
+
+   /*
+   cout << "edges[0] = " << edge[0] << endl;
+   cout << "edges[1] = " << edge[1] << endl;
+   cout << "edges[2] = " << edge[2] << endl;
+   cout << "edges[3] = " << edge[3] << endl;
+   */
+   
+
+   time_vals = edgeV[0];
+   cout << debugName << ": NCData: using " << time_vals << " time values" << endl;
+   
+   s_rho = edgeV[1];
+   cout << debugName << ": NCData: using " << s_rho << " s values" << endl;
+   
+   eta_v = edgeV[2];
+   cout << debugName << ": NCData: using " << eta_v << " eta_v values" << endl;
+  
+   xi_v = edgeV[3];
+   cout << debugName << ": NCData: using " << xi_v << " xi_v values" << endl;
+   
+
+
+   eta_u = edgeU[2];
+   cout << debugName << ": NCData: using " << eta_u << " eta_u values" << endl;
+
+   xi_u = edgeV[3];
+   cout << debugName << ": NCData: using " << xi_u << " eta_v values" << endl;
+   
+
+
+   
+   
+   return true;
+}
+   
 
 //---------------------------------------------------------------------
 //attempts to find the specified variable and returns if it's able

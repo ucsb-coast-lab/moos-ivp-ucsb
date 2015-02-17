@@ -55,13 +55,12 @@ protected:
   bool ConvertToMeters();
 
   bool readScalarVar(std::string varName, NcFile *pFile);
+  bool readVectorVar(std::string vecVarName[3], NcFile *pFile);
 		     
   NcVar* findNcVar(std::string, NcFile*); 
   double**** readNcVar4(NcVar* , long size[4]);
-  // double***  readNcVar3(NcVar* , long size[4]);
   double**   readNcVar2(NcVar* , long size[4]);
-  // double*    readNcVar1(NcVar* , long size[4]);
-  
+ 
 
  protected: // Configuration variables 
   std::string maskRhoVarName;
@@ -83,6 +82,12 @@ protected:
   int s_rho;  //number of s_rho points
   int eta_rho;//number of eta_rho points
   int xi_rho; //number of xi_rho points
+
+  //number of u/v points
+  int eta_u;
+  int eta_v;
+  int xi_v;
+  int xi_u;
 
  protected: // State variables
 
