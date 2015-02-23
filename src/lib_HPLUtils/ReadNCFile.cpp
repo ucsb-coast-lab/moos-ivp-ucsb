@@ -1,3 +1,29 @@
+/*===================================================================
+File: NCData.h
+Authors: Nick Nidzieko & Sean Gillen
+Date: Jan-23-2015
+Origin: Horn Point Laboratory
+Description: Reads NetCDF data from a specified file, put into a 
+             separate file because it got a bit long. 
+
+Copyright 2015 Nick Nidzieko, Sean Gillen
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see http://www.gnu.org/licenses/.
+
+===================================================================*/
+
+
 #include "NCData.h"
 using namespace std;
 
@@ -41,6 +67,10 @@ bool NCData::ReadNcFile(string ncFileName, string varName, string vecVarName[3])
   return true;
  }
 
+//---------------------------------------------------------------------
+//reads the scalar variable into local memory, this has the added effect of establishing
+//time and depth values.
+
 bool NCData::readScalarVar(string varName , NcFile *pFile)
 {
   //find specified variable
@@ -77,7 +107,7 @@ bool NCData::readScalarVar(string varName , NcFile *pFile)
   //make sure nothing came back false, exit if it did.
   
   if(!maskRho_var || !lat_var || !lon_var || !time_var || !s_var || !bathy_var){
-    cout << debugName << ": NCData: exiting!"<< endl; //TODO : check independently, give more accurate errors. 
+    cout << debugName << ": NCData: Variable not found! exiting!"<< endl; //TODO : check independently, give more accurate errors. 
     return false;
   }
   
@@ -134,7 +164,33 @@ bool NCData::readVectorVar(string vecVarName[3], NcFile *pFile)
      cout << debugName <<"NCData: could not find w component of vector variable" << endl;
      return false;
    }
+   
 
+   NcVar* uLat = findNcVar(lat_uVarName , pFile);
+   if(!uLat){
+     cout << debugName << "NCData: could not find u latitude component" << endl;
+     return false;
+   }
+   NcVar* uLon = findNcVar(lon_uVarName , pFile);
+   if(!uLon){
+     cout << debugName << "NCData: could not find u longitude component" << endl;
+     return false;
+   }
+
+   
+   NcVar* vLat = findNcVar(lat_vVarName ,pFile);
+   if(!vLat){
+     cout << debugName << "NCData: could not find v latitude component" << endl;
+     return false;
+   }
+   NcVar* vLon = findNcVar(lon_vVarName ,pFile);
+   if(!vLat){
+     cout << debugName << "NCData: could not find v longitude component" << endl;
+     return false;
+   }
+
+   //w lat/lon exist on rho points, which we already have from the scalar variable
+   
 
    long* edgeV = vVar->edges();
    long* edgeU = uVar->edges();
@@ -147,11 +203,11 @@ bool NCData::readVectorVar(string vecVarName[3], NcFile *pFile)
    */
    
 
-   time_vals = edgeV[0];
-   cout << debugName << ": NCData: using " << time_vals << " time values" << endl;
+   // time_vals = edgeV[0];
+   //cout << debugName << ": NCData: using " << time_vals << " time values" << endl;
    
-   s_rho = edgeV[1];
-   cout << debugName << ": NCData: using " << s_rho << " s values" << endl;
+   // s_rho = edgeV[1];
+   // cout << debugName << ": NCData: using " << s_rho << " s values" << endl;
    
    eta_v = edgeV[2];
    cout << debugName << ": NCData: using " << eta_v << " eta_v values" << endl;
@@ -166,6 +222,13 @@ bool NCData::readVectorVar(string vecVarName[3], NcFile *pFile)
 
    xi_u = edgeV[3];
    cout << debugName << ": NCData: using " << xi_u << " eta_v values" << endl;
+
+
+   
+   uVals = readNcVar4(uVar , edgeU);
+   vVals = readNcVar4(vVar , edgeV);
+   wVals = readNcVar2(wVar , edgeU); //the required component here is s_rho and time (edge*[0] and edge*[1] ) which should be the same for
+                                     //both edge variables
    
 
 

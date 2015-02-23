@@ -137,6 +137,10 @@ protected:
   double**     bathy;
   double*      time;
   double*      s_values;
+
+  double****   uVals;
+  double****   vVals;
+  double**     wVals;
   
   friend bool CMOOSGeodesy::LocalGrid2LatLong(double dfEast, double dfNorth, double &dfLat, double &dfLon) ;
 
