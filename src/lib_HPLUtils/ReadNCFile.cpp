@@ -51,10 +51,16 @@ bool NCData::ReadNcFile(string ncFileName, string varName, string vecVarName[3])
       return false;
     } else cout << debugName << ": NCData: file opened successfully" << endl;
   
-
-  readScalarVar(varName , &File);
   
-  readVectorVar(vecVarName, &File);
+  if(!readScalarVar(varName , &File)){
+    cout << "error reading scalar variable , exiting" << endl;
+    return false;
+  }
+  
+  if(!readVectorVar(vecVarName, &File)){
+    cout << "error reading vector variable , exiting" << endl;
+    return false;
+  }
   
   
   // Adjust from ROMS ocean_time epoch (secs since 2009/1/1) 
@@ -78,6 +84,7 @@ bool NCData::readScalarVar(string varName , NcFile *pFile)
   if(!scalar_var){
     cout << "could not fine main scalar variable! exiting!" << endl;
     cout << debugName << ":NCData: exiting!" << endl;
+    return false;
   }
   
   //get the size of the array our variable is stored in, edge lengths apply to lat/lon and time variables too
@@ -107,7 +114,7 @@ bool NCData::readScalarVar(string varName , NcFile *pFile)
   //make sure nothing came back false, exit if it did.
   
   if(!maskRho_var || !lat_var || !lon_var || !time_var || !s_var || !bathy_var){
-    cout << debugName << ": NCData: Variable not found! exiting!"<< endl; //TODO : check independently, give more accurate errors. 
+    cout << debugName << ": NCData: Variable not found! exiting!"<< endl; 
     return false;
   }
   
@@ -150,89 +157,50 @@ bool NCData::readScalarVar(string varName , NcFile *pFile)
 bool NCData::readVectorVar(string vecVarName[3], NcFile *pFile)
 {
    NcVar* uVar = findNcVar(vecVarName[0], pFile);
-   if(!uVar){
-     cout << debugName << ":NCData: could not find eta component of vector variable" << endl;
-     return false;
-   }
    NcVar* vVar = findNcVar(vecVarName[1] , pFile);
-   if(!vVar){
-     cout << debugName << ":NCData: could not find xi component of vector variable" << endl;
-     return false;
-   }
    NcVar* wVar = findNcVar(vecVarName[2] , pFile);
-   if(!wVar){
-     cout << debugName <<"NCData: could not find w component of vector variable" << endl;
+  
+   NcVar* uLatVar = findNcVar(lat_uVarName , pFile);
+   NcVar* uLonVar = findNcVar(lon_uVarName , pFile); 
+   
+   NcVar* vLatVar = findNcVar(lat_vVarName ,pFile);
+   NcVar* vLonVar = findNcVar(lon_vVarName ,pFile);
+
+   if(!uVar || !vVar || !wVar || !uLatVar || !uLonVar || !vLatVar || !vLonVar){
+     cout << "exiting!" << endl;
      return false;
    }
    
-
-   NcVar* uLat = findNcVar(lat_uVarName , pFile);
-   if(!uLat){
-     cout << debugName << "NCData: could not find u latitude component" << endl;
-     return false;
-   }
-   NcVar* uLon = findNcVar(lon_uVarName , pFile);
-   if(!uLon){
-     cout << debugName << "NCData: could not find u longitude component" << endl;
-     return false;
-   }
-
-   
-   NcVar* vLat = findNcVar(lat_vVarName ,pFile);
-   if(!vLat){
-     cout << debugName << "NCData: could not find v latitude component" << endl;
-     return false;
-   }
-   NcVar* vLon = findNcVar(lon_vVarName ,pFile);
-   if(!vLat){
-     cout << debugName << "NCData: could not find v longitude component" << endl;
-     return false;
-   }
-
    //w lat/lon exist on rho points, which we already have from the scalar variable
    
 
    long* edgeV = vVar->edges();
    long* edgeU = uVar->edges();
 
-   /*
-   cout << "edges[0] = " << edge[0] << endl;
-   cout << "edges[1] = " << edge[1] << endl;
-   cout << "edges[2] = " << edge[2] << endl;
-   cout << "edges[3] = " << edge[3] << endl;
-   */
-   
-
-   // time_vals = edgeV[0];
-   //cout << debugName << ": NCData: using " << time_vals << " time values" << endl;
-   
-   // s_rho = edgeV[1];
-   // cout << debugName << ": NCData: using " << s_rho << " s values" << endl;
-   
+   //this is the same edge as readScalarVar, we need it because w used rho coordinates, maybe should have just made edge a member, oh well
+   long* edgeW = wVar->edges(); 
+  
    eta_v = edgeV[2];
    cout << debugName << ": NCData: using " << eta_v << " eta_v values" << endl;
-  
    xi_v = edgeV[3];
    cout << debugName << ": NCData: using " << xi_v << " xi_v values" << endl;
    
 
-
    eta_u = edgeU[2];
    cout << debugName << ": NCData: using " << eta_u << " eta_u values" << endl;
-
    xi_u = edgeV[3];
    cout << debugName << ": NCData: using " << xi_u << " eta_v values" << endl;
 
-
    
    uVals = readNcVar4(uVar , edgeU);
-   vVals = readNcVar4(vVar , edgeV);
-   wVals = readNcVar2(wVar , edgeU); //the required component here is s_rho and time (edge*[0] and edge*[1] ) which should be the same for
-                                     //both edge variables
+   vVals = readNcVar4(vVar , edgeV); 
+   wVals = readNcVar4(wVar , edgeW);
    
+   uLat = readNcVar2(uLatVar , edgeU);
+   uLon = readNcVar2(uLonVar , edgeU);
+   vLat = readNcVar2(vLatVar , edgeV);
+   vLon = readNcVar2(vLonVar , edgeV);
 
-
-   
    
    return true;
 }

@@ -140,7 +140,12 @@ protected:
 
   double****   uVals;
   double****   vVals;
-  double**     wVals;
+  double****   wVals;
+  
+  double**     uLat;
+  double**     uLon;
+  double**     vLat;
+  double**     vLon;
   
   friend bool CMOOSGeodesy::LocalGrid2LatLong(double dfEast, double dfNorth, double &dfLat, double &dfLon) ;
 

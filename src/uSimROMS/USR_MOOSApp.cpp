@@ -97,13 +97,13 @@ bool USR_MOOSApp::OnStartUp()
       varName = value;
     }
     
-    if(param == "VECTOR_VARIABLE_ETA"){
+    if(param == "VECTOR_VARIABLE_U"){
       vecVarName[0] = value;
     }
-    if(param == "VECTOR_VARIABLE_XI"){
+    if(param == "VECTOR_VARIABLE_V"){
       vecVarName[1] = value;
     }
-    if(param == "VECTOR_VARIABLE_S"){
+    if(param == "VECTOR_VARIABLE_W"){
       vecVarName[2] = value;
     }
     
