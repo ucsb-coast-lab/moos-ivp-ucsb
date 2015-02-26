@@ -90,6 +90,8 @@ bool NCData::Initialise(double latOrigin, double longOrigin, string ncFileName, 
                         //someway they are "supposed" to quit, but this works fine
   
   ConvertToMeters(&meters_n, &meters_e , lat, lon , eta_rho, xi_rho);
+  ConvertToMeters(&u_meters_n , &u_meters_e , uLat , uLon , eta_u , xi_u);
+  ConvertToMeters(&v_meters_n , &v_meters_e , vLat , vLon , eta_v , xi_v);
   return true;
 }
 //--------------------------------------------------------------------
