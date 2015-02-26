@@ -89,8 +89,8 @@ bool NCData::Initialise(double latOrigin, double longOrigin, string ncFileName, 
   }                     //so we don't publish misleading or dangerous values, not sure if MOOS applications have
                         //someway they are "supposed" to quit, but this works fine
   
-    ConvertToMeters();
-    return true;
+  ConvertToMeters(&meters_n, &meters_e , lat, lon , eta_rho, xi_rho);
+  return true;
 }
 //--------------------------------------------------------------------
 //Procedure: Update
@@ -395,24 +395,23 @@ bool NCData::GetBathy()
 
 //---------------------------------------------------------------------
 //ConvertToMeters : converts the entire lat/lon grid in order to populate the northings and eastings grid
-//
-bool NCData::ConvertToMeters()
-{
-  meters_n = new double *[eta_rho];
-  meters_e = new double *[eta_rho];
 
-  for(int j = 0; j < eta_rho; j++){
-    meters_e[j] = new double[xi_rho];
-    meters_n[j] = new double[xi_rho];
+bool NCData::ConvertToMeters(double*** northings , double*** eastings, double **lat_l, double** lon_l, int eta , int xi)
+{
+  *northings = new double *[eta];
+  *eastings = new double *[eta];
+
+  for(int j = 0; j < eta; j++){
+    (*eastings)[j] = new double[xi];
+    (*northings)[j] = new double[xi];
   }
   
-  for(int j = 0; j < eta_rho; j++){
-    for(int i = 0; i < xi_rho; i++){
-      geodesy.LatLong2LocalGrid(lat[j][i], lon[j][i], meters_n[j][i], meters_e[j][i]);
-      //cout << debugName << ": meters_n " << meters_n[j][i] << endl;
-      //cout << debugName << ": meters_e " << meters_e[j][i] << endl;
+  for(int j = 0; j < eta; j++){
+    for(int i = 0; i < xi; i++){
+      geodesy.LatLong2LocalGrid(lat_l[j][i], lon_l[j][i], (*northings)[j][i],(*eastings)[j][i]); // returns 
     }
   }
+  return true;
 }
-
+  
 

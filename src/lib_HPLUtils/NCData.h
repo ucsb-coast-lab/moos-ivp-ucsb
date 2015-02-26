@@ -52,7 +52,7 @@ protected:
   bool GetTimeInfo(double time);
   bool GetBathy();
   bool GetSafeDepth();
-  bool ConvertToMeters();
+  bool ConvertToMeters(double*** northings, double*** eastings, double** lat_l , double** lon_l , int eta, int xi);
 
   bool readScalarVar(std::string varName, NcFile *pFile);
   bool readVectorVar(std::string vecVarName[3], NcFile *pFile);
@@ -144,8 +144,13 @@ protected:
   
   double**     uLat;
   double**     uLon;
+  double**     u_meters_n;
+  double**     u_meters_e;
+  
   double**     vLat;
   double**     vLon;
+  double**     v_meters_n;
+  double**     v_meters_e;
   
   friend bool CMOOSGeodesy::LocalGrid2LatLong(double dfEast, double dfNorth, double &dfLat, double &dfLon) ;
 
