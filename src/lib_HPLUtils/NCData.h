@@ -37,7 +37,8 @@ public:
   NCData();
   virtual ~NCData() {};
   bool Initialise(double, double, std::string, std::string, std::string*, std::string);
-  bool XYtoIndex(double, double);
+  bool XYtoIndex(int l_eta[4], int l_xi[4], double l_dist[4], double x , double y, double **l_meters_e, double **l_meters_n,
+		 int size_eta, int size_xi );
   bool LatLontoMeters();
   bool Update(double x, double y , double h , double time);
   //getters
@@ -97,8 +98,10 @@ protected:
   double       m_depth;
   double       floor_depth;
   double       m_altitude;
+  
   double       m_value;
-
+  double       m_vec_mag;
+  double       m_angle;
   //current depth level, and distances to nearest s_levels
   int          s_level;
   double       distSigma;
@@ -106,10 +109,21 @@ protected:
   bool         above_s_level;
   
   //closest 4 eta/xi pairs(so eta[0] and xi[0] form one pair)and the respecitve distances to them
-  int          eta[4];
-  int          xi[4];
-  double       distance[4];
+  int          eta_rho_index[4];
+  int          xi_rho_index[4];  
   double       dist[4];
+
+  int          eta_u_index[4];
+  int          xi_u_index[4];
+  double       dist_u[4];
+
+  int          eta_v_index[4];
+  int          xi_v_index[4];
+  double       dist_v[4];
+
+  int          eta_w_index[4];
+  int          xi_w_index[4];
+  double       dist_w[4];  //should be the same as dist
   
   //our current lon/lat coordinate
   double       current_lat;

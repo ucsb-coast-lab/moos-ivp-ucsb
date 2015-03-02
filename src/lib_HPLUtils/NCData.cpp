@@ -102,9 +102,22 @@ bool NCData::Update(double x, double y, double h, double time){
 
   GetTimeInfo(time); 
   
+  if(!XYtoIndex(eta_rho_index, xi_rho_index, dist, x, y, meters_e , meters_n , eta_rho, xi_rho)){  //returns eta and xi and the distance 
+    cout << debugName<< ":NCData: no rho value found at current location" << endl;   
+    return false;
+  }
+
+  if(!XYtoIndex(eta_u_index , xi_u_index , dist_u , x, y, u_meters_e, u_meters_n, eta_u , xi_u)){
+    cout << debugName << "NCData: no u value found at current location" << endl;
+    return false;
+  }
   
-  if(!XYtoIndex(x, y)){  //returns eta and xi, returns false if we're outside the ROMS grid, in which case 
-    cout << debugName<< ":NCData: no value found at current location" << endl;               //let the user know and don't publish
+  if(!XYtoIndex(eta_v_index, xi_u_index , dist_v , x, y, v_meters_e, v_meters_n, eta_v, xi_v)){
+    cout << debugName << "NCData: no v value found at current location" << endl;
+    return false;
+  }
+  if(!XYtoIndex(eta_w_index, xi_w_index , dist_w, x, y, meters_e, meters_n , eta_rho, xi_rho)){
+    cout << debugName << "NCData: no w value found at current location" << endl;
     return false;
   }
   
@@ -147,62 +160,65 @@ double NCData::GetFloorDepth(){
 //        (read: slow) right  now, but may be sped up later using a more sophisticated data structure if this
 //        way is not tenable.
 
-bool NCData::XYtoIndex(double x , double y)
-{
 
+//TODO : there MUST be a way to do this with less arguments, should probably figure that out...
+bool NCData::XYtoIndex(int l_eta[4], int l_xi[4] , double  l_dist[4], double x , double y, double **l_meters_e, double **l_meters_n,
+		       int size_eta, int size_xi)
+{
+  
   int chk_dist = 100000; //distance to check for grid points, if nothing pops up we assume we're outside the grid(hardcoded for now)
   //intialize the arrays we'll be storing things in
   for(int i = 0; i < 4; i++){
-    eta[i] = 0;
-    xi[i] = 0;
-    dist[i] = chk_dist;
+    l_eta[i] = 0;
+    l_xi[i] = 0;
+    l_dist[i] = chk_dist;
   }
 
   //these nested fors go through the entire ROMS grid searching for the 4 closest index pairs to the current lat
   //lon coordinate.
-  for(int j = 0; j < eta_rho; j++)
+  for(int j = 0; j < size_eta; j++)
     {
-      for(int i = 0; i < xi_rho; i++){
-	//cout << debugName<< "seeing a distance of : " << pow(meters_n[j][i] - y,2) + pow(meters_e[j][i] - x, 2) < pow(dist[0],2) << endl;
+      for(int i = 0; i < size_eta; i++){
+	//cout << debugName<< "seeing a distance of : " << pow(meters_n[j][i] - y,2) + pow(l_meters_e[j][i] - x, 2) < pow(l_dist[0],2) << endl;
 	//cout << debugName<< "meters_n = " << meters_n[j][i] << endl;
-	//cout << debugName<< "meters_e = " << meters_e[j][i] << endl;
-       if(pow(meters_n[j][i] - y,2) + pow(meters_e[j][i] - x, 2) < pow(dist[0],2)){
-	dist[3] = dist[2];
-	   eta[3] = eta[2];
-	   xi[3] = xi[2];
-	dist[2] = dist[1];
-	   eta[2] = eta[1];
-	   xi[2] = xi[1];
-	dist[1] = dist[0];
-	   eta[1] = eta[0];
-	   xi[1] = xi[0];
-	   dist[0] = sqrt((pow(meters_n[j][i] - y, 2) + pow(meters_e[j][i] - x, 2)));
-	   eta[0] = j;
-	   xi[0] = i;
+	//cout << debugName<< "l_meters_e = " << l_meters_e[j][i] << endl;
+       if(pow(meters_n[j][i] - y,2) + pow(l_meters_e[j][i] - x, 2) < pow(l_dist[0],2)){
+	l_dist[3] = l_dist[2];
+	   l_eta[3] = l_eta[2];
+	   l_xi[3] = l_xi[2];
+	l_dist[2] = l_dist[1];
+	   l_eta[2] = l_eta[1];
+	   l_xi[2] = l_xi[1];
+	l_dist[1] = l_dist[0];
+	   l_eta[1] = l_eta[0];
+	   l_xi[1] = l_xi[0];
+	   l_dist[0] = sqrt((pow(meters_n[j][i] - y, 2) + pow(l_meters_e[j][i] - x, 2)));
+	   l_eta[0] = j;
+	   l_xi[0] = i;
       }
-     else if(pow(meters_n[j][i] - y,2) + pow(meters_e[j][i] - x, 2) < pow(dist[1],2)){
-	dist[3] = dist[2];
-	   eta[3] = eta[2];
-	   xi[3] = xi[2];
-	dist[2] = dist[1];
-	   eta[2] = eta[1];
-	   xi[2] = xi[1];
-	   dist[1] = sqrt((pow(meters_n[j][i] - y,2) + pow(meters_e[j][i] - x, 2)));
-	   eta[1] = j;
-	   xi[1] = i;
+     else if(pow(meters_n[j][i] - y,2) + pow(l_meters_e[j][i] - x, 2) < pow(l_dist[1],2)){
+	l_dist[3] = l_dist[2];
+	   l_eta[3] = l_eta[2];
+	   l_xi[3] = l_xi[2];
+	l_dist[2] = l_dist[1];
+	   l_eta[2] = l_eta[1];
+	   l_xi[2] = l_xi[1];
+	   l_dist[1] = sqrt((pow(meters_n[j][i] - y,2) + pow(l_meters_e[j][i] - x, 2)));
+	   l_eta[1] = j;
+	   l_xi[1] = i;
       }
-     else if(pow(meters_n[j][i] - x,2) + pow(meters_e[j][i] - y, 2) < pow(dist[2],2)){
-	dist[3] = dist[2];
-	   eta[3] = eta[2];
-	   xi[3] = xi[2];
-	   dist[2] = sqrt((pow(meters_n[j][i] - y,2) + pow(meters_e[j][i] - x, 2)));
-	   eta[2] = j;
-	   xi[2] = i;
+     else if(pow(meters_n[j][i] - x,2) + pow(l_meters_e[j][i] - y, 2) < pow(l_dist[2],2)){
+	l_dist[3] = l_dist[2];
+	   l_eta[3] = l_eta[2];
+	   l_xi[3] = l_xi[2];
+	   l_dist[2] = sqrt((pow(meters_n[j][i] - y,2) + pow(l_meters_e[j][i] - x, 2)));
+	   l_eta[2] = j;
+	   l_xi[2] = i;
       }
-     else if(pow(meters_n[j][i] - y,2) + pow(meters_e[j][i] - x, 2) < pow(dist[3],2)){
-       dist[3] = sqrt((pow(meters_n[j][i] - y,2) + pow(meters_e[j][i] - x, 2)));
-	  eta[3] = j;
-	  xi[3] = i;
+     else if(pow(meters_n[j][i] - y,2) + pow(l_meters_e[j][i] - x, 2) < pow(l_dist[3],2)){
+       l_dist[3] = sqrt((pow(meters_n[j][i] - y,2) + pow(l_meters_e[j][i] - x, 2)));
+	  l_eta[3] = j;
+	  l_xi[3] = i;
       }
 	 
     }     
@@ -211,13 +227,13 @@ bool NCData::XYtoIndex(double x , double y)
   // printf("distances in latlon to index\n: , %f %f %f %f" , dist[0], dist[1], dist[2], dist[3]);
   //when the loop exits the index with the closest lat/lon pair to the current position will be in i and j 
   //if none of the values were close return false
-  if(dist[0] ==  chk_dist || dist[1] == chk_dist || dist[2] == chk_dist || dist[3] == chk_dist)
+  if(l_dist[0] ==  chk_dist || l_dist[1] == chk_dist || l_dist[2] == chk_dist || l_dist[3] == chk_dist)
     {
      cout << debugName<<":NCData: error : current lat lon pair not found in nc file " << endl;
      for(int i = 0; i < 4; i ++)
        {
-       eta[i]  = 0; //these zeroes aren't used for anything, but having junk values is bad
-       xi[i] = 0;
+       l_eta[i]  = 0; //these zeroes aren't used for anything, but having junk values is bad
+       l_xi[i] = 0;
        }
     return false;
     }else return true;
@@ -351,9 +367,9 @@ double NCData::GetValueAtTime(int t){
       // Find the four corners
       for(int i = 0; i < 4; i++){
       	//Check for Water = 1
-	if (maskRho[eta[i]][xi[i]]){
+	if (maskRho[eta_rho_index[i]][xi_rho_index[i]]){
 	  //Get the value
-	  s_xy[i] = vals[t][s_level + k][eta[i]][xi[i]];
+	  s_xy[i] = vals[t][s_level + k][eta_rho_index[i]][xi_rho_index[i]];
 	  good_xy[i] = 1;
 	}
       }
@@ -387,7 +403,7 @@ bool NCData::GetBathy()
   double local_depths[4];
   int good[4];
   for(int i = 0; i < 4; i++){
-      local_depths[i] = bathy[eta[i]] [xi[i]];
+      local_depths[i] = bathy[eta_rho_index[i]] [xi_rho_index[i]];
       good[i] = 1;
   }
   
