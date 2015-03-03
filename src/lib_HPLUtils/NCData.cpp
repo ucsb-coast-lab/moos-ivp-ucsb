@@ -65,6 +65,7 @@ NCData::NCData()
   lon_vVarName = "lon_v";
   lat_uVarName = "lat_u";
   lon_uVarName = "lon_u";
+  angleVarName = "angle";
     
   sVarName = "s_rho";
   timeVarName = "ocean_time";
@@ -229,17 +230,16 @@ bool NCData::XYtoIndex(int l_eta[4], int l_xi[4] , double  l_dist[4], double x ,
   //if none of the values were close return false
   if(l_dist[0] ==  chk_dist || l_dist[1] == chk_dist || l_dist[2] == chk_dist || l_dist[3] == chk_dist)
     {
-     cout << debugName<<":NCData: error : current lat lon pair not found in nc file " << endl;
-     for(int i = 0; i < 4; i ++)
-       {
-       l_eta[i]  = 0; //these zeroes aren't used for anything, but having junk values is bad
-       l_xi[i] = 0;
-       }
-    return false;
+      cout << debugName<<":NCData: error : current lat lon pair not found in nc file " << endl;
+      for(int i = 0; i < 4; i ++)
+	{
+	  l_eta[i]  = 0; //these zeroes aren't used for anything, but having junk values is bad
+	  l_xi[i] = 0;
+	}
+      return false;
     }else return true;
- 
+  
 }
-
 
 //----------------------------------------------------------------------
 //Procedure: GetS_rho
@@ -285,7 +285,7 @@ bool NCData::GetS_rho(double depth, double altitude){
    //cout << debugName<< ": NCData: distSigma     " << distSigma << endl;
    //cout << debugName<< ": NCData: distSp1       " << distSp1 << endl;
    return true;
- }
+}
 
 
 //---------------------------------------------------------------------
@@ -333,7 +333,7 @@ double NCData::CalcValue(){
       cout << debugName<< " : NCData: warning: current time is past the last time step, now using data only data from last time step" << endl;
       time_message_posted = true; // we only want to give this warning once
     }
-   }
+  }
   return value;
 }
 //---------------------------------------------------------------------

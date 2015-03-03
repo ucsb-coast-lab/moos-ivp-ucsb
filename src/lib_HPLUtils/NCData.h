@@ -23,6 +23,8 @@ along with this program. If not, see http://www.gnu.org/licenses/.
 
 ===================================================================*/
 
+//TODO : use a consistent naming convention 
+
 #ifndef NCDATA_HEADER
 #define NCDATA_HEADER
 
@@ -72,6 +74,7 @@ protected:
   std::string lon_vVarName;
   std::string lat_uVarName;
   std::string lon_uVarName;
+  std::string angleVarName;
   
   std::string timeVarName;
   std::string sVarName;

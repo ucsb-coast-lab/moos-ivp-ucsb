@@ -27,7 +27,8 @@ along with this program. If not, see http://www.gnu.org/licenses/.
 #include "NCData.h"
 using namespace std;
 
-//TODO : break this up into smaller functions (in a way that does NOT break everything horribly)
+//TODO rename variables to a consistent naming convention 
+
 
 //---------------------------------------------------------------------
 // Procedure: ReadNcFile
@@ -165,6 +166,8 @@ bool NCData::readVectorVar(string vecVarName[3], NcFile *pFile)
    
    NcVar* vLatVar = findNcVar(lat_vVarName ,pFile);
    NcVar* vLonVar = findNcVar(lon_vVarName ,pFile);
+
+   NcVar* angleVar = findNcVar(angleVarName , pFile);
 
    if(!uVar || !vVar || !wVar || !uLatVar || !uLonVar || !vLatVar || !vLonVar){
      cout << "exiting!" << endl;
