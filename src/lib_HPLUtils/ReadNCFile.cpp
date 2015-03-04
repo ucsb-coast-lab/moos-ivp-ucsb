@@ -204,6 +204,8 @@ bool NCData::readVectorVar(string vecVarName[3], NcFile *pFile)
    vLat = readNcVar2(vLatVar , edgeV);
    vLon = readNcVar2(vLonVar , edgeV);
 
+   angle = readNcVar2(angleVar , edgeW);
+
    
    return true;
 }

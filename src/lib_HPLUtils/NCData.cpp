@@ -121,6 +121,8 @@ bool NCData::Update(double x, double y, double h, double time){
     cout << debugName << "NCData: no w value found at current location" << endl;
     return false;
   }
+
+ 
   
   GetBathy();
   m_altitude = floor_depth - h;

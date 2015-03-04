@@ -168,6 +168,8 @@ protected:
   double**     vLon;
   double**     v_meters_n;
   double**     v_meters_e;
+
+  double**     angle;
   
   friend bool CMOOSGeodesy::LocalGrid2LatLong(double dfEast, double dfNorth, double &dfLat, double &dfLon) ;
 
