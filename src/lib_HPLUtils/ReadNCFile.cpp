@@ -215,15 +215,15 @@ bool NCData::readVectorVar(string vec_var_name[3], NcFile *p_file)
 //attempts to find the specified variable and returns if it's able
 
 
-NcVar* NCData::findNcVar(string varName, NcFile *p_file)
+NcVar* NCData::findNcVar(string var_name, NcFile *p_file)
 {
   NcVar* var;
   
-  var = p_file->get_var((const char*) varName.c_str());
+  var = p_file->get_var((const char*) var_name.c_str());
   if(!(var->is_valid())){ //check if we found the variable or not
-    cout << debug_name << ": NCData: error reading variable : " << varName << endl;
+    cout << debug_name << ": NCData: error reading variable : " << var_name << endl;
     return NULL;
-  }else cout << debug_name << ": NCData: variable : " << varName << " found" << endl;
+  }else cout << debug_name << ": NCData: variable : " << var_name << " found" << endl;
 
   return var;
 }
