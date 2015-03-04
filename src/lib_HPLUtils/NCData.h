@@ -32,6 +32,7 @@ along with this program. If not, see http://www.gnu.org/licenses/.
 #include "netcdfcpp.h"
 #include "MOOSGeodesy.h"
 #include "Utils.h"
+#include "math.h"
 
 class NCData  
 {
@@ -66,21 +67,21 @@ protected:
  
 
  protected: // Configuration variables 
-  std::string maskRhoVarName;
+  std::string mask_rho_var_name;
   
-  std::string latVarName;
-  std::string lonVarName;
-  std::string lat_vVarName;
-  std::string lon_vVarName;
-  std::string lat_uVarName;
-  std::string lon_uVarName;
-  std::string angleVarName;
+  std::string lat_var_name;
+  std::string lon_var_name;
+  std::string lat_v_var_name;
+  std::string lon_v_var_name;
+  std::string lat_u_var_name;
+  std::string lon_u_var_name;
+  std::string angle_var_name;
   
-  std::string timeVarName;
-  std::string sVarName;
-  std::string bathyVarName;
-  std::string scalarOutputVar;
-  std::string debugName;
+  std::string time_var_name;
+  std::string s_var_name;
+  std::string bathy_var_name;
+  // std::string scalar_output_var;
+  std::string debug_name;
 
   int time_vals; //number of time vals
   int s_rho;  //number of s_rho points
@@ -107,8 +108,8 @@ protected:
   double       m_angle;
   //current depth level, and distances to nearest s_levels
   int          s_level;
-  double       distSigma;
-  double       distSp1;
+  double       dist_sigma;
+  double       dist_sp1;
   bool         above_s_level;
   
   //closest 4 eta/xi pairs(so eta[0] and xi[0] form one pair)and the respecitve distances to them
@@ -146,7 +147,7 @@ protected:
   
   //stores variables from the CDF file
   double****   vals;
-  double**     maskRho;
+  double**     mask_rho;
   double**     lat;
   double**     lon;
   double**     meters_n;
@@ -155,8 +156,8 @@ protected:
   double*      time;
   double*      s_values;
 
-  double****   uVals;
-  double****   vVals;
+  double****   u_vals;
+  double****   v_vals;
   double****   wVals;
   
   double**     uLat;

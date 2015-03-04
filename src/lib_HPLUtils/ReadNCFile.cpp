@@ -39,7 +39,7 @@ using namespace std;
 
 bool NCData::ReadNcFile(string ncFileName, string varName, string vecVarName[3])
 {
-  cout << debugName << ": NCData: opening file: " << ncFileName << endl;
+  cout << debug_name << ": NCData: opening file: " << ncFileName << endl;
   // these  don't actually do anything we need to concern ourselves with, but  the constructor requires them
   size_t* buffer = NULL;
   size_t size = 0;
@@ -48,9 +48,9 @@ bool NCData::ReadNcFile(string ncFileName, string varName, string vecVarName[3])
   NcFile File((const char*)ncFileName.c_str(), NcFile::ReadOnly , buffer , size , NcFile::Netcdf4); 
   if(!(File.is_valid())) //check if file is open
     {
-      cout << debugName << ": NCData: error reading file!" << endl;
+      cout << debug_name << ": NCData: error reading file!" << endl;
       return false;
-    } else cout << debugName << ": NCData: file opened successfully" << endl;
+    } else cout << debug_name << ": NCData: file opened successfully" << endl;
   
   
   if(!readScalarVar(varName , &File)){
@@ -78,13 +78,13 @@ bool NCData::ReadNcFile(string ncFileName, string varName, string vecVarName[3])
 //reads the scalar variable into local memory, this has the added effect of establishing
 //time and depth values.
 
-bool NCData::readScalarVar(string varName , NcFile *pFile)
+bool NCData::readScalarVar(string var_name , NcFile *pFile)
 {
   //find specified variable
-  NcVar* scalar_var = findNcVar(varName, pFile);
+  NcVar* scalar_var = findNcVar(var_name, pFile);
   if(!scalar_var){
     cout << "could not fine main scalar variable! exiting!" << endl;
-    cout << debugName << ":NCData: exiting!" << endl;
+    cout << debug_name << ":NCData: exiting!" << endl;
     return false;
   }
   
@@ -94,58 +94,58 @@ bool NCData::readScalarVar(string varName , NcFile *pFile)
   edge = scalar_var->edges();
   
   time_vals = edge[0];
-  cout << debugName << ": NCData: using " << time_vals << " time values" << endl;
+  cout << debug_name << ": NCData: using " << time_vals << " time values" << endl;
   
   s_rho = edge[1];
-  cout << debugName << ": NCData: using " << s_rho << " s values" << endl;
+  cout << debug_name << ": NCData: using " << s_rho << " s values" << endl;
   
   eta_rho = edge[2];
-  cout << debugName << ": NCData: using " << eta_rho << " eta values" << endl;
+  cout << debug_name << ": NCData: using " << eta_rho << " eta values" << endl;
   
   xi_rho = edge[3];
-  cout << debugName << ": NCData: using " << xi_rho << " xi_values" << endl;
+  cout << debug_name << ": NCData: using " << xi_rho << " xi_values" << endl;
   
   //find the remaining variables.
-  NcVar* maskRho_var = findNcVar(maskRhoVarName, pFile);
-  NcVar* lat_var = findNcVar(latVarName , pFile);
-  NcVar* lon_var = findNcVar(lonVarName, pFile);
-  NcVar* time_var = findNcVar(timeVarName, pFile);
-  NcVar* s_var = findNcVar(sVarName, pFile);
-  NcVar* bathy_var = findNcVar(bathyVarName, pFile);
+  NcVar* mask_rho_var = findNcVar(mask_rho_var_name, pFile);
+  NcVar* lat_var = findNcVar(lat_var_name , pFile);
+  NcVar* lon_var = findNcVar(lon_var_name, pFile);
+  NcVar* time_var = findNcVar(time_var_name, pFile);
+  NcVar* s_var = findNcVar(s_var_name, pFile);
+  NcVar* bathy_var = findNcVar(bathy_var_name, pFile);
   //make sure nothing came back false, exit if it did.
   
-  if(!maskRho_var || !lat_var || !lon_var || !time_var || !s_var || !bathy_var){
-    cout << debugName << ": NCData: Variable not found! exiting!"<< endl; 
+  if(!mask_rho_var || !lat_var || !lon_var || !time_var || !s_var || !bathy_var){
+    cout << debug_name << ": NCData: Variable not found! exiting!"<< endl; 
     return false;
   }
   
   vals = readNcVar4(scalar_var, edge);
-  cout << debugName << ": NCData: field for \"" << varName << "\" populated" << endl;
+  cout << debug_name << ": NCData: field for \"" << var_name << "\" populated" << endl;
   
-  maskRho = readNcVar2(maskRho_var, edge);
-  cout << debugName << ": NCData: land mask field populated" << endl;
+  mask_rho = readNcVar2(mask_rho_var, edge);
+  cout << debug_name << ": NCData: land mask field populated" << endl;
   
   lat = readNcVar2(lat_var, edge);
-  cout << debugName << ": NCData: latitude field populated" << endl;
+  cout << debug_name << ": NCData: latitude field populated" << endl;
   
   lon = readNcVar2(lon_var, edge);
-  cout << debugName << ": NCData: longitude field populated" << endl;
+  cout << debug_name << ": NCData: longitude field populated" << endl;
   
   bathy = readNcVar2(bathy_var, edge);
-  cout << debugName << ": NCData: bathymetry field populated" << endl;
+  cout << debug_name << ": NCData: bathymetry field populated" << endl;
 
    //read in time values 
   time = new double [time_vals]; 
   time_var->get(&time[0], time_vals);
-  cout << debugName << ": NCData: time field populated" << endl;
+  cout << debug_name << ": NCData: time field populated" << endl;
 
   
   //read in s_rho values
   s_values = new double[s_rho];
   s_var->get(&s_values[0], s_rho);
-  cout << debugName << ": NCData: depth field populated" << endl;
+  cout << debug_name << ": NCData: depth field populated" << endl;
 
-  cout << debugName << ": NCData: scalar variable read in successfully " << endl << endl;
+  cout << debug_name << ": NCData: scalar variable read in successfully " << endl << endl;
   
   return true;
 }
@@ -155,21 +155,21 @@ bool NCData::readScalarVar(string varName , NcFile *pFile)
 //reads in a vector valued variable, will override s_rho and time_vals , so make sure your vector variables
 //and your scalar variables are all using the same grid
 
-bool NCData::readVectorVar(string vecVarName[3], NcFile *pFile)
+bool NCData::readVectorVar(string vec_var_name[3], NcFile *p_file)
 {
-   NcVar* uVar = findNcVar(vecVarName[0], pFile);
-   NcVar* vVar = findNcVar(vecVarName[1] , pFile);
-   NcVar* wVar = findNcVar(vecVarName[2] , pFile);
+   NcVar* u_var = findNcVar(vec_var_name[0], p_file);
+   NcVar* v_var = findNcVar(vec_var_name[1] , p_file);
+   NcVar* w_var = findNcVar(vec_var_name[2] , p_file);
   
-   NcVar* uLatVar = findNcVar(lat_uVarName , pFile);
-   NcVar* uLonVar = findNcVar(lon_uVarName , pFile); 
+   NcVar* u_lat_var = findNcVar(lat_u_var_name , p_file);
+   NcVar* u_lon_var = findNcVar(lon_u_var_name , p_file); 
    
-   NcVar* vLatVar = findNcVar(lat_vVarName ,pFile);
-   NcVar* vLonVar = findNcVar(lon_vVarName ,pFile);
+   NcVar* v_lat_var = findNcVar(lat_v_var_name ,p_file);
+   NcVar* v_lon_var = findNcVar(lon_v_var_name ,p_file);
 
-   NcVar* angleVar = findNcVar(angleVarName , pFile);
+   NcVar* angle_var = findNcVar(angle_var_name , p_file);
 
-   if(!uVar || !vVar || !wVar || !uLatVar || !uLonVar || !vLatVar || !vLonVar){
+   if(!u_var || !v_var || !w_var || !u_lat_var || !u_lon_var || !v_lat_var || !v_lon_var){
      cout << "exiting!" << endl;
      return false;
    }
@@ -177,34 +177,34 @@ bool NCData::readVectorVar(string vecVarName[3], NcFile *pFile)
    //w lat/lon exist on rho points, which we already have from the scalar variable
    
 
-   long* edgeV = vVar->edges();
-   long* edgeU = uVar->edges();
+   long* edge_v = v_var->edges();
+   long* edge_u = u_var->edges();
 
    //this is the same edge as readScalarVar, we need it because w used rho coordinates, maybe should have just made edge a member, oh well
-   long* edgeW = wVar->edges(); 
+   long* edge_w = w_var->edges(); 
   
-   eta_v = edgeV[2];
-   cout << debugName << ": NCData: using " << eta_v << " eta_v values" << endl;
-   xi_v = edgeV[3];
-   cout << debugName << ": NCData: using " << xi_v << " xi_v values" << endl;
+   eta_v = edge_v[2];
+   cout << debug_name << ": NCData: using " << eta_v << " eta_v values" << endl;
+   xi_v = edge_v[3];
+   cout << debug_name << ": NCData: using " << xi_v << " xi_v values" << endl;
    
 
-   eta_u = edgeU[2];
-   cout << debugName << ": NCData: using " << eta_u << " eta_u values" << endl;
-   xi_u = edgeV[3];
-   cout << debugName << ": NCData: using " << xi_u << " eta_v values" << endl;
+   eta_u = edge_u[2];
+   cout << debug_name << ": NCData: using " << eta_u << " eta_u values" << endl;
+   xi_u = edge_v[3];
+   cout << debug_name << ": NCData: using " << xi_u << " eta_v values" << endl;
 
    
-   uVals = readNcVar4(uVar , edgeU);
-   vVals = readNcVar4(vVar , edgeV); 
-   wVals = readNcVar4(wVar , edgeW);
+   u_vals = readNcVar4(u_var , edge_u);
+   v_vals = readNcVar4(v_var , edge_v); 
+   wVals = readNcVar4(w_var , edge_w);
    
-   uLat = readNcVar2(uLatVar , edgeU);
-   uLon = readNcVar2(uLonVar , edgeU);
-   vLat = readNcVar2(vLatVar , edgeV);
-   vLon = readNcVar2(vLonVar , edgeV);
+   uLat = readNcVar2(u_lat_var , edge_u);
+   uLon = readNcVar2(u_lon_var , edge_u);
+   vLat = readNcVar2(v_lat_var , edge_v);
+   vLon = readNcVar2(v_lon_var , edge_v);
 
-   angle = readNcVar2(angleVar , edgeW);
+   angle = readNcVar2(angle_var , edge_w);
 
    
    return true;
@@ -215,15 +215,15 @@ bool NCData::readVectorVar(string vecVarName[3], NcFile *pFile)
 //attempts to find the specified variable and returns if it's able
 
 
-NcVar* NCData::findNcVar(string varName, NcFile *pFile)
+NcVar* NCData::findNcVar(string varName, NcFile *p_file)
 {
   NcVar* var;
   
-  var = pFile->get_var((const char*) varName.c_str());
+  var = p_file->get_var((const char*) varName.c_str());
   if(!(var->is_valid())){ //check if we found the variable or not
-    cout << debugName << ": NCData: error reading variable : " << varName << endl;
+    cout << debug_name << ": NCData: error reading variable : " << varName << endl;
     return NULL;
-  }else cout << debugName << ": NCData: variable : " << varName << " found" << endl;
+  }else cout << debug_name << ": NCData: variable : " << varName << " found" << endl;
 
   return var;
 }

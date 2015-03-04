@@ -3,8 +3,10 @@ File: NCData.cpp
 Authors: Nick Nidzieko & Sean Gillen
 Date: Jan-23-15
 Origin: Horn Point Laboratory
-Description: This is a utility class for handling ROMS data. To use
-             the class must first be initialized to a use a given
+
+//TODO: update to include vector stuff
+Description: This is a utility class for handling ROMS data. To use,
+             the class must first be initialized with a given 
              ncFile, variable, and a name to publish debug info
 	     under. 
 	     Every time the the user wants a new value, they must
@@ -57,20 +59,19 @@ NCData::NCData()
   time_step = 0;
 
   //default values for things
-  maskRhoVarName = "mask_rho";
+  mask_rho_var_name = "mask_rho";
   
-  latVarName = "lat_rho";        
-  lonVarName = "lon_rho";
-  lat_vVarName = "lat_v";
-  lon_vVarName = "lon_v";
-  lat_uVarName = "lat_u";
-  lon_uVarName = "lon_u";
-  angleVarName = "angle";
+  lat_var_name = "lat_rho";        
+  lon_var_name = "lon_rho";
+  lat_v_var_name = "lat_v";
+  lon_v_var_name = "lon_v";
+  lat_u_var_name = "lat_u";
+  lon_u_var_name = "lon_u";
+  angle_var_name = "angle";
     
-  sVarName = "s_rho";
-  timeVarName = "ocean_time";
-  bathyVarName = "h";
-  scalarOutputVar = "SCALAR_VALUE";
+  s_var_name = "s_rho";
+  time_var_name = "ocean_time";
+  bathy_var_name = "h";
   time_message_posted = false;      
 
   bad_val = -1;
@@ -83,9 +84,9 @@ NCData::NCData()
  
 bool NCData::Initialise(double latOrigin, double longOrigin, string ncFileName, string varName, string *vecVarName, string processName){
   geodesy.Initialise(latOrigin, longOrigin);
-  debugName = processName;
+  debug_name = processName;
   if(!ReadNcFile(ncFileName, varName, vecVarName)){
-    cout << debugName << ":NCData: error reading NC file, exiting" << endl;//loads all the data into local memory that we can actually use
+    cout << debug_name << ":NCData: error reading NC file, exiting" << endl;//loads all the data into local memory that we can actually use
     std::exit(0);       //if we can't read the file, exit the program so it's clear something went wrong and
   }                     //so we don't publish misleading or dangerous values, not sure if MOOS applications have
                         //someway they are "supposed" to quit, but this works fine
@@ -99,43 +100,44 @@ bool NCData::Initialise(double latOrigin, double longOrigin, string ncFileName, 
 //Procedure: Update
 //notes: takes a position and time and updates the current state of the nc data.
 bool NCData::Update(double x, double y, double h, double time){
-  //cout << debugName<< "USR: Getting time..." << endl;
+  //cout << debug_name<< "USR: Getting time..." << endl;
 
-  GetTimeInfo(time); 
+  GetTimeInfo(time);
+
+  //TODO :instead of using u and v convert immediately to est west 
   
   if(!XYtoIndex(eta_rho_index, xi_rho_index, dist, x, y, meters_e , meters_n , eta_rho, xi_rho)){  //returns eta and xi and the distance 
-    cout << debugName<< ":NCData: no rho value found at current location" << endl;   
+    cout << debug_name<< ":NCData: no rho value found at current location" << endl;   
     return false;
   }
 
-  if(!XYtoIndex(eta_u_index , xi_u_index , dist_u , x, y, u_meters_e, u_meters_n, eta_u , xi_u)){
-    cout << debugName << "NCData: no u value found at current location" << endl;
+  if(!XYtoIndex(eta_u_index , xi_u_index , dist_u , x, y, u_meters_e, u_meters_n, eta_u , xi_u)){ //returns eta_u xi_u and dist_u
+    cout << debug_name << "NCData: no u value found at current location" << endl;
     return false;
   }
   
-  if(!XYtoIndex(eta_v_index, xi_u_index , dist_v , x, y, v_meters_e, v_meters_n, eta_v, xi_v)){
-    cout << debugName << "NCData: no v value found at current location" << endl;
+  if(!XYtoIndex(eta_v_index, xi_u_index , dist_v , x, y, v_meters_e, v_meters_n, eta_v, xi_v)){  //returns eta_v xi_v and dist_v
+    cout << debug_name << "NCData: no v value found at current location" << endl;
     return false;
   }
-  if(!XYtoIndex(eta_w_index, xi_w_index , dist_w, x, y, meters_e, meters_n , eta_rho, xi_rho)){
-    cout << debugName << "NCData: no w value found at current location" << endl;
+  if(!XYtoIndex(eta_w_index, xi_w_index , dist_w, x, y, meters_e, meters_n , eta_rho, xi_rho)){ //returns eta_w xi_v and dist_v
+    cout << debug_name << "NCData: no w value found at current location" << endl;
     return false;
   }
 
- 
   
   GetBathy();
   m_altitude = floor_depth - h;
   GetS_rho(h, m_altitude);
 
   
-  // cout << "s_rho = " << distSigma << " " <<  distSp1 << endl;
+  // cout << "s_rho = " << dist_sigma << " " <<  dist_sp1 << endl;
   
   m_value = CalcValue();
   //cout << "m_value = " << m_value << endl;
   
   if(m_value == bad_val){  //if the value is good, go ahead and publish it
-    cout << debugName<< ":NCData: all local values are bad, refusing to publish new values" << endl;
+    cout << debug_name<< ":NCData: all local values are bad, refusing to publish new values" << endl;
     return false;
   }
  
@@ -182,9 +184,9 @@ bool NCData::XYtoIndex(int l_eta[4], int l_xi[4] , double  l_dist[4], double x ,
   for(int j = 0; j < size_eta; j++)
     {
       for(int i = 0; i < size_eta; i++){
-	//cout << debugName<< "seeing a distance of : " << pow(meters_n[j][i] - y,2) + pow(l_meters_e[j][i] - x, 2) < pow(l_dist[0],2) << endl;
-	//cout << debugName<< "meters_n = " << meters_n[j][i] << endl;
-	//cout << debugName<< "l_meters_e = " << l_meters_e[j][i] << endl;
+	//cout << debug_name<< "seeing a distance of : " << pow(meters_n[j][i] - y,2) + pow(l_meters_e[j][i] - x, 2) < pow(l_dist[0],2) << endl;
+	//cout << debug_name<< "meters_n = " << meters_n[j][i] << endl;
+	//cout << debug_name<< "l_meters_e = " << l_meters_e[j][i] << endl;
        if(pow(meters_n[j][i] - y,2) + pow(l_meters_e[j][i] - x, 2) < pow(l_dist[0],2)){
 	l_dist[3] = l_dist[2];
 	   l_eta[3] = l_eta[2];
@@ -232,7 +234,7 @@ bool NCData::XYtoIndex(int l_eta[4], int l_xi[4] , double  l_dist[4], double x ,
   //if none of the values were close return false
   if(l_dist[0] ==  chk_dist || l_dist[1] == chk_dist || l_dist[2] == chk_dist || l_dist[3] == chk_dist)
     {
-      cout << debugName<<":NCData: error : current lat lon pair not found in nc file " << endl;
+      cout << debug_name<<":NCData: error : current lat lon pair not found in nc file " << endl;
       for(int i = 0; i < 4; i ++)
 	{
 	  l_eta[i]  = 0; //these zeroes aren't used for anything, but having junk values is bad
@@ -254,8 +256,8 @@ bool NCData::GetS_rho(double depth, double altitude){
      // sigma[0] = -1 = ocean bottom
      // sigma[s_rho] = 0 = free surface
      s_depths[i] = -s_values[i] * floor_depth;
-     // cout << debugName<< "floor depth : " << floor_depth << endl;
-     //cout << debugName<< "s_depths : " << s_depths[i] << endl;
+     // cout << debug_name<< "floor depth : " << floor_depth << endl;
+     //cout << debug_name<< "s_depths : " << s_depths[i] << endl;
    }
 
    // Find last sigma level deeper than current depth
@@ -272,20 +274,20 @@ bool NCData::GetS_rho(double depth, double altitude){
    // Check for the special cases of being above the surface bin
    // or below the bottom bin.
    if (s_level > 0){
-     distSigma = s_depths[s_level] - depth;
+     dist_sigma = s_depths[s_level] - depth;
    } else {
-     distSigma = -1;
+     dist_sigma = -1;
    }
    if (s_level == s_rho - 1){
-     distSp1 = -1;
+     dist_sp1 = -1;
    }else{
-     distSp1 = depth - s_depths[s_level + 1];
+     dist_sp1 = depth - s_depths[s_level + 1];
    }
    
-   //cout << debugName<< ": NCData: Vehicle depth " << depth << endl;
-   //cout << debugName<< ": NCData: s_level       " << s_level << endl;
-   //cout << debugName<< ": NCData: distSigma     " << distSigma << endl;
-   //cout << debugName<< ": NCData: distSp1       " << distSp1 << endl;
+   //cout << debug_name<< ": NCData: Vehicle depth " << depth << endl;
+   //cout << debug_name<< ": NCData: s_level       " << s_level << endl;
+   //cout << debug_name<< ": NCData: dist_sigma     " << dist_sigma << endl;
+   //cout << debug_name<< ": NCData: dist_sp1       " << dist_sp1 << endl;
    return true;
 }
 
@@ -297,7 +299,7 @@ bool NCData::GetS_rho(double depth, double altitude){
 bool NCData::GetTimeInfo(double current_time){
 
   for(int i = 0; i < time_vals; i++){
-    //  cout << debugName<< " : NCData" << time[n] << endl;
+    //  cout << debug_name<< " : NCData" << time[n] << endl;
     if(current_time > time[i]){
       time_step = i;
     }
@@ -332,7 +334,7 @@ double NCData::CalcValue(){
   }else{//if no future time values exist, just average the values around us at the most recent time step
     value = GetValueAtTime(time_step);
     if(!time_message_posted){
-      cout << debugName<< " : NCData: warning: current time is past the last time step, now using data only data from last time step" << endl;
+      cout << debug_name<< " : NCData: warning: current time is past the last time step, now using data only data from last time step" << endl;
       time_message_posted = true; // we only want to give this warning once
     }
   }
@@ -347,7 +349,7 @@ double NCData::CalcValue(){
 //
 double NCData::GetValueAtTime(int t){
 
-  double dz[2] = {distSigma, distSp1};
+  double dz[2] = {dist_sigma, dist_sp1};
   double s_z[2] = {0, 0};
   int good_z[2] = {0, 0};
   double s_xy[4];
@@ -355,7 +357,7 @@ double NCData::GetValueAtTime(int t){
   double value_t; // To be returned
   /* 
   for(int k = 0; k < s_rho; k++){
-       cout << debugName << ":i,j,k: " << xi[0] << ", " << eta[0] << ", " << k << "; salt: " << vals[t][k][eta[0]][xi[0]] << endl; 
+       cout << debug_name << ":i,j,k: " << xi[0] << ", " << eta[0] << ", " << k << "; salt: " << vals[t][k][eta[0]][xi[0]] << endl; 
   }
   */
   for(int k = 0; k < 2; k++){
@@ -369,7 +371,7 @@ double NCData::GetValueAtTime(int t){
       // Find the four corners
       for(int i = 0; i < 4; i++){
       	//Check for Water = 1
-	if (maskRho[eta_rho_index[i]][xi_rho_index[i]]){
+	if (mask_rho[eta_rho_index[i]][xi_rho_index[i]]){
 	  //Get the value
 	  s_xy[i] = vals[t][s_level + k][eta_rho_index[i]][xi_rho_index[i]];
 	  good_xy[i] = 1;
@@ -381,16 +383,16 @@ double NCData::GetValueAtTime(int t){
     }
   }
 
-  //cout << debugName<< ":NCData: s_z  " << s_z[0] << ", " << s_z[1] << endl;
-  //cout << debugName<< ":NCData: dz  " << dz[0] << ", " << dz[1] << endl;
-  //cout << debugName<< ":NCData: good_z  " << good_z[0] << ", " << good_z[1] << endl;
+  //cout << debug_name<< ":NCData: s_z  " << s_z[0] << ", " << s_z[1] << endl;
+  //cout << debug_name<< ":NCData: dz  " << dz[0] << ", " << dz[1] << endl;
+  //cout << debug_name<< ":NCData: good_z  " << good_z[0] << ", " << good_z[1] << endl;
   // Average the values at the two s_level
   value_t = WeightedAvg(s_z , dz , good_z, 2);
   if (value_t == bad_val){
-    cout << debugName<< ":NCData: Bad value at time step " << time_step << endl;
+    cout << debug_name<< ":NCData: Bad value at time step " << time_step << endl;
   }
   if(value_t != value_t){
-    cout << debugName << "value is NaN, presumably we're inside the land mask (NOT GOOD!)" << endl;
+    cout << debug_name << "value is NaN, presumably we're inside the land mask (NOT GOOD!)" << endl;
   }
   return value_t;
 }
@@ -433,5 +435,5 @@ bool NCData::ConvertToMeters(double*** northings , double*** eastings, double **
   }
   return true;
 }
-  
+
 
