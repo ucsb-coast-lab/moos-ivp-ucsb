@@ -82,7 +82,7 @@ bool DW_MOOSApp::OnNewMail(MOOSMSG_LIST &NewMail)
       scalar = dval;                     //I have no idea why, but it appears that ,Msg.m_dfVal is not 
       //scalar = atof(sval.c_str());           // working, it may be SCALAR_VALUE is in a format that the
                                          // CMOOSMsg doesn't like, but atof works fin
-      cout << "pDW is reading the scalar value: " << scalar << endl;
+      cout << "pDW: scalar = " << scalar << endl;
     }
     
     if (key == "NAV_DEPTH") {
@@ -216,11 +216,11 @@ bool DW_MOOSApp::Iterate()
     if (GradientTrackPlusMinus()){       // Returns true if outside threshold range
       if (SGOAL == 1) {
 	Notify("ON_PAPA","true");
-	cout << "pDW: Changing ON_PAPA to TRUE" << endl;
-      }
+        cout << "pDW: SGOAL == 1. Notify ON_PAPA = TRUE." << endl;
+       }
       if (SGOAL == -1) {
 	Notify("ON_PAPA","false");
-	cout << "pDW: Changing ON_PAPA to FALSE" << endl;
+        cout << "pDW: SGOAL == -1. Notify ON_PAPA = FALSE." << endl;
       }
     }
     // Output to the log file
@@ -254,6 +254,7 @@ bool DW_MOOSApp::GradientTrackPlusMinus(){
 
    if(avg > hi_thres){
      PhaseShift = PhaseShift++;
+     cout << "pDW: avg " << avg << " > " << hi_thres << " for " << PhaseShift << endl;
 
      if (PhaseShift > tte){
        SGOAL = 1;
@@ -261,12 +262,14 @@ bool DW_MOOSApp::GradientTrackPlusMinus(){
      } 
    } else if (avg < lo_thres) {
      PhaseShift = PhaseShift++;
+     cout << "pDW: avg " << avg << " < " << lo_thres << " for " << PhaseShift << endl;
 
      if (PhaseShift > tte){
        SGOAL = -1;
        return true;
      }
    } else {
+     cout << "pDW: SGOAL == 0. Resetting counter" << endl;
      PhaseShift = 0;
      SGOAL = 0;
      return false;
