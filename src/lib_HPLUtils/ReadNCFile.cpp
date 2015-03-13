@@ -236,12 +236,12 @@ bool NCData::readVectorVar(string vec_var_name[3], NcFile *p_file)
    freeDouble4DArray(u_vals_north , edge_u);
    freeDouble4DArray(v_vals_east, edge_v);
    freeDouble4DArray(v_vals_north, edge_v);
-   /*
+   
    freeDouble2DArray(u_lat, edge_u[2]);
    freeDouble2DArray(u_lon, edge_u[2]);
    freeDouble2DArray(v_lat, edge_v[2]);
    freeDouble2DArray(v_lon, edge_v[2]);
-   */
+   
   
    return true;
 }
