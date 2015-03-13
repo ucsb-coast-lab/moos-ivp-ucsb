@@ -37,6 +37,7 @@ along with this program. If not, see http://www.gnu.org/licenses/.
 class NCData  
 {
 public:
+  //TODO: clean up variables that really don't need to be members 
   NCData();
   virtual ~NCData() {};
   bool Initialise(double, double, std::string, std::string, std::string*, std::string);
@@ -64,6 +65,9 @@ protected:
   NcVar* findNcVar(std::string, NcFile*); 
   double**** readNcVar4(NcVar* , long size[4]);
   double**   readNcVar2(NcVar* , long size[4]);
+  bool convertToEastNorth(double *****pvals_east , double *****pvals_north, long size[4], double ****vals, double **angle);
+  double**** combineVector(double ****u_vals_north, double ****v_vals_east, int size_1[4], int size_2[4]);
+  
  
 
  protected: // Configuration variables 
@@ -158,19 +162,20 @@ protected:
 
   double****   u_vals;
   double****   v_vals;
-  double****   wVals;
+  double****   w_vals;
   
-  double**     uLat;
-  double**     uLon;
   double**     u_meters_n;
   double**     u_meters_e;
   
-  double**     vLat;
-  double**     vLon;
   double**     v_meters_n;
   double**     v_meters_e;
 
   double**     angle;
+
+  double****   e_values;
+  double****   w_values;
+
+  int vec_size[4];
   
   friend bool CMOOSGeodesy::LocalGrid2LatLong(double dfEast, double dfNorth, double &dfLat, double &dfLon) ;
 

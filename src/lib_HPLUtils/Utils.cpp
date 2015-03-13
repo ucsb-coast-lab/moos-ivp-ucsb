@@ -24,3 +24,31 @@ double WeightedAvg(double* values, double* weights, int* good, int num_vals)
   double  value =  numerator/denominator; 
     return value;
 }
+
+//---------------------------------------------------------------------
+//Free4DArray
+//frees a 4 dimensional array made of raw pointers
+void freeDouble4DArray(double ****array, long size[4])
+{
+  for(int i = 0; i < size[0]; i++){
+    for(int j = 0; j < size[1]; j++){
+      for(int k = 0; k < size[2]; k++){
+	  delete array[i][j][k];
+      }
+    }
+  }
+  
+}
+
+//---------------------------------------------------------------------
+//same idea as 4DArray but with 2 dimensions, assumes you want the 
+void freeDouble2dArray(double **array, long size_1)
+{
+  for(int i = 0; i < size_1; i++){
+    delete array[i];       
+  }
+  
+}
+
+
+  

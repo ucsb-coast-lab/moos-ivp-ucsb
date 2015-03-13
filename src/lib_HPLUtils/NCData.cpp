@@ -90,10 +90,6 @@ bool NCData::Initialise(double latOrigin, double longOrigin, string ncFileName, 
     std::exit(0);       //if we can't read the file, exit the program so it's clear something went wrong and
   }                     //so we don't publish misleading or dangerous values, not sure if MOOS applications have
                         //someway they are "supposed" to quit, but this works fine
-  
-  ConvertToMeters(&meters_n, &meters_e , lat, lon , eta_rho, xi_rho);
-  ConvertToMeters(&u_meters_n , &u_meters_e , uLat , uLon , eta_u , xi_u);
-  ConvertToMeters(&v_meters_n , &v_meters_e , vLat , vLon , eta_v , xi_v);
   return true;
 }
 //--------------------------------------------------------------------
