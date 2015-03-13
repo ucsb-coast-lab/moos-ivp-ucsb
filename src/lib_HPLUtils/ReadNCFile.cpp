@@ -197,14 +197,21 @@ bool NCData::readVectorVar(string vec_var_name[3], NcFile *p_file)
 
    //read in variables
    u_vals = readNcVar4(u_var , edge_u);
-   v_vals = readNcVar4(v_var , edge_v); 
+   cout << debug_name << ": NCData: u_vals field populated " << endl;
+   v_vals = readNcVar4(v_var , edge_v);
+   cout << debug_name << ": NCData: v_vals field populated " << endl;
    w_vals = readNcVar4(w_var , edge_w);
+   cout << debug_name << ": NCData: w_vals field populated " << endl;
    
    //read in lat/lon
    double** u_lat = readNcVar2(u_lat_var , edge_u);
+   cout << debug_name << ": NCData: u latitude field populated" << endl;
    double** u_lon = readNcVar2(u_lon_var , edge_u);
+   cout << debug_name << ": NCData: u longitude field populated" << endl;
    double** v_lat = readNcVar2(v_lat_var , edge_v);
+   cout << debug_name << ": NCData: v latitude field populated" << endl;
    double** v_lon = readNcVar2(v_lon_var , edge_v);
+   cout << debug_name << ": NCData: v longitude field populated" << endl;
    
    //convert lat/lon to meters_e / meters_n
    ConvertToMeters(&meters_n, &meters_e , lat, lon , eta_rho, xi_rho);
@@ -213,6 +220,7 @@ bool NCData::readVectorVar(string vec_var_name[3], NcFile *p_file)
 
    //angle is the angle between east and xi
    angle = readNcVar2(angle_var , edge_w);
+   cout << debug_name << ": NCData: angle field populated" << endl;
 
    double ****u_vals_east;
    double ****u_vals_north;
@@ -220,13 +228,17 @@ bool NCData::readVectorVar(string vec_var_name[3], NcFile *p_file)
    double ****v_vals_east;
    double ****v_vals_north;
 
-
+   //converts all u values to their east and north components (returns u_vals_east / u_vals north)
    convertToEastNorth(&u_vals_east, &u_vals_north, edge_u, u_vals, angle);
+   //same as above
    convertToEastNorth(&v_vals_east, &v_vals_north, edge_v, v_vals, angle);
 
+   //I decided to simply concatenate the two east / north fields. So the order of points in the array is a little funky now, but none of
+   //the functions that use these variables care so it's fine. 
    e_values = combineVector(u_vals_east, v_vals_east, (int*)edge_u , (int*)edge_v);
    w_values = combineVector(u_vals_north, v_vals_east, (int*)edge_v, (int*)edge_u);
 
+   //record the size of our new concatenated vector 
    for(int i = 0; i < 4; i++){
      vec_size[i] = edge_u[i] + edge_v[i];
    }
