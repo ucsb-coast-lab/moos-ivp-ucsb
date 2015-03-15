@@ -267,7 +267,7 @@ bool NCData::readVectorVar(string vec_var_name[3], NcFile *p_file)
    freeDouble2DArray(v_lat, edge_v[2]);
    freeDouble2DArray(v_lon, edge_v[2]);
 
-   cout << debug_name << ": NCData: vector variable read in successfully" << endl;
+    cout << debug_name << ": NCData: vector variable read in successfully" << endl;
    return true;
 }
    

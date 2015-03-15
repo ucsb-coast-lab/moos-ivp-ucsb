@@ -111,7 +111,6 @@ bool NCData::Update(double x, double y, double h, double time){
     cout << debug_name << "NCData: no u/v value found at current location" << endl;
     return false;
   }
-
  
   if(!XYtoIndex(eta_w_index, xi_w_index , dist_w, x, y, meters_e, meters_n , eta_rho, xi_rho)){ //returns eta_w xi_v and dist_v
     cout << debug_name << "NCData: no w value found at current location" << endl;
@@ -221,7 +220,7 @@ bool NCData::XYtoIndex(int l_eta[4], int l_xi[4] , double  l_dist[4], double x ,
     }     
 } 
 
-   printf("distances in latlon to index\n: , %f %f %f %f \n" , dist[0], dist[1], dist[2], dist[3]);
+   printf("distances in latlon to index\n: , %f %f %f %f \n" , l_dist[0], l_dist[1], l_dist[2], l_dist[3]);
   //when the loop exits the index with the closest lat/lon pair to the current position will be in i and j 
   //if none of the values were close return false
   if(l_dist[0] ==  chk_dist || l_dist[1] == chk_dist || l_dist[2] == chk_dist || l_dist[3] == chk_dist)
