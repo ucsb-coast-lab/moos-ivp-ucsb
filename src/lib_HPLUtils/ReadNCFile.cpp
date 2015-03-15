@@ -204,19 +204,25 @@ bool NCData::readVectorVar(string vec_var_name[3], NcFile *p_file)
    cout << debug_name << ": NCData: w_vals field populated " << endl;
    
    //read in lat/lon
-   double** u_lat = readNcVar2(u_lat_var , edge_u);
+   double **u_lat = readNcVar2(u_lat_var , edge_u);
    cout << debug_name << ": NCData: u latitude field populated" << endl;
-   double** u_lon = readNcVar2(u_lon_var , edge_u);
+   double **u_lon = readNcVar2(u_lon_var , edge_u);
    cout << debug_name << ": NCData: u longitude field populated" << endl;
-   double** v_lat = readNcVar2(v_lat_var , edge_v);
+   double **v_lat = readNcVar2(v_lat_var , edge_v);
    cout << debug_name << ": NCData: v latitude field populated" << endl;
-   double** v_lon = readNcVar2(v_lon_var , edge_v);
+   double **v_lon = readNcVar2(v_lon_var , edge_v);
    cout << debug_name << ": NCData: v longitude field populated" << endl;
+
+
+   double **u_meters_east;
+   double **u_meters_north;
+   double **v_meters_east;
+   double **v_meters_north;
    
    //convert lat/lon to meters_e / meters_n
-   ConvertToMeters(&meters_n, &meters_e , lat, lon , eta_rho, xi_rho);
-   ConvertToMeters(&u_meters_n , &u_meters_e , u_lat , u_lon , eta_u , xi_u);
-   ConvertToMeters(&v_meters_n , &v_meters_e , v_lat , v_lon , eta_v , xi_v);
+   convertToMeters(&meters_n, &meters_e , lat, lon , eta_rho, xi_rho);
+   convertToMeters(&u_meters_north , &u_meters_east , u_lat , u_lon , eta_u , xi_u);
+   convertToMeters(&v_meters_north , &v_meters_east , v_lat , v_lon , eta_v , xi_v);
 
    //angle is the angle between east and xi
    angle = readNcVar2(angle_var , edge_w);
@@ -233,28 +239,40 @@ bool NCData::readVectorVar(string vec_var_name[3], NcFile *p_file)
    //same as above
    convertToEastNorth(&v_vals_east, &v_vals_north, edge_v, v_vals, angle);
 
+
    //I decided to simply concatenate the two east / north fields. So the order of points in the array is a little funky now, but none of
    //the functions that use these variables care so it's fine. 
-   e_values = combineVector(u_vals_east, v_vals_east, (int*)edge_u , (int*)edge_v);
-   w_values = combineVector(u_vals_north, v_vals_east, (int*)edge_v, (int*)edge_u);
+   east_values = combineVectorVals(u_vals_east, v_vals_east, edge_u , edge_v);
+   west_values = combineVectorVals(u_vals_north, v_vals_north, edge_u, edge_v);
+
+   cout << "vectors combined successfully" << endl;
+   
+   //we have to make new a combined variable to keep track of distances between vector points.
+   vec_coords = combineVectorCoords(u_meters_east , v_meters_east , edge_u , edge_v);
+
+   cout << "hi" << endl;
 
    //record the size of our new concatenated vector 
    for(int i = 0; i < 4; i++){
      vec_size[i] = edge_u[i] + edge_v[i];
    }
 
+   cout << "hello" << endl;
+
    //free all the dynamic local variables 
    freeDouble4DArray(u_vals_east, edge_u);
    freeDouble4DArray(u_vals_north , edge_u);
    freeDouble4DArray(v_vals_east, edge_v);
    freeDouble4DArray(v_vals_north, edge_v);
+   cout << " ss" << endl;
    
    freeDouble2DArray(u_lat, edge_u[2]);
    freeDouble2DArray(u_lon, edge_u[2]);
    freeDouble2DArray(v_lat, edge_v[2]);
    freeDouble2DArray(v_lon, edge_v[2]);
-   
-  
+
+   cout << "jfjf" << endl;
+   cout << debug_name << ": NCData: vector variable read in successfully" << endl;
    return true;
 }
    
@@ -377,7 +395,7 @@ bool NCData::convertToEastNorth(double *****pvals_east , double *****pvals_north
 //into one large array, of course the function is more general than that (need not be east or north really)
 //but that's what we're using it for..
 
-double**** NCData::combineVector(double ****vals_1, double ****vals_2, int size_1[4], int size_2[4])
+double**** NCData::combineVectorVals(double ****vals_1, double ****vals_2, long size_1[4], long size_2[4])
 {
  
   //create a value array in local memory, read in values
@@ -390,11 +408,13 @@ double**** NCData::combineVector(double ****vals_1, double ****vals_2, int size_
 	  values[n][k] = new double*[size_1[2] + size_2[2]];
 	  for(int j = 0; j < (size_1[2] + size_2[2]); j++)
 	    {
+	     
 	      values[n][k][j] = new double[size_1[3] + size_2[3]];
 	    }
 	}
     }
-  
+
+
   //reads in the variable 
   //the netCDF get method can only read in values to contiguous blocks of memory, meaning we have to get values
   //row by row.
@@ -403,25 +423,83 @@ double**** NCData::combineVector(double ****vals_1, double ****vals_2, int size_
       for(int k = 0; k < size_1[1]; k++){
 	  for(int j = 0; j < size_1[2]; j++){
 	      for(int i = 0; i < size_1[3]; i++){
-		  vals[n][k][j][i] = vals_1[n][k][j][i];
+		  values[n][k][j][i] = vals_1[n][k][j][i];
 		}
 	    }
 	}
     }
+  cout << "first loop was fine" << endl;
   
   for(int n = size_1[0]; n < (size_1[0] + size_2[0]); n++){
       for(int k = size_1[1]; k < (size_1[1]+ size_2[1]); k++){
 	  for(int j = size_1[2]; j < (size_1[2] + size_2[2]); j++){
-	      for(int i = size_1[3]; i < (size_1[3] + size_2[3]); i++){ 
-		  vals[n][k][j][i] = vals_1[n][k][j][i];
+	      for(int i = size_1[3]; i < (size_1[3] + size_2[3]); i++){
+		//this line is a bit obtuse, basically we want the second part of the array to be filled with the second
+		//value array, however the second array is indexed from 0 - size_2[*] where as our new combined array goes from
+		// 0 - (size_1[*] + size[2*] , so we subtract size_1[*] from our index variables for proper indexing.
+		//	cout << vals_2[n-size_1[0]][k - size_1[1]][j - size_1[2]][i - size_1[3]] << endl;
+		values[n][k][j][i] = vals_2[n - size_1[0]][k - size_1[1]][j - size_1[2]][i - size_1[3]];
+	        
 		}
 	    }
 	}
     }
 
+  cout << "second loop : also fine" << endl;
+
   return values;
   
 }
+
+//---------------------------------------------------------------------
+//combineVectorCoords
+//creates a new array which keeps track of the UTF location of vector coordinates
+double** NCData::combineVectorCoords(double **vals_1 , double **vals_2 , long size_1[4] , long size_2[4])
+{
+  double** values = new double*[size_1[2] + size_2[2]];
+  for(int i = 0; i < size_1[2] + size_2[2]; i++){
+    values[i] = new double[size_1[3] + size_2[3]];
+  }
+
+  for(int i = 0; i < size_1[2]; i++){
+    for(int j = 0; j < size_2[2]; j++){
+      values[i][j] = vals_1[i][j];
+    }
+  }
+
+  for(int i = size_1[2]; i < (size_1[2] + size_2[2]); i++){
+    for(int j = 0; j < (size_1[3] + size_2[3]); j++){
+      //same as combineVectorVals, basically we want the second part of the array to be filled with the second
+      //value array, however the second array is indexed from 0 - size_2[*] where as our new combined array goes from
+      // 0 - (size_1[*] + size[2*] , so we subtract size_1[*] from our index variables for proper indexing.
+      values[i][j] = vals_2[i - size_1[2]][j - size_1[3]];
+    }
+  }
+  
+  return values;
+}
+//---------------------------------------------------------------------
+//convertToMeters
+//converts a lot lon grid with size eta and xi to northings and easting. northing and eastings are both pointers to a 2D array
+bool NCData::convertToMeters(double*** northings , double*** eastings, double **lat_l, double** lon_l, int eta , int xi)
+{
+  *northings = new double *[eta];
+  *eastings = new double *[eta];
+
+  for(int j = 0; j < eta; j++){
+    (*eastings)[j] = new double[xi];
+    (*northings)[j] = new double[xi];
+  }
+  
+  for(int j = 0; j < eta; j++){
+    for(int i = 0; i < xi; i++){
+      geodesy.LatLong2LocalGrid(lat_l[j][i], lon_l[j][i], (*northings)[j][i],(*eastings)[j][i]); // returns 
+    }
+  }
+  return true;
+}
+
+
   
 
 

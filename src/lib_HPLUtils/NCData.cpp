@@ -107,19 +107,22 @@ bool NCData::Update(double x, double y, double h, double time){
     return false;
   }
 
-  if(!XYtoIndex(eta_u_index , xi_u_index , dist_u , x, y, u_meters_e, u_meters_n, eta_u , xi_u)){ //returns eta_u xi_u and dist_u
-    cout << debug_name << "NCData: no u value found at current location" << endl;
+  /*
+  if(!XYtoIndex(eta_east_index , xi_east_index , dist_east , x, y, u_meters_e, u_meters_n, eta_u , xi_u)){ //returns eta_u xi_u and dist_u
+    cout << debug_name << "NCData: no u/v value found at current location" << endl;
     return false;
   }
   
-  if(!XYtoIndex(eta_v_index, xi_u_index , dist_v , x, y, v_meters_e, v_meters_n, eta_v, xi_v)){  //returns eta_v xi_v and dist_v
-    cout << debug_name << "NCData: no v value found at current location" << endl;
+  if(!XYtoIndex(eta_north_index, xi_north_index , dist_north , x, y, v_meters_e, v_meters_n, eta_v, xi_v)){  //returns eta_v xi_v and dist_v
+    cout << debug_name << "NCData: no u/v value found at current location" << endl;
     return false;
   }
+  */
   if(!XYtoIndex(eta_w_index, xi_w_index , dist_w, x, y, meters_e, meters_n , eta_rho, xi_rho)){ //returns eta_w xi_v and dist_v
     cout << debug_name << "NCData: no w value found at current location" << endl;
     return false;
   }
+
 
   
   GetBathy();
@@ -409,27 +412,4 @@ bool NCData::GetBathy()
   
   floor_depth = WeightedAvg(local_depths, dist, good, 4);
 }
-
-
-//---------------------------------------------------------------------
-//ConvertToMeters : converts the entire lat/lon grid in order to populate the northings and eastings grid
-
-bool NCData::ConvertToMeters(double*** northings , double*** eastings, double **lat_l, double** lon_l, int eta , int xi)
-{
-  *northings = new double *[eta];
-  *eastings = new double *[eta];
-
-  for(int j = 0; j < eta; j++){
-    (*eastings)[j] = new double[xi];
-    (*northings)[j] = new double[xi];
-  }
-  
-  for(int j = 0; j < eta; j++){
-    for(int i = 0; i < xi; i++){
-      geodesy.LatLong2LocalGrid(lat_l[j][i], lon_l[j][i], (*northings)[j][i],(*eastings)[j][i]); // returns 
-    }
-  }
-  return true;
-}
-
 

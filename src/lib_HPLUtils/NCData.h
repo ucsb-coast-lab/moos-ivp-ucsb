@@ -57,16 +57,17 @@ protected:
   bool GetTimeInfo(double time);
   bool GetBathy();
   bool GetSafeDepth();
-  bool ConvertToMeters(double*** northings, double*** eastings, double** lat_l , double** lon_l , int eta, int xi);
+  bool convertToMeters(double*** northings, double*** eastings, double** lat_l , double** lon_l , int eta, int xi);
 
   bool readScalarVar(std::string varName, NcFile *pFile);
   bool readVectorVar(std::string vecVarName[3], NcFile *pFile);
 		     
-  NcVar* findNcVar(std::string, NcFile*); 
+  NcVar*     findNcVar(std::string, NcFile*); 
   double**** readNcVar4(NcVar* , long size[4]);
   double**   readNcVar2(NcVar* , long size[4]);
-  bool convertToEastNorth(double *****pvals_east , double *****pvals_north, long size[4], double ****vals, double **angle);
-  double**** combineVector(double ****u_vals_north, double ****v_vals_east, int size_1[4], int size_2[4]);
+  bool       convertToEastNorth(double *****pvals_east , double *****pvals_north, long size[4], double ****vals, double **angle);
+  double**** combineVectorVals(double ****u_vals_north, double ****v_vals_east, long size_1[4], long size_2[4]);
+  double**   combineVectorCoords(double **vals_1, double **vals_2, long size_1[4] , long size_2[4]);
   
  
 
@@ -121,13 +122,13 @@ protected:
   int          xi_rho_index[4];  
   double       dist[4];
 
-  int          eta_u_index[4];
-  int          xi_u_index[4];
-  double       dist_u[4];
+  int          eta_east_index[4];
+  int          xi_east_index[4];
 
-  int          eta_v_index[4];
-  int          xi_v_index[4];
-  double       dist_v[4];
+  int          eta_north_index[4];
+  int          xi_north_index[4];
+
+  double       vec_dist[4];
 
   int          eta_w_index[4];
   int          xi_w_index[4];
@@ -141,6 +142,8 @@ protected:
   int          time_step;
   double       time_until;
   double       time_since;
+
+  
   bool         more_time;
   bool         time_message_posted;
 
@@ -172,9 +175,10 @@ protected:
 
   double**     angle;
 
-  double****   e_values;
-  double****   w_values;
+  double****   east_values;
+  double****   west_values;
 
+  double** vec_coords;
   int vec_size[4];
   
   friend bool CMOOSGeodesy::LocalGrid2LatLong(double dfEast, double dfNorth, double &dfLat, double &dfLon) ;
