@@ -178,7 +178,8 @@ protected:
   double****   east_values;
   double****   west_values;
 
-  double** vec_coords;
+  double** vec_meters_e;
+  double** vec_meters_n;
   int vec_size[4];
   
   friend bool CMOOSGeodesy::LocalGrid2LatLong(double dfEast, double dfNorth, double &dfLat, double &dfLon) ;

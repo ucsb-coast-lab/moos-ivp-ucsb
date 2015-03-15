@@ -248,30 +248,25 @@ bool NCData::readVectorVar(string vec_var_name[3], NcFile *p_file)
    cout << "vectors combined successfully" << endl;
    
    //we have to make new a combined variable to keep track of distances between vector points.
-   vec_coords = combineVectorCoords(u_meters_east , v_meters_east , edge_u , edge_v);
-
-   cout << "hi" << endl;
-
+   vec_meters_e  = combineVectorCoords(u_meters_east , v_meters_east , edge_u , edge_v);
+   vec_meters_n  = combineVectorCoords(u_meters_north , v_meters_north , edge_u , edge_v);
    //record the size of our new concatenated vector 
    for(int i = 0; i < 4; i++){
      vec_size[i] = edge_u[i] + edge_v[i];
    }
 
-   cout << "hello" << endl;
 
    //free all the dynamic local variables 
    freeDouble4DArray(u_vals_east, edge_u);
    freeDouble4DArray(u_vals_north , edge_u);
    freeDouble4DArray(v_vals_east, edge_v);
    freeDouble4DArray(v_vals_north, edge_v);
-   cout << " ss" << endl;
    
    freeDouble2DArray(u_lat, edge_u[2]);
    freeDouble2DArray(u_lon, edge_u[2]);
    freeDouble2DArray(v_lat, edge_v[2]);
    freeDouble2DArray(v_lon, edge_v[2]);
 
-   cout << "jfjf" << endl;
    cout << debug_name << ": NCData: vector variable read in successfully" << endl;
    return true;
 }
@@ -428,7 +423,6 @@ double**** NCData::combineVectorVals(double ****vals_1, double ****vals_2, long 
 	    }
 	}
     }
-  cout << "first loop was fine" << endl;
   
   for(int n = size_1[0]; n < (size_1[0] + size_2[0]); n++){
       for(int k = size_1[1]; k < (size_1[1]+ size_2[1]); k++){
@@ -444,8 +438,6 @@ double**** NCData::combineVectorVals(double ****vals_1, double ****vals_2, long 
 	    }
 	}
     }
-
-  cout << "second loop : also fine" << endl;
 
   return values;
   

@@ -106,24 +106,17 @@ bool NCData::Update(double x, double y, double h, double time){
     cout << debug_name<< ":NCData: no rho value found at current location" << endl;   
     return false;
   }
-
-  /*
-  if(!XYtoIndex(eta_east_index , xi_east_index , dist_east , x, y, u_meters_e, u_meters_n, eta_u , xi_u)){ //returns eta_u xi_u and dist_u
-    cout << debug_name << "NCData: no u/v value found at current location" << endl;
-    return false;
-  }
   
-  if(!XYtoIndex(eta_north_index, xi_north_index , dist_north , x, y, v_meters_e, v_meters_n, eta_v, xi_v)){  //returns eta_v xi_v and dist_v
+  if(!XYtoIndex(eta_east_index , xi_east_index , vec_dist , x, y, vec_meters_e, vec_meters_n, vec_size[2] , vec_size[3])){ //returns eta_u xi_u and dist_u
     cout << debug_name << "NCData: no u/v value found at current location" << endl;
     return false;
   }
-  */
+
+ 
   if(!XYtoIndex(eta_w_index, xi_w_index , dist_w, x, y, meters_e, meters_n , eta_rho, xi_rho)){ //returns eta_w xi_v and dist_v
     cout << debug_name << "NCData: no w value found at current location" << endl;
     return false;
   }
-
-
   
   GetBathy();
   m_altitude = floor_depth - h;
@@ -183,10 +176,10 @@ bool NCData::XYtoIndex(int l_eta[4], int l_xi[4] , double  l_dist[4], double x ,
   for(int j = 0; j < size_eta; j++)
     {
       for(int i = 0; i < size_eta; i++){
-	//cout << debug_name<< "seeing a distance of : " << pow(meters_n[j][i] - y,2) + pow(l_meters_e[j][i] - x, 2) < pow(l_dist[0],2) << endl;
-	//cout << debug_name<< "meters_n = " << meters_n[j][i] << endl;
-	//cout << debug_name<< "l_meters_e = " << l_meters_e[j][i] << endl;
-       if(pow(meters_n[j][i] - y,2) + pow(l_meters_e[j][i] - x, 2) < pow(l_dist[0],2)){
+	//cout << debug_name << " seeing a distance of : " << pow(l_meters_n[j][i] - y,2) + pow(l_meters_e[j][i] - x, 2)  << endl;
+	//cout << debug_name<< " l_meters_n = " << l_meters_n[j][i] << endl;
+	//cout << debug_name<< " l_meters_e = " << l_meters_e[j][i] << endl;
+       if(pow(l_meters_n[j][i] - y,2) + pow(l_meters_e[j][i] - x, 2) < pow(l_dist[0],2)){
 	l_dist[3] = l_dist[2];
 	   l_eta[3] = l_eta[2];
 	   l_xi[3] = l_xi[2];
@@ -196,31 +189,31 @@ bool NCData::XYtoIndex(int l_eta[4], int l_xi[4] , double  l_dist[4], double x ,
 	l_dist[1] = l_dist[0];
 	   l_eta[1] = l_eta[0];
 	   l_xi[1] = l_xi[0];
-	   l_dist[0] = sqrt((pow(meters_n[j][i] - y, 2) + pow(l_meters_e[j][i] - x, 2)));
+	   l_dist[0] = sqrt((pow(l_meters_n[j][i] - y, 2) + pow(l_meters_e[j][i] - x, 2)));
 	   l_eta[0] = j;
 	   l_xi[0] = i;
       }
-     else if(pow(meters_n[j][i] - y,2) + pow(l_meters_e[j][i] - x, 2) < pow(l_dist[1],2)){
+     else if(pow(l_meters_n[j][i] - y,2) + pow(l_meters_e[j][i] - x, 2) < pow(l_dist[1],2)){
 	l_dist[3] = l_dist[2];
 	   l_eta[3] = l_eta[2];
 	   l_xi[3] = l_xi[2];
 	l_dist[2] = l_dist[1];
 	   l_eta[2] = l_eta[1];
 	   l_xi[2] = l_xi[1];
-	   l_dist[1] = sqrt((pow(meters_n[j][i] - y,2) + pow(l_meters_e[j][i] - x, 2)));
+	   l_dist[1] = sqrt((pow(l_meters_n[j][i] - y,2) + pow(l_meters_e[j][i] - x, 2)));
 	   l_eta[1] = j;
 	   l_xi[1] = i;
       }
-     else if(pow(meters_n[j][i] - x,2) + pow(l_meters_e[j][i] - y, 2) < pow(l_dist[2],2)){
+     else if(pow(l_meters_n[j][i] - x,2) + pow(l_meters_e[j][i] - y, 2) < pow(l_dist[2],2)){
 	l_dist[3] = l_dist[2];
 	   l_eta[3] = l_eta[2];
 	   l_xi[3] = l_xi[2];
-	   l_dist[2] = sqrt((pow(meters_n[j][i] - y,2) + pow(l_meters_e[j][i] - x, 2)));
+	   l_dist[2] = sqrt((pow(l_meters_n[j][i] - y,2) + pow(l_meters_e[j][i] - x, 2)));
 	   l_eta[2] = j;
 	   l_xi[2] = i;
       }
-     else if(pow(meters_n[j][i] - y,2) + pow(l_meters_e[j][i] - x, 2) < pow(l_dist[3],2)){
-       l_dist[3] = sqrt((pow(meters_n[j][i] - y,2) + pow(l_meters_e[j][i] - x, 2)));
+     else if(pow(l_meters_n[j][i] - y,2) + pow(l_meters_e[j][i] - x, 2) < pow(l_dist[3],2)){
+       l_dist[3] = sqrt((pow(l_meters_n[j][i] - y,2) + pow(l_meters_e[j][i] - x, 2)));
 	  l_eta[3] = j;
 	  l_xi[3] = i;
       }
@@ -228,7 +221,7 @@ bool NCData::XYtoIndex(int l_eta[4], int l_xi[4] , double  l_dist[4], double x ,
     }     
 } 
 
-  // printf("distances in latlon to index\n: , %f %f %f %f" , dist[0], dist[1], dist[2], dist[3]);
+   printf("distances in latlon to index\n: , %f %f %f %f \n" , dist[0], dist[1], dist[2], dist[3]);
   //when the loop exits the index with the closest lat/lon pair to the current position will be in i and j 
   //if none of the values were close return false
   if(l_dist[0] ==  chk_dist || l_dist[1] == chk_dist || l_dist[2] == chk_dist || l_dist[3] == chk_dist)
