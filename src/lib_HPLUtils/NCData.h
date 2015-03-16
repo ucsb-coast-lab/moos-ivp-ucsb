@@ -37,7 +37,8 @@ along with this program. If not, see http://www.gnu.org/licenses/.
 class NCData  
 {
 public:
-  //TODO: clean up variables that really don't need to be members 
+  //TODO: clean up variables that really don't need to be members
+  //TODO: change method names to consistent naming convention
   NCData();
   virtual ~NCData() {};
   bool Initialise(double, double, std::string, std::string, std::string*, std::string);
@@ -50,11 +51,11 @@ public:
   double GetFloorDepth();
   double GetAltitude();
 protected: 
-  bool GetS_rho(double depth, double altitude);
-  double CalcValue();
+  bool getS_rho(double depth, double altitude);
+  double calcValue(int eta_index[4], int xi_index[4], double dist[4], double ****vals);
   bool ReadNcFile(std::string ncFileName, std::string varName, std::string *vecVarName); //this is defined in a seperate file 
-  double GetValueAtTime(int);
-  bool GetTimeInfo(double time);
+  double getValueAtTime(int time, int xi_index[4] , int eta_index[4], double dist[4], double**** vals);
+  bool getTimeInfo(double time);
   bool GetBathy();
   bool GetSafeDepth();
   bool convertToMeters(double*** northings, double*** eastings, double** lat_l , double** lon_l , int eta, int xi);
@@ -70,7 +71,7 @@ protected:
   double**   combineVectorCoords(double **vals_1, double **vals_2, long size_1[4] , long size_2[4]);
   
  
-
+  //TODO: be more consistent with member vs non member variables 
  protected: // Configuration variables 
   std::string mask_rho_var_name;
   
@@ -109,8 +110,8 @@ protected:
   double       m_altitude;
   
   double       m_value;
-  double       m_vec_mag;
-  double       m_angle;
+  double       m_east_value;
+  double       m_north_value;
   //current depth level, and distances to nearest s_levels
   int          s_level;
   double       dist_sigma;
@@ -120,7 +121,7 @@ protected:
   //closest 4 eta/xi pairs(so eta[0] and xi[0] form one pair)and the respecitve distances to them
   int          eta_rho_index[4];
   int          xi_rho_index[4];  
-  double       dist[4];
+  double       rho_dist[4];
 
   int          eta_east_index[4];
   int          xi_east_index[4];
@@ -153,7 +154,7 @@ protected:
   CMOOSGeodesy geodesy;
   
   //stores variables from the CDF file
-  double****   vals;
+  double****   rho_vals;
   double**     mask_rho;
   double**     lat;
   double**     lon;
@@ -163,10 +164,6 @@ protected:
   double*      time;
   double*      s_values;
 
-  double****   u_vals;
-  double****   v_vals;
-  double****   w_vals;
-  
   double**     u_meters_n;
   double**     u_meters_e;
   
@@ -176,7 +173,7 @@ protected:
   double**     angle;
 
   double****   east_values;
-  double****   west_values;
+  double****   north_values;
 
   double** vec_meters_e;
   double** vec_meters_n;

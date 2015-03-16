@@ -71,6 +71,7 @@ bool NCData::ReadNcFile(string ncFileName, string varName, string vecVarName[3])
     time[n] += utc2009_epoch;
   }
 
+  cout << debug_name << ": NCData: file read in successfully " << endl;
   return true;
  }
 
@@ -119,7 +120,7 @@ bool NCData::readScalarVar(string var_name , NcFile *pFile)
     return false;
   }
   
-  vals = readNcVar4(scalar_var, edge);
+  rho_vals = readNcVar4(scalar_var, edge);
   cout << debug_name << ": NCData: field for \"" << var_name << "\" populated" << endl;
   
   mask_rho = readNcVar2(mask_rho_var, edge);
@@ -157,17 +158,17 @@ bool NCData::readScalarVar(string var_name , NcFile *pFile)
 
 bool NCData::readVectorVar(string vec_var_name[3], NcFile *p_file)
 {
-   NcVar* u_var = findNcVar(vec_var_name[0], p_file);
-   NcVar* v_var = findNcVar(vec_var_name[1] , p_file);
-   NcVar* w_var = findNcVar(vec_var_name[2] , p_file);
+   NcVar *u_var = findNcVar(vec_var_name[0], p_file);
+   NcVar *v_var = findNcVar(vec_var_name[1] , p_file);
+   NcVar *w_var = findNcVar(vec_var_name[2] , p_file);
   
-   NcVar* u_lat_var = findNcVar(lat_u_var_name , p_file);
-   NcVar* u_lon_var = findNcVar(lon_u_var_name , p_file); 
+   NcVar *u_lat_var = findNcVar(lat_u_var_name , p_file);
+   NcVar *u_lon_var = findNcVar(lon_u_var_name , p_file); 
    
-   NcVar* v_lat_var = findNcVar(lat_v_var_name ,p_file);
-   NcVar* v_lon_var = findNcVar(lon_v_var_name ,p_file);
+   NcVar *v_lat_var = findNcVar(lat_v_var_name ,p_file);
+   NcVar *v_lon_var = findNcVar(lon_v_var_name ,p_file);
 
-   NcVar* angle_var = findNcVar(angle_var_name , p_file);
+   NcVar *angle_var = findNcVar(angle_var_name , p_file);
 
    if(!u_var || !v_var || !w_var || !u_lat_var || !u_lon_var || !v_lat_var || !v_lon_var){
      cout << "exiting!" << endl;
@@ -177,11 +178,11 @@ bool NCData::readVectorVar(string vec_var_name[3], NcFile *p_file)
    //w lat/lon exist on rho points, which we already have from the scalar variable
    
 
-   long* edge_v = v_var->edges();
-   long* edge_u = u_var->edges();
+   long *edge_v = v_var->edges();
+   long *edge_u = u_var->edges();
 
    //this is the same edge as readScalarVar, we need it because w used rho coordinates, maybe should have just made edge a member, oh well
-   long* edge_w = w_var->edges(); 
+   long *edge_w = w_var->edges(); 
 
 
    eta_v = edge_v[2];
@@ -196,11 +197,11 @@ bool NCData::readVectorVar(string vec_var_name[3], NcFile *p_file)
    cout << debug_name << ": NCData: using " << xi_u << " eta_v values" << endl;
 
    //read in variables
-   u_vals = readNcVar4(u_var , edge_u);
+   double ****u_vals = readNcVar4(u_var , edge_u);
    cout << debug_name << ": NCData: u_vals field populated " << endl;
-   v_vals = readNcVar4(v_var , edge_v);
+   double ****v_vals = readNcVar4(v_var , edge_v);
    cout << debug_name << ": NCData: v_vals field populated " << endl;
-   w_vals = readNcVar4(w_var , edge_w);
+   double ****w_vals = readNcVar4(w_var , edge_w);
    cout << debug_name << ": NCData: w_vals field populated " << endl;
    
    //read in lat/lon
@@ -243,31 +244,54 @@ bool NCData::readVectorVar(string vec_var_name[3], NcFile *p_file)
    //I decided to simply concatenate the two east / north fields. So the order of points in the array is a little funky now, but none of
    //the functions that use these variables care so it's fine. 
    east_values = combineVectorVals(u_vals_east, v_vals_east, edge_u , edge_v);
-   west_values = combineVectorVals(u_vals_north, v_vals_north, edge_u, edge_v);
-
-   cout << "vectors combined successfully" << endl;
+   north_values = combineVectorVals(u_vals_north, v_vals_north, edge_u, edge_v);
    
    //we have to make new a combined variable to keep track of distances between vector points.
    vec_meters_e  = combineVectorCoords(u_meters_east , v_meters_east , edge_u , edge_v);
    vec_meters_n  = combineVectorCoords(u_meters_north , v_meters_north , edge_u , edge_v);
+
    //record the size of our new concatenated vector 
    for(int i = 0; i < 4; i++){
      vec_size[i] = edge_u[i] + edge_v[i];
    }
+   
+   
+   
 
-
-   //free all the dynamic local variables 
+   //free all the dynamic local variables
+   //TODO: free everything properly, doesn't matter too too much since this method will only be called once, but still, it's bad practice. 
    freeDouble4DArray(u_vals_east, edge_u);
    freeDouble4DArray(u_vals_north , edge_u);
    freeDouble4DArray(v_vals_east, edge_v);
    freeDouble4DArray(v_vals_north, edge_v);
+
+   freeDouble4DArray(u_vals, edge_u);
+   freeDouble4DArray(v_vals, edge_v);
+   freeDouble4DArray(w_vals, edge_w);
    
    freeDouble2DArray(u_lat, edge_u[2]);
    freeDouble2DArray(u_lon, edge_u[2]);
    freeDouble2DArray(v_lat, edge_v[2]);
    freeDouble2DArray(v_lon, edge_v[2]);
 
-    cout << debug_name << ": NCData: vector variable read in successfully" << endl;
+   
+   delete edge_u;
+   delete edge_v;
+   delete edge_w;
+
+   //trying to delete pointers to NCVar variables breaks everything, go figure. 
+   /*
+   delete u_var;
+   delete v_var;
+   delete w_var;
+
+   delete u_lat_var;
+   delete u_lon_var;
+   delete v_lat_var;
+   delete v_lon_var;
+   delete angle_var;
+   */
+   cout << debug_name << ": NCData: vector variable read in successfully" << endl;
    return true;
 }
    
@@ -402,12 +426,29 @@ double**** NCData::combineVectorVals(double ****vals_1, double ****vals_2, long 
 	{
 	  values[n][k] = new double*[size_1[2] + size_2[2]];
 	  for(int j = 0; j < (size_1[2] + size_2[2]); j++)
-	    {
-	     
+	    {	     
 	      values[n][k][j] = new double[size_1[3] + size_2[3]];
 	    }
 	}
     }
+
+
+  for(int n = 0; n < (size_1[0] + size_2[0]); n++)  //dynamic memory must be initialized row by row
+    { 
+      for(int k = 0; k < (size_1[1] + size_2[1]); k++)
+	{
+	  
+	  for(int j = 0; j < (size_1[2] + size_2[2]); j++)
+	    {
+	      for(int i = 0; i < (size_1[3] + size_2[3]); i++)
+		{
+		  values[n][k][j][i] = -9999999;
+		  //cout << "values : " << values[n][k][j][i] << endl;
+		}
+	    }
+	}
+    }
+      
 
 
   //reads in the variable 
@@ -439,6 +480,8 @@ double**** NCData::combineVectorVals(double ****vals_1, double ****vals_2, long 
 	}
     }
 
+
+
   return values;
   
 }
@@ -452,9 +495,15 @@ double** NCData::combineVectorCoords(double **vals_1 , double **vals_2 , long si
   for(int i = 0; i < size_1[2] + size_2[2]; i++){
     values[i] = new double[size_1[3] + size_2[3]];
   }
-
+  
+  for(int i = 0; i < size_1[2] + size_2[2]; i++){
+    for(int j = 0; j < size_1[3] + size_2[3]; j++){
+      values[i][j] = -99999999999999;
+    }
+  }
+  
   for(int i = 0; i < size_1[2]; i++){
-    for(int j = 0; j < size_2[2]; j++){
+    for(int j = 0; j < size_1[3]; j++){
       values[i][j] = vals_1[i][j];
     }
   }

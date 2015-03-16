@@ -10,7 +10,7 @@ double WeightedAvg(double* values, double* weights, int* good, int num_vals)
 
   for(int i = 0; i < num_vals; i++){
     if(weights[i] == 0){
-      weights[i] = .000000001;
+      weights[i] = .000000001; // a bit hacky, but it gets the job doen
     }
   }
   double numerator = 0;
