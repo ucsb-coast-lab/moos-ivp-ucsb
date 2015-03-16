@@ -176,7 +176,10 @@ bool USR_MOOSApp::OnDisconnectFromServer()
 bool USR_MOOSApp::Iterate()
 {
   double  value; 
-  ncdata.Update(m_posx , m_posy, m_depth, m_current_time);
+  if(!ncdata.Update(m_posx , m_posy, m_depth, m_current_time)){
+    cout << "uSimROMS: something went wrong, refusing to publish" << endl;
+    return false;
+  }
   value = ncdata.GetValue();
   
   //if nothing has failed we can safely publish
