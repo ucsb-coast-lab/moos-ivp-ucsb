@@ -164,12 +164,7 @@ protected:
   double*      time;
   double*      s_values;
 
-  double**     u_meters_n;
-  double**     u_meters_e;
-  
-  double**     v_meters_n;
-  double**     v_meters_e;
-
+ 
   double**     angle;
 
   double****   east_values;

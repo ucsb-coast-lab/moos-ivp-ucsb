@@ -102,21 +102,27 @@ bool NCData::Update(double x, double y, double h, double time){
 
   //XYtoIndex returns closest 4 index pairs and the corresponding distances to them, so in the first call we get back an updated
   //eta_rho_index , xi_rho_index,
+  
   if(!XYtoIndex(eta_rho_index, xi_rho_index, rho_dist, x, y, meters_e , meters_n , eta_rho, xi_rho)){
-    cout << debug_name<< ":NCData: no rho value found at current location" << endl;   
+    cout << debug_name<< ": NCData: no rho value found at current location" << endl;   
     return false;
   }
+  
+
+  cout << vec_size[2] << endl;
+  cout << vec_size[3] << endl;
   
   if(!XYtoIndex(eta_east_index , xi_east_index , vec_dist , x, y, vec_meters_e, vec_meters_n, vec_size[2] , vec_size[3])){ //returns eta_u xi_u 
     cout << debug_name << "NCData: no u/v value found at current location" << endl;
     return false;
   }
 
+  
   if(!XYtoIndex(eta_north_index , xi_north_index , vec_dist , x , y, vec_meters_e , vec_meters_n , vec_size[2], vec_size[3])){
     cout << debug_name << "NCData: no u/v value found at current location" << endl;
     return false;
   }
- 
+  
   
   GetBathy();
   m_altitude = floor_depth - h;
@@ -128,14 +134,16 @@ bool NCData::Update(double x, double y, double h, double time){
   m_value = calcValue(eta_rho_index, xi_rho_index, rho_dist, rho_vals);
   
   m_east_value = calcValue(eta_east_index, xi_east_index, vec_dist, east_values);
+  cout << "east value = " << m_east_value << endl;
   m_north_value = calcValue(eta_north_index, xi_north_index, vec_dist, north_values);
+  cout << "north value = " << m_north_value << endl;
   //cout << "m_value = " << m_value << endl;
   
   if(m_value == bad_val){  //if the value is good, go ahead and publish it
     cout << debug_name<< ":NCData: all local values are bad (probably under the land mask), refusing to publish new values" << endl;
     return false;
   }
- 
+  
 }
 
 //---------------------------------------------------------------------
@@ -179,7 +187,7 @@ bool NCData::XYtoIndex(int l_eta[4], int l_xi[4] , double  l_dist[4], double x ,
   for(int j = 0; j < size_eta; j++)
     {
       for(int i = 0; i < size_eta; i++){
-	//cout << debug_name << " seeing a distance of : " << pow(l_meters_n[j][i] - y,2) + pow(l_meters_e[j][i] - x, 2)  << endl;
+	//cout << debug_name << " seeing a distance of : " << sqrt((pow(l_meters_n[j][i] - y, 2) + pow(l_meters_e[j][i] - x, 2)))  << endl;
 	//cout << debug_name<< " l_meters_n = " << l_meters_n[j][i] << endl;
 	//cout << debug_name<< " l_meters_e = " << l_meters_e[j][i] << endl;
        if(pow(l_meters_n[j][i] - y,2) + pow(l_meters_e[j][i] - x, 2) < pow(l_dist[0],2)){

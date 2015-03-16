@@ -228,7 +228,7 @@ bool NCData::readVectorVar(string vec_var_name[3], NcFile *p_file)
    //angle is the angle between east and xi
    angle = readNcVar2(angle_var , edge_w);
    cout << debug_name << ": NCData: angle field populated" << endl;
-
+   
    double ****u_vals_east;
    double ****u_vals_north;
    
@@ -240,22 +240,23 @@ bool NCData::readVectorVar(string vec_var_name[3], NcFile *p_file)
    //same as above
    convertToEastNorth(&v_vals_east, &v_vals_north, edge_v, v_vals, angle);
 
-
    //I decided to simply concatenate the two east / north fields. So the order of points in the array is a little funky now, but none of
    //the functions that use these variables care so it's fine. 
    east_values = combineVectorVals(u_vals_east, v_vals_east, edge_u , edge_v);
    north_values = combineVectorVals(u_vals_north, v_vals_north, edge_u, edge_v);
+
+
    
    //we have to make new a combined variable to keep track of distances between vector points.
    vec_meters_e  = combineVectorCoords(u_meters_east , v_meters_east , edge_u , edge_v);
    vec_meters_n  = combineVectorCoords(u_meters_north , v_meters_north , edge_u , edge_v);
 
    //record the size of our new concatenated vector 
-   for(int i = 0; i < 4; i++){
-     vec_size[i] = edge_u[i] + edge_v[i];
-   }
-   
-   
+   vec_size[0] = edge_u[0];
+   vec_size[1] = edge_u[1];
+   //vec_size[2] is established in combineVectorCoords, it takes the value the larger of edge_u[2] and edge_v[2]
+   vec_size[3] = edge_u[3] + edge_v[3];
+     
    
 
    //free all the dynamic local variables
@@ -411,21 +412,23 @@ bool NCData::convertToEastNorth(double *****pvals_east , double *****pvals_north
 //---------------------------------------------------------------------
 //combineVector
 //allocates space and fills the vector variable by combining all the east components (or all the north)
-//into one large array, of course the function is more general than that (need not be east or north really)
-//but that's what we're using it for..
+//into one large array.
 
 double**** NCData::combineVectorVals(double ****vals_1, double ****vals_2, long size_1[4], long size_2[4])
 {
- 
+
+  long larger_eta;
+  //set larger eta to the larger of the two values
+  (size_1[2] > size_2[2]) ? (larger_eta = size_1[2]) : (larger_eta = size_2[2]);
   //create a value array in local memory, read in values
-  double**** values = new double***[size_1[0]+size_2[0]];
-  for(int n = 0; n < (size_1[0] + size_2[0]); n++)  //dynamic memory must be initialized row by row
+  double**** values = new double***[size_1[0]];
+  for(int n = 0; n < (size_1[0]); n++)  //dynamic memory must be initialized row by row
     {
-      values[n] = new double**[size_1[1] + size_2[1]];
-      for(int k = 0; k < (size_1[1] + size_2[1]); k++)
+      values[n] = new double**[size_1[1]];
+      for(int k = 0; k < (size_1[1]); k++)
 	{
-	  values[n][k] = new double*[size_1[2] + size_2[2]];
-	  for(int j = 0; j < (size_1[2] + size_2[2]); j++)
+	  values[n][k] = new double*[larger_eta];
+	  for(int j = 0; j < (larger_eta); j++)
 	    {	     
 	      values[n][k][j] = new double[size_1[3] + size_2[3]];
 	    }
@@ -433,12 +436,12 @@ double**** NCData::combineVectorVals(double ****vals_1, double ****vals_2, long 
     }
 
 
-  for(int n = 0; n < (size_1[0] + size_2[0]); n++)  //dynamic memory must be initialized row by row
+  for(int n = 0; n < (size_1[0]); n++)  
     { 
-      for(int k = 0; k < (size_1[1] + size_2[1]); k++)
+      for(int k = 0; k < (size_1[1]); k++)
 	{
 	  
-	  for(int j = 0; j < (size_1[2] + size_2[2]); j++)
+	  for(int j = 0; j < (larger_eta); j++)
 	    {
 	      for(int i = 0; i < (size_1[3] + size_2[3]); i++)
 		{
@@ -464,23 +467,21 @@ double**** NCData::combineVectorVals(double ****vals_1, double ****vals_2, long 
 	    }
 	}
     }
-  
-  for(int n = size_1[0]; n < (size_1[0] + size_2[0]); n++){
-      for(int k = size_1[1]; k < (size_1[1]+ size_2[1]); k++){
-	  for(int j = size_1[2]; j < (size_1[2] + size_2[2]); j++){
+
+  for(int n = 0; n < (size_1[0]); n++){
+      for(int k = 0; k < (size_2[1]); k++){
+	  for(int j = 0; j < (size_2[2]); j++){
 	      for(int i = size_1[3]; i < (size_1[3] + size_2[3]); i++){
 		//this line is a bit obtuse, basically we want the second part of the array to be filled with the second
 		//value array, however the second array is indexed from 0 - size_2[*] where as our new combined array goes from
 		// 0 - (size_1[*] + size[2*] , so we subtract size_1[*] from our index variables for proper indexing.
 		//	cout << vals_2[n-size_1[0]][k - size_1[1]][j - size_1[2]][i - size_1[3]] << endl;
-		values[n][k][j][i] = vals_2[n - size_1[0]][k - size_1[1]][j - size_1[2]][i - size_1[3]];
+		values[n][k][j][i] = vals_2[n][k][j][i - size_1[3]];
 	        
 		}
 	    }
 	}
     }
-
-
 
   return values;
   
@@ -491,16 +492,23 @@ double**** NCData::combineVectorVals(double ****vals_1, double ****vals_2, long 
 //creates a new array which keeps track of the UTF location of vector coordinates
 double** NCData::combineVectorCoords(double **vals_1 , double **vals_2 , long size_1[4] , long size_2[4])
 {
-  double** values = new double*[size_1[2] + size_2[2]];
-  for(int i = 0; i < size_1[2] + size_2[2]; i++){
+   long larger_eta;
+  //set larger eta to the larger of the two values
+  (size_1[2] > size_2[2]) ? (larger_eta = size_1[2]) : (larger_eta = size_2[2]);
+  vec_size[2] = larger_eta; 
+  
+  double** values = new double*[larger_eta];
+  for(int i = 0; i < larger_eta; i++){
     values[i] = new double[size_1[3] + size_2[3]];
   }
+
   
-  for(int i = 0; i < size_1[2] + size_2[2]; i++){
+  for(int i = 0; i < larger_eta; i++){
     for(int j = 0; j < size_1[3] + size_2[3]; j++){
-      values[i][j] = -99999999999999;
+      values[i][j] = 9999999999;
     }
   }
+
   
   for(int i = 0; i < size_1[2]; i++){
     for(int j = 0; j < size_1[3]; j++){
@@ -508,14 +516,19 @@ double** NCData::combineVectorCoords(double **vals_1 , double **vals_2 , long si
     }
   }
 
-  for(int i = size_1[2]; i < (size_1[2] + size_2[2]); i++){
-    for(int j = 0; j < (size_1[3] + size_2[3]); j++){
+
+  for(int i = 0; i < size_2[2]; i++){
+    for(int j = size_1[3]; j < (size_1[3] + size_2[3]); j++){
+      //      cout << "i , j - size_1[3] : " << i << " " << j- size_1[3] <<  endl;
       //same as combineVectorVals, basically we want the second part of the array to be filled with the second
       //value array, however the second array is indexed from 0 - size_2[*] where as our new combined array goes from
-      // 0 - (size_1[*] + size[2*] , so we subtract size_1[*] from our index variables for proper indexing.
-      values[i][j] = vals_2[i - size_1[2]][j - size_1[3]];
+      // 0 - (size_1[*] + size[2*]) , so we subtract size_1[*] from our index variables for proper indexing.
+      // cout << "values = " << values[i][j] << endl;
+      //cout << "vals_2 = " << vals_2[i][j] << endl;
+      values[i][j] = vals_2[i][j - size_1[3]];
     }
   }
+
   
   return values;
 }
