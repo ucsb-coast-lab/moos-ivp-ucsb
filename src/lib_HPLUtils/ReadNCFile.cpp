@@ -37,15 +37,15 @@ using namespace std;
 //         time steps and their values
 // NJN: 20141211: Changed indexing to typical numerical conventions: (x,y,z,t) = (i,j,k,n)
 
-bool NCData::ReadNcFile(string ncFileName, string varName, string vecVarName[3])
+bool NCData::ReadNcFile(string nc_file_name, string var_name, string vec_var_name[3])
 {
-  cout << debug_name << ": NCData: opening file: " << ncFileName << endl;
+  cout << debug_name << ": NCData: opening file: " << nc_file_name << endl;
   // these  don't actually do anything we need to concern ourselves with, but  the constructor requires them
   size_t* buffer = NULL;
   size_t size = 0;
 
   //open file
-  NcFile File((const char*)ncFileName.c_str(), NcFile::ReadOnly , buffer , size , NcFile::Netcdf4); 
+  NcFile File((const char*)nc_file_name.c_str(), NcFile::ReadOnly , buffer , size , NcFile::Netcdf4); 
   if(!(File.is_valid())) //check if file is open
     {
       cout << debug_name << ": NCData: error reading file!" << endl;
@@ -53,12 +53,12 @@ bool NCData::ReadNcFile(string ncFileName, string varName, string vecVarName[3])
     } else cout << debug_name << ": NCData: file opened successfully" << endl;
   
   
-  if(!readScalarVar(varName , &File)){
+  if(!ReadScalarVar(var_name , &File)){
     cout << "error reading scalar variable , exiting" << endl;
     return false;
   }
   
-  if(!readVectorVar(vecVarName, &File)){
+  if(!ReadVectorVar(vec_var_name, &File)){
     cout << "error reading vector variable , exiting" << endl;
     return false;
   }
@@ -79,10 +79,10 @@ bool NCData::ReadNcFile(string ncFileName, string varName, string vecVarName[3])
 //reads the scalar variable into local memory, this has the added effect of establishing
 //time and depth values.
 
-bool NCData::readScalarVar(string var_name , NcFile *pFile)
+bool NCData::ReadScalarVar(string var_name , NcFile *pFile)
 {
   //find specified variable
-  NcVar* scalar_var = findNcVar(var_name, pFile);
+  NcVar* scalar_var = FindNcVar(var_name, pFile);
   if(!scalar_var){
     cout << "could not fine main scalar variable! exiting!" << endl;
     cout << debug_name << ":NCData: exiting!" << endl;
@@ -107,12 +107,12 @@ bool NCData::readScalarVar(string var_name , NcFile *pFile)
   cout << debug_name << ": NCData: using " << xi_rho << " xi_values" << endl;
   
   //find the remaining variables.
-  NcVar* mask_rho_var = findNcVar(mask_rho_var_name, pFile);
-  NcVar* lat_var = findNcVar(lat_var_name , pFile);
-  NcVar* lon_var = findNcVar(lon_var_name, pFile);
-  NcVar* time_var = findNcVar(time_var_name, pFile);
-  NcVar* s_var = findNcVar(s_var_name, pFile);
-  NcVar* bathy_var = findNcVar(bathy_var_name, pFile);
+  NcVar* mask_rho_var = FindNcVar(mask_rho_var_name, pFile);
+  NcVar* lat_var = FindNcVar(lat_var_name , pFile);
+  NcVar* lon_var = FindNcVar(lon_var_name, pFile);
+  NcVar* time_var = FindNcVar(time_var_name, pFile);
+  NcVar* s_var = FindNcVar(s_var_name, pFile);
+  NcVar* bathy_var = FindNcVar(bathy_var_name, pFile);
   //make sure nothing came back false, exit if it did.
   
   if(!mask_rho_var || !lat_var || !lon_var || !time_var || !s_var || !bathy_var){
@@ -120,19 +120,19 @@ bool NCData::readScalarVar(string var_name , NcFile *pFile)
     return false;
   }
   
-  rho_vals = readNcVar4(scalar_var, edge);
+  rho_vals = ReadNcVar4(scalar_var, edge);
   cout << debug_name << ": NCData: field for \"" << var_name << "\" populated" << endl;
   
-  mask_rho = readNcVar2(mask_rho_var, edge);
+  mask_rho = ReadNcVar2(mask_rho_var, edge);
   cout << debug_name << ": NCData: land mask field populated" << endl;
   
-  lat = readNcVar2(lat_var, edge);
+  lat = ReadNcVar2(lat_var, edge);
   cout << debug_name << ": NCData: latitude field populated" << endl;
   
-  lon = readNcVar2(lon_var, edge);
+  lon = ReadNcVar2(lon_var, edge);
   cout << debug_name << ": NCData: longitude field populated" << endl;
   
-  bathy = readNcVar2(bathy_var, edge);
+  bathy = ReadNcVar2(bathy_var, edge);
   cout << debug_name << ": NCData: bathymetry field populated" << endl;
 
    //read in time values 
@@ -156,19 +156,19 @@ bool NCData::readScalarVar(string var_name , NcFile *pFile)
 //reads in a vector valued variable, will override s_rho and time_vals , so make sure your vector variables
 //and your scalar variables are all using the same grid
 
-bool NCData::readVectorVar(string vec_var_name[3], NcFile *p_file)
+bool NCData::ReadVectorVar(string vec_var_name[3], NcFile *p_file)
 {
-   NcVar *u_var = findNcVar(vec_var_name[0], p_file);
-   NcVar *v_var = findNcVar(vec_var_name[1] , p_file);
-   NcVar *w_var = findNcVar(vec_var_name[2] , p_file);
+   NcVar *u_var = FindNcVar(vec_var_name[0], p_file);
+   NcVar *v_var = FindNcVar(vec_var_name[1] , p_file);
+   NcVar *w_var = FindNcVar(vec_var_name[2] , p_file);
   
-   NcVar *u_lat_var = findNcVar(lat_u_var_name , p_file);
-   NcVar *u_lon_var = findNcVar(lon_u_var_name , p_file); 
+   NcVar *u_lat_var = FindNcVar(lat_u_var_name , p_file);
+   NcVar *u_lon_var = FindNcVar(lon_u_var_name , p_file); 
    
-   NcVar *v_lat_var = findNcVar(lat_v_var_name ,p_file);
-   NcVar *v_lon_var = findNcVar(lon_v_var_name ,p_file);
+   NcVar *v_lat_var = FindNcVar(lat_v_var_name ,p_file);
+   NcVar *v_lon_var = FindNcVar(lon_v_var_name ,p_file);
 
-   NcVar *angle_var = findNcVar(angle_var_name , p_file);
+   NcVar *angle_var = FindNcVar(angle_var_name , p_file);
 
    if(!u_var || !v_var || !w_var || !u_lat_var || !u_lon_var || !v_lat_var || !v_lon_var){
      cout << "exiting!" << endl;
@@ -197,21 +197,21 @@ bool NCData::readVectorVar(string vec_var_name[3], NcFile *p_file)
    cout << debug_name << ": NCData: using " << xi_u << " eta_v values" << endl;
 
    //read in variables
-   double ****u_vals = readNcVar4(u_var , edge_u);
+   double ****u_vals = ReadNcVar4(u_var , edge_u);
    cout << debug_name << ": NCData: u_vals field populated " << endl;
-   double ****v_vals = readNcVar4(v_var , edge_v);
+   double ****v_vals = ReadNcVar4(v_var , edge_v);
    cout << debug_name << ": NCData: v_vals field populated " << endl;
-   double ****w_vals = readNcVar4(w_var , edge_w);
+   double ****w_vals = ReadNcVar4(w_var , edge_w);
    cout << debug_name << ": NCData: w_vals field populated " << endl;
    
    //read in lat/lon
-   double **u_lat = readNcVar2(u_lat_var , edge_u);
+   double **u_lat = ReadNcVar2(u_lat_var , edge_u);
    cout << debug_name << ": NCData: u latitude field populated" << endl;
-   double **u_lon = readNcVar2(u_lon_var , edge_u);
+   double **u_lon = ReadNcVar2(u_lon_var , edge_u);
    cout << debug_name << ": NCData: u longitude field populated" << endl;
-   double **v_lat = readNcVar2(v_lat_var , edge_v);
+   double **v_lat = ReadNcVar2(v_lat_var , edge_v);
    cout << debug_name << ": NCData: v latitude field populated" << endl;
-   double **v_lon = readNcVar2(v_lon_var , edge_v);
+   double **v_lon = ReadNcVar2(v_lon_var , edge_v);
    cout << debug_name << ": NCData: v longitude field populated" << endl;
 
 
@@ -221,12 +221,12 @@ bool NCData::readVectorVar(string vec_var_name[3], NcFile *p_file)
    double **v_meters_north;
    
    //convert lat/lon to meters_e / meters_n
-   convertToMeters(&meters_n, &meters_e , lat, lon , eta_rho, xi_rho);
-   convertToMeters(&u_meters_north , &u_meters_east , u_lat , u_lon , eta_u , xi_u);
-   convertToMeters(&v_meters_north , &v_meters_east , v_lat , v_lon , eta_v , xi_v);
+   ConvertToMeters(&meters_n, &meters_e , lat, lon , eta_rho, xi_rho);
+   ConvertToMeters(&u_meters_north , &u_meters_east , u_lat , u_lon , eta_u , xi_u);
+   ConvertToMeters(&v_meters_north , &v_meters_east , v_lat , v_lon , eta_v , xi_v);
 
    //angle is the angle between east and xi
-   angle = readNcVar2(angle_var , edge_w);
+   angle = ReadNcVar2(angle_var , edge_w);
    cout << debug_name << ": NCData: angle field populated" << endl;
    
    double ****u_vals_east;
@@ -236,20 +236,20 @@ bool NCData::readVectorVar(string vec_var_name[3], NcFile *p_file)
    double ****v_vals_north;
 
    //converts all u values to their east and north components (returns u_vals_east / u_vals north)
-   convertToEastNorth(&u_vals_east, &u_vals_north, edge_u, u_vals, angle);
+   ConvertToEastNorth(&u_vals_east, &u_vals_north, edge_u, u_vals, angle);
    //same as above
-   convertToEastNorth(&v_vals_east, &v_vals_north, edge_v, v_vals, angle);
+   ConvertToEastNorth(&v_vals_east, &v_vals_north, edge_v, v_vals, angle);
 
    //I decided to simply concatenate the two east / north fields. So the order of points in the array is a little funky now, but none of
    //the functions that use these variables care so it's fine. 
-   east_values = combineVectorVals(u_vals_east, v_vals_east, edge_u , edge_v);
-   north_values = combineVectorVals(u_vals_north, v_vals_north, edge_u, edge_v);
+   east_values = CombineVectorVals(u_vals_east, v_vals_east, edge_u , edge_v);
+   north_values = CombineVectorVals(u_vals_north, v_vals_north, edge_u, edge_v);
 
 
    
    //we have to make new a combined variable to keep track of distances between vector points.
-   vec_meters_e  = combineVectorCoords(u_meters_east , v_meters_east , edge_u , edge_v);
-   vec_meters_n  = combineVectorCoords(u_meters_north , v_meters_north , edge_u , edge_v);
+   vec_meters_e  = CombineVectorCoords(u_meters_east , v_meters_east , edge_u , edge_v);
+   vec_meters_n  = CombineVectorCoords(u_meters_north , v_meters_north , edge_u , edge_v);
 
    //record the size of our new concatenated vector 
    vec_size[0] = edge_u[0];
@@ -261,19 +261,19 @@ bool NCData::readVectorVar(string vec_var_name[3], NcFile *p_file)
 
    //free all the dynamic local variables
    //TODO: free everything properly, doesn't matter too too much since this method will only be called once, but still, it's bad practice. 
-   freeDouble4DArray(u_vals_east, edge_u);
-   freeDouble4DArray(u_vals_north , edge_u);
-   freeDouble4DArray(v_vals_east, edge_v);
-   freeDouble4DArray(v_vals_north, edge_v);
+   FreeDouble4DArray(u_vals_east, edge_u);
+   FreeDouble4DArray(u_vals_north , edge_u);
+   FreeDouble4DArray(v_vals_east, edge_v);
+   FreeDouble4DArray(v_vals_north, edge_v);
 
-   freeDouble4DArray(u_vals, edge_u);
-   freeDouble4DArray(v_vals, edge_v);
-   freeDouble4DArray(w_vals, edge_w);
+   FreeDouble4DArray(u_vals, edge_u);
+   FreeDouble4DArray(v_vals, edge_v);
+   FreeDouble4DArray(w_vals, edge_w);
    
-   freeDouble2DArray(u_lat, edge_u[2]);
-   freeDouble2DArray(u_lon, edge_u[2]);
-   freeDouble2DArray(v_lat, edge_v[2]);
-   freeDouble2DArray(v_lon, edge_v[2]);
+   FreeDouble2DArray(u_lat, edge_u[2]);
+   FreeDouble2DArray(u_lon, edge_u[2]);
+   FreeDouble2DArray(v_lat, edge_v[2]);
+   FreeDouble2DArray(v_lon, edge_v[2]);
 
    
    delete edge_u;
@@ -301,7 +301,7 @@ bool NCData::readVectorVar(string vec_var_name[3], NcFile *p_file)
 //attempts to find the specified variable and returns if it's able
 
 
-NcVar* NCData::findNcVar(string var_name, NcFile *p_file)
+NcVar* NCData::FindNcVar(string var_name, NcFile *p_file)
 {
   NcVar* var;
   
@@ -317,7 +317,7 @@ NcVar* NCData::findNcVar(string var_name, NcFile *p_file)
 //--------------------------------------------------------------------
 //Allocates a 4 dimensional array in local memory and reads in values to it
 
-double**** NCData::readNcVar4(NcVar* var, long  size[4])
+double**** NCData::ReadNcVar4(NcVar* var, long  size[4])
 {  
   //create a value array in local memory, read in values
   double**** values = new double***[size[0]];
@@ -352,7 +352,7 @@ double**** NCData::readNcVar4(NcVar* var, long  size[4])
 //---------------------------------------------------------------------
 //allocates a 2 dimensional array and reads NC data into it, assumes
 //you want xi and eta as your grid boundaries 
-double** NCData::readNcVar2(NcVar* var , long size[4])
+double** NCData::ReadNcVar2(NcVar* var , long size[4])
 {
   double **vals = new double* [size[2]];
   for(int j = 0; j < size[2]; j++){
@@ -372,7 +372,7 @@ double** NCData::readNcVar2(NcVar* var , long size[4])
 //convertToEastWest
 //Converts xi / eta into east and west components using simple trig
 
-bool NCData::convertToEastNorth(double *****pvals_east , double *****pvals_north, long size[4], double ****vals, double **angle)
+bool NCData::ConvertToEastNorth(double *****pvals_east , double *****pvals_north, long size[4], double ****vals, double **angle)
 {
   
   //create a value array in local memory, read in values
@@ -414,7 +414,7 @@ bool NCData::convertToEastNorth(double *****pvals_east , double *****pvals_north
 //allocates space and fills the vector variable by combining all the east components (or all the north)
 //into one large array.
 
-double**** NCData::combineVectorVals(double ****vals_1, double ****vals_2, long size_1[4], long size_2[4])
+double**** NCData::CombineVectorVals(double ****vals_1, double ****vals_2, long size_1[4], long size_2[4])
 {
 
   long larger_eta;
@@ -490,7 +490,7 @@ double**** NCData::combineVectorVals(double ****vals_1, double ****vals_2, long 
 //---------------------------------------------------------------------
 //combineVectorCoords
 //creates a new array which keeps track of the UTF location of vector coordinates
-double** NCData::combineVectorCoords(double **vals_1 , double **vals_2 , long size_1[4] , long size_2[4])
+double** NCData::CombineVectorCoords(double **vals_1 , double **vals_2 , long size_1[4] , long size_2[4])
 {
    long larger_eta;
   //set larger eta to the larger of the two values
@@ -535,7 +535,7 @@ double** NCData::combineVectorCoords(double **vals_1 , double **vals_2 , long si
 //---------------------------------------------------------------------
 //convertToMeters
 //converts a lot lon grid with size eta and xi to northings and easting. northing and eastings are both pointers to a 2D array
-bool NCData::convertToMeters(double*** northings , double*** eastings, double **lat_l, double** lon_l, int eta , int xi)
+bool NCData::ConvertToMeters(double*** northings , double*** eastings, double **lat_l, double** lon_l, int eta , int xi)
 {
   *northings = new double *[eta];
   *eastings = new double *[eta];
@@ -552,11 +552,4 @@ bool NCData::convertToMeters(double*** northings , double*** eastings, double **
   }
   return true;
 }
-
-
-  
-
-
-
-
 

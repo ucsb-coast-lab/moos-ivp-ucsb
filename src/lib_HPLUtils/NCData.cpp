@@ -82,10 +82,10 @@ NCData::NCData()
 //notes : takes origin coordinates, and reads nc data into local memory. the debug name parameter is the name used
 //        when printing debug info to the console
  
-bool NCData::Initialise(double latOrigin, double longOrigin, string ncFileName, string varName, string *vecVarName, string processName){
-  geodesy.Initialise(latOrigin, longOrigin);
-  debug_name = processName;
-  if(!ReadNcFile(ncFileName, varName, vecVarName)){
+bool NCData::Initialise(double lat_origin, double long_origin, string nc_file_name, string var_name, string *vec_var_name, string process_name){
+  geodesy.Initialise(lat_origin, long_origin);
+  debug_name = process_name;
+  if(!ReadNcFile(nc_file_name, var_name, vec_var_name)){
     cout << debug_name << ":NCData: error reading NC file, exiting" << endl;//loads all the data into local memory that we can actually use
     std::exit(0);       //if we can't read the file, exit the program so it's clear something went wrong and
   }                     //so we don't publish misleading or dangerous values, not sure if MOOS applications have
@@ -96,9 +96,8 @@ bool NCData::Initialise(double latOrigin, double longOrigin, string ncFileName, 
 //Procedure: Update
 //notes: takes a position and time and updates the current state of the nc data.
 bool NCData::Update(double x, double y, double h, double time){
-  cout << debug_name<< "USR: Getting time..." << endl;
 
-  getTimeInfo(time);
+  GetTimeInfo(time);
 
   //XYtoIndex returns closest 4 index pairs and the corresponding distances to them, so in the first call we get back an updated
   //eta_rho_index , xi_rho_index,
@@ -109,9 +108,6 @@ bool NCData::Update(double x, double y, double h, double time){
   }
   
 
-  cout << vec_size[2] << endl;
-  cout << vec_size[3] << endl;
-  
   if(!XYtoIndex(eta_east_index , xi_east_index , vec_dist , x, y, vec_meters_e, vec_meters_n, vec_size[2] , vec_size[3])){ //returns eta_u xi_u 
     cout << debug_name << "NCData: no u/v value found at current location" << endl;
     return false;
@@ -126,17 +122,15 @@ bool NCData::Update(double x, double y, double h, double time){
   
   GetBathy();
   m_altitude = floor_depth - h;
-  getS_rho(h, m_altitude);
+  GetS_rho(h, m_altitude);
 
   
   // cout << "s_rho = " << dist_sigma << " " <<  dist_sp1 << endl;
   
-  m_value = calcValue(eta_rho_index, xi_rho_index, rho_dist, rho_vals);
-  
-  m_east_value = calcValue(eta_east_index, xi_east_index, vec_dist, east_values);
-  cout << "east value = " << m_east_value << endl;
-  m_north_value = calcValue(eta_north_index, xi_north_index, vec_dist, north_values);
-  cout << "north value = " << m_north_value << endl;
+  m_value = CalcValue(eta_rho_index, xi_rho_index, rho_dist, rho_vals);
+  m_east_value = CalcValue(eta_east_index, xi_east_index, vec_dist, east_values);
+  m_north_value = CalcValue(eta_north_index, xi_north_index, vec_dist, north_values);
+
   //cout << "m_value = " << m_value << endl;
   
   if(m_value == bad_val){  //if the value is good, go ahead and publish it
@@ -150,6 +144,14 @@ bool NCData::Update(double x, double y, double h, double time){
 // getter methods, call to return values after an update
 double NCData::GetValue(){
   return m_value;
+}
+
+double NCData::GetEastValue(){
+  return m_east_value;
+}
+
+double NCData::GetNorthValue(){
+  return m_north_value;
 }
 
 double NCData::GetAltitude(){
@@ -232,9 +234,9 @@ bool NCData::XYtoIndex(int l_eta[4], int l_xi[4] , double  l_dist[4], double x ,
     }     
 } 
 
-  printf("distances in XY to index :  %f %f %f %f \n" , l_dist[0], l_dist[1], l_dist[2], l_dist[3]);
-  printf("etas in XY to index :  %i %i %i %i \n" , l_eta[0], l_eta[1], l_eta[2], l_eta[3]);
-  printf("xis in XY to index :  %i %i %i %i \n" , l_xi[0], l_xi[1], l_xi[2], l_xi[3]);
+  // printf("distances in XY to index :  %f %f %f %f \n" , l_dist[0], l_dist[1], l_dist[2], l_dist[3]);
+  // printf("etas in XY to index :  %i %i %i %i \n" , l_eta[0], l_eta[1], l_eta[2], l_eta[3]);
+  // printf("xis in XY to index :  %i %i %i %i \n" , l_xi[0], l_xi[1], l_xi[2], l_xi[3]);
   //when the loop exits the index with the closest lat/lon pair to the current position will be in i and j 
   //if none of the values were close return false
   if(l_dist[0] ==  chk_dist || l_dist[1] == chk_dist || l_dist[2] == chk_dist || l_dist[3] == chk_dist)
@@ -254,7 +256,7 @@ bool NCData::XYtoIndex(int l_eta[4], int l_xi[4] , double  l_dist[4], double x ,
 //Procedure: GetS_rho
 //notes: takes altitude and depth along with data on s_values pulled from the NC file to get the current s_rho coordinate
 // NJN: 2014/12/03: re-wrote routine to find nearest sigma levels
-bool NCData::getS_rho(double depth, double altitude){
+bool NCData::GetS_rho(double depth, double altitude){
    floor_depth = depth + altitude;
    double * s_depths = new double[s_rho];
    for(int i = 0; i < s_rho; i++){
@@ -301,7 +303,7 @@ bool NCData::getS_rho(double depth, double altitude){
 //GetTimeInfo
 // notes: should check if there are any more time values, determine the current time step, and the time difference 
 //        between the current time and the two nearest time steps.
-bool NCData::getTimeInfo(double current_time){
+bool NCData::GetTimeInfo(double current_time){
 
   for(int i = 0; i < time_vals; i++){
     //  cout << debug_name<< " : NCData" << time[n] << endl;
@@ -323,12 +325,12 @@ bool NCData::getTimeInfo(double current_time){
 //---------------------------------------------------------------------
 //GetValue
 //notes: gets values at both the two closest time steps and does an inverse weighted average on them
-double NCData::calcValue(int eta_index[4], int xi_index[4], double dist[4], double ****vals){
+double NCData::CalcValue(int eta_index[4], int xi_index[4], double dist[4], double ****vals){
   double value;
   //cout << "hi!" << endl;
   if(more_time){  //if there's more time we need to interpolate over time
-    double val1 = getValueAtTime(time_step, eta_index, xi_index, dist, vals);
-    double val2  = getValueAtTime( (time_step + 1) , eta_index, xi_index, dist, vals);
+    double val1 = GetValueAtTime(time_step, eta_index, xi_index, dist, vals);
+    double val2  = GetValueAtTime( (time_step + 1) , eta_index, xi_index, dist, vals);
     
     if (val1 == bad_val || val2 == bad_val){ // if either of the values are bad, return bad so we don't publish bad data
       return bad_val;
@@ -338,7 +340,7 @@ double NCData::calcValue(int eta_index[4], int xi_index[4], double dist[4], doub
     int good[2] = {1, 1};
     value = WeightedAvg(values , weights , good, 2);
   }else{//if no future time values exist, just average the values around us at the most recent time step
-    value = getValueAtTime(time_step, eta_index, xi_index, dist, vals);
+    value = GetValueAtTime(time_step, eta_index, xi_index, dist, vals);
     if(!time_message_posted){
       cout << debug_name<< " : NCData: warning: current time is past the last time step, now using data only data from last time step" << endl;
       time_message_posted = true; // we only want to give this warning once
@@ -353,8 +355,7 @@ double NCData::calcValue(int eta_index[4], int xi_index[4], double dist[4], doub
 // NJN: 2014/11/17: Added limiter to the above/below level grab. 
 // NJN: 2014/12/03: Modified for new sigma-level extraction, indexes good values
 // TODO: replace "bad values" with checking the land mask , they should be the same thing.
-double NCData::getValueAtTime(int t, int eta_index[4] , int xi_index[4], double dist[4], double ****vals){
-  cout << "hello!"<< endl;
+double NCData::GetValueAtTime(int t, int eta_index[4] , int xi_index[4], double dist[4], double ****vals){
 
   double dz[2] = {dist_sigma, dist_sp1};
   double s_z[2] = {0, 0};

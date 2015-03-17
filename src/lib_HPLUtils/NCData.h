@@ -38,37 +38,38 @@ class NCData
 {
 public:
   //TODO: clean up variables that really don't need to be members
-  //TODO: change method names to consistent naming convention
   NCData();
   virtual ~NCData() {};
   bool Initialise(double, double, std::string, std::string, std::string*, std::string);
-  bool XYtoIndex(int l_eta[4], int l_xi[4], double l_dist[4], double x , double y, double **l_meters_e, double **l_meters_n,
-		 int size_eta, int size_xi );
-  bool LatLontoMeters();
   bool Update(double x, double y , double h , double time);
   //getters
   double GetValue();
+  double GetEastValue();
+  double GetNorthValue();
   double GetFloorDepth();
   double GetAltitude();
-protected: 
-  bool getS_rho(double depth, double altitude);
-  double calcValue(int eta_index[4], int xi_index[4], double dist[4], double ****vals);
+ protected:
+  bool LatLontoMeters();
+  bool XYtoIndex(int l_eta[4], int l_xi[4], double l_dist[4], double x , double y, double **l_meters_e, double **l_meters_n,
+		   int size_eta, int size_xi );
+  bool GetS_rho(double depth, double altitude);
+  double CalcValue(int eta_index[4], int xi_index[4], double dist[4], double ****vals);
   bool ReadNcFile(std::string ncFileName, std::string varName, std::string *vecVarName); //this is defined in a seperate file 
-  double getValueAtTime(int time, int xi_index[4] , int eta_index[4], double dist[4], double**** vals);
-  bool getTimeInfo(double time);
+  double GetValueAtTime(int time, int xi_index[4] , int eta_index[4], double dist[4], double**** vals);
+  bool GetTimeInfo(double time);
   bool GetBathy();
   bool GetSafeDepth();
-  bool convertToMeters(double*** northings, double*** eastings, double** lat_l , double** lon_l , int eta, int xi);
+  bool ConvertToMeters(double*** northings, double*** eastings, double** lat_l , double** lon_l , int eta, int xi);
 
-  bool readScalarVar(std::string varName, NcFile *pFile);
-  bool readVectorVar(std::string vecVarName[3], NcFile *pFile);
+  bool ReadScalarVar(std::string varName, NcFile *pFile);
+  bool ReadVectorVar(std::string vecVarName[3], NcFile *pFile);
 		     
-  NcVar*     findNcVar(std::string, NcFile*); 
-  double**** readNcVar4(NcVar* , long size[4]);
-  double**   readNcVar2(NcVar* , long size[4]);
-  bool       convertToEastNorth(double *****pvals_east , double *****pvals_north, long size[4], double ****vals, double **angle);
-  double**** combineVectorVals(double ****u_vals_north, double ****v_vals_east, long size_1[4], long size_2[4]);
-  double**   combineVectorCoords(double **vals_1, double **vals_2, long size_1[4] , long size_2[4]);
+  NcVar*     FindNcVar(std::string, NcFile*); 
+  double**** ReadNcVar4(NcVar* , long size[4]);
+  double**   ReadNcVar2(NcVar* , long size[4]);
+  bool       ConvertToEastNorth(double *****pvals_east , double *****pvals_north, long size[4], double ****vals, double **angle);
+  double**** CombineVectorVals(double ****u_vals_north, double ****v_vals_east, long size_1[4], long size_2[4]);
+  double**   CombineVectorCoords(double **vals_1, double **vals_2, long size_1[4] , long size_2[4]);
   
  
   //TODO: be more consistent with member vs non member variables 
