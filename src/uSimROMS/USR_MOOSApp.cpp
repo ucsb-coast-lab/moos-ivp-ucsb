@@ -39,8 +39,9 @@ USR_MOOSApp::USR_MOOSApp()
   m_depth    = 0;
   m_rTime = "2010-10-30 12:34:56";
   //default values for things
-  scalarOutputVar = "SCALAR_VALUE";
-
+  scalar_output_var = "SCALAR_VALUE";
+  east_output_var = "EAST_VALUE";
+  north_output_var = "NORTH_VALUE";
   bad_val = -1;
 
 }
@@ -87,24 +88,33 @@ bool USR_MOOSApp::OnStartUp()
     param = toupper(param); 
 
     if(param == "NC_FILE_NAME"){  //required
-       ncFileName = value;
+       nc_file_name = value;
      }
     if(param == "OUTPUT_VARIABLE"){  //defaults to SCALAR_VALUE
-       scalarOutputVar = value;
-       cout << "uSimROMS: publishing under name: " << scalarOutputVar;
+       scalar_output_var = value;
+       cout << "uSimROMS: publishing under name: " << scalar_output_var << endl;
     }
+    if(param == "EAST_OUTPUT_VARIABLE"){
+      east_output_var = value;
+      cout << "uSimROMS: publishing east component under name " << east_output_var << endl;
+    }
+    if(param == "NORTH_OUTPUT_VARIABLE"){
+      east_output_var = value;
+      cout << "uSimROMS: publishing north component under name " << north_output_var << endl;
+    }
+    
     if(param == "SCALAR_VARIABLE"){  //e.g. salt or temperature
-      varName = value;
+      var_name = value;
     }
     
     if(param == "VECTOR_VARIABLE_U"){
-      vecVarName[0] = value;
+      vec_var_name[0] = value;
     }
     if(param == "VECTOR_VARIABLE_V"){
-      vecVarName[1] = value;
+      vec_var_name[1] = value;
     }
     if(param == "VECTOR_VARIABLE_W"){
-      vecVarName[2] = value;
+      vec_var_name[2] = value;
     }
     
     //this specifies the value that the ROMS file uses as a "bad" value, which for most applications is the
@@ -116,18 +126,18 @@ bool USR_MOOSApp::OnStartUp()
     
   }
   // look for latitude, longitude global variables
-  double latOrigin, longOrigin;
-  if(!m_MissionReader.GetValue("LatOrigin", latOrigin)){
+  double lat_origin, long_origin;
+  if(!m_MissionReader.GetValue("LatOrigin", lat_origin)){
     cout << "uSimROMS: LatOrigin not set in *.moos file." << endl;
     exit(0);
   }
-  else if(!m_MissionReader.GetValue("LongOrigin", longOrigin)){
+  else if(!m_MissionReader.GetValue("LongOrigin", long_origin)){
     cout << "uSimROMS: LongOrigin not set in *.moos file" << endl;
     exit(0);
   }
   
   ncdata = NCData();
-  ncdata.Initialise(latOrigin, longOrigin, ncFileName, varName, vecVarName, "uSimROMS");
+  ncdata.Initialise(lat_origin, long_origin, nc_file_name, var_name, vec_var_name, "uSimROMS");
   
   registerVariables();    
   
@@ -175,16 +185,23 @@ bool USR_MOOSApp::OnDisconnectFromServer()
 
 bool USR_MOOSApp::Iterate()
 {
-  double  value; 
+  double  value, east_value, north_value; 
   if(!ncdata.Update(m_posx , m_posy, m_depth, m_current_time)){
-    cout << "uSimROMS: something went wrong, refusing to publish" << endl;
+    cout << "uSimROMS: something went wrong updating NCData, refusing to publish" << endl;
     return false;
   }
+  
   value = ncdata.GetValue();
+  east_value = ncdata.GetEastValue();
+  north_value = ncdata.GetNorthValue();
   
   //if nothing has failed we can safely publish
-  Notify(scalarOutputVar.c_str(), value);
+  Notify(scalar_output_var.c_str(), value);
   cout << "uSimROMS: publishing value :" << value << endl;
+  Notify(east_output_var.c_str(), east_value);
+  cout << "uSimROMS: publishing east value of : " << east_value << endl;
+  Notify(north_output_var.c_str(), north_value);
+  cout << "uSimROMS: publishing north value of: " << north_value << endl;
   
   return(true);
 }

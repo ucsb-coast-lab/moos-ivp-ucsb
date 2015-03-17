@@ -43,13 +43,14 @@ public:
   void registerVariables();
   bool AdjustTime();
  protected: // Configuration variables
-  std::string ncFileName;
-  std::string varName;
-  std::string vecVarName[3];  
+  std::string nc_file_name;
+  std::string var_name;
+  std::string vec_var_name[3];  
   std::string m_rTime;
 
-  std::string scalarOutputVar;
-
+  std::string scalar_output_var;
+  std::string east_output_var;
+  std::string north_output_var;
  protected: // State variables
   // x/y positions, dpeth, and altitude of current location 
   double       m_posx;

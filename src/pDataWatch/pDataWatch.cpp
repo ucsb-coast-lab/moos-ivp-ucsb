@@ -1,7 +1,29 @@
-//pDataWatch looks constantly for data published under "SCALAR_VALUE" althought it can later be configured to look 
-//for whatever data is neccessary. after it gets a specified number of values it takes a 
-//running average and checking to aee if it is above or below a threshold determined by the "THRESHOLD" paramter.
-//if it's above the threshold it publishes a variable s_plus as true and otherwise publishes it as false.
+/*===================================================================
+File: pDataWatch.cpp
+Authors: Nick Nidzieko & Sean Gillen
+Date: Jan-23-15
+Origin: Horn Point Laboratory
+Description: pDataWatch will constantly watch for data coming in to 
+             determine if it's over or under a certain threshold.
+	     TODO: make a better description. 
+
+Copyright 2015 Nick Nidzieko, Sean Gillen
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see http://www.gnu.org/licenses/.
+
+===================================================================*/
+
 // NJN:2014-12-08: Changed SPLUS/SMINUS configuration to SGOAL, which is more flexible
 // NJN:2014-12-10: Corrected some hi/lo threshold confusion... 
 //
@@ -60,7 +82,7 @@ bool DW_MOOSApp::OnNewMail(MOOSMSG_LIST &NewMail)
       scalar = dval;                     //I have no idea why, but it appears that ,Msg.m_dfVal is not 
       //scalar = atof(sval.c_str());           // working, it may be SCALAR_VALUE is in a format that the
                                          // CMOOSMsg doesn't like, but atof works fin
-      cout << "pDW is reading the scalar value: " << scalar << endl;
+      cout << "pDW: scalar = " << scalar << endl;
     }
     
     if (key == "NAV_DEPTH") {
@@ -194,11 +216,11 @@ bool DW_MOOSApp::Iterate()
     if (GradientTrackPlusMinus()){       // Returns true if outside threshold range
       if (SGOAL == 1) {
 	Notify("ON_PAPA","true");
-	cout << "pDW: Changing ON_PAPA to TRUE" << endl;
-      }
+        cout << "pDW: SGOAL == 1. Notify ON_PAPA = TRUE." << endl;
+       }
       if (SGOAL == -1) {
 	Notify("ON_PAPA","false");
-	cout << "pDW: Changing ON_PAPA to FALSE" << endl;
+        cout << "pDW: SGOAL == -1. Notify ON_PAPA = FALSE." << endl;
       }
     }
     // Output to the log file
@@ -232,6 +254,7 @@ bool DW_MOOSApp::GradientTrackPlusMinus(){
 
    if(avg > hi_thres){
      PhaseShift = PhaseShift++;
+     cout << "pDW: avg " << avg << " > " << hi_thres << " for " << PhaseShift << endl;
 
      if (PhaseShift > tte){
        SGOAL = 1;
@@ -239,12 +262,14 @@ bool DW_MOOSApp::GradientTrackPlusMinus(){
      } 
    } else if (avg < lo_thres) {
      PhaseShift = PhaseShift++;
+     cout << "pDW: avg " << avg << " < " << lo_thres << " for " << PhaseShift << endl;
 
      if (PhaseShift > tte){
        SGOAL = -1;
        return true;
      }
    } else {
+     cout << "pDW: SGOAL == 0. Resetting counter" << endl;
      PhaseShift = 0;
      SGOAL = 0;
      return false;

@@ -1,4 +1,6 @@
-
+#--------------------------------------------------------
+# The CMakeLists.txt for:                    uSendModemMsg
+#--------------------------------------------------------
 # Set System Specific Libraries
 if (${WIN32})
   SET(SYSTEM_LIBS
