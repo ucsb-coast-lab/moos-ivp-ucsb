@@ -89,6 +89,10 @@ void Recon::DoRegistrations(double updateRate)
   m_Comms.Register("DESIRED_SPEED", updateRate);
   m_Comms.Register("DESIRED_DEPTH", updateRate);
   m_Comms.Register("TRIANGLE_MODE", updateRate);  //NJN:20141118
+  m_Comms.Register("TRI_DEPTH", updateRate);      //NJN:20150316
+  m_Comms.Register("TRI_ALTITUDE", updateRate);   //NJN:20150316
+  m_Comms.Register("TRI_RATE", updateRate);       //NJN:20150316
+  m_Comms.Register("TRI_MAXD", updateRate);       //NJN:20150316
   
   // Tells us whether IvP should be active
   m_Comms.Register("MOOS_MANUAL_OVERIDE", updateRate);
@@ -179,6 +183,23 @@ bool Recon::OnNewMail(MOOSMSG_LIST &NewMail)
     else if (strcmp(rMsg.GetKey().c_str(), "TRIANGLE_MODE") == 0)
     {
       triangleMode = ParseBoolString(rMsg.GetAsString().c_str());
+    }
+    // Variables to control the triangle mode
+    else if (strcmp(rMsg.GetKey().c_str(), "TRI_DEPTH") == 0)
+    {
+      tDepth = rMsg.GetDouble();
+    }
+    else if (strcmp(rMsg.GetKey().c_str(), "TRI_ALTITUDE") == 0)
+    {
+      tAltitude = rMsg.GetDouble();
+    }
+    else if (strcmp(rMsg.GetKey().c_str(), "TRI_RATE") == 0)
+    {
+      tRate = rMsg.GetDouble();
+    }
+    else if (strcmp(rMsg.GetKey().c_str(), "TRI_MAXD") == 0)
+    {
+      tMaxD = rMsg.GetDouble();
     }
     else if (strcmp(rMsg.GetKey().c_str(), "RECON_ENGAGE") == 0)
     {

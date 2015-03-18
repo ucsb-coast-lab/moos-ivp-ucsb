@@ -24,11 +24,30 @@ along with this program. If not, see http://www.gnu.org/licenses/.
 
 ===================================================================*/
 
-// NJN:2014-12-08: Changed SPLUS/SMINUS configuration to SGOAL, which is more flexible
-// NJN:2014-12-10: Corrected some hi/lo threshold confusion... 
-//
+/*=================================================================
+Some conventions, based on x-positive landward and a negative salinity gradient.
+LEG numbers increase landward (in ROMEO direction)/
+ROMEO is red, right, returning up-river.
+SDIR is the direction of search. 
+   SDIR ==  1: ROMEO direction
+   SDIR == -1: OSCAR direction 
 
-//SG 1/10/15: TODO: refactor to include function pointers to a user defined function? maybe that's doing too much? 
+SPOS resolves to -1 when the ROMEO target has been achieved, 
+and to 1 when the OSCAR target has been acheived. Zero when between these
+two targets.  
+
+
+NJN:2014-12-08: Changed SPLUS/SMINUS configuration to SPOS, to be 
+                  more flexible
+NJN:2014-12-10: Corrected some hi/lo threshold confusion... 
+NJN:2015-03-11: Changed ON_ROMEO as a boolean flag to SDIR = {-1, 1}, 
+                  which when combied with SPOS = {-1, 0, 1},
+                  gives an easy way to flag whether we should loiter 
+                  at the end of a transect. 
+		  Changed PAPA/ECHO to ROMEO/OSCAR
+
+SG 1/10/15: TODO: refactor to include function pointers to a user defined function? maybe that's doing too much? 
+===================================================================*/
 
 
 #include <cmath>
@@ -50,12 +69,15 @@ using namespace std;
 //
 DW_MOOSApp::DW_MOOSApp()
 {
- count = 0;
- PhaseShift = 0;
- vehicle_depth = 0;
-
- SGOAL = 0;
- ONPAPA = false;
+  count = 0;
+  phase = 0;
+  vehicle_depth = 0;
+  
+  romeo_target = 0;
+  oscar_target = 0;
+  
+  SPOS = 0;
+  SDIR = 1; // default start is romeo.
 }
 
 
@@ -82,24 +104,24 @@ bool DW_MOOSApp::OnNewMail(MOOSMSG_LIST &NewMail)
       scalar = dval;                     //I have no idea why, but it appears that ,Msg.m_dfVal is not 
       //scalar = atof(sval.c_str());           // working, it may be SCALAR_VALUE is in a format that the
                                          // CMOOSMsg doesn't like, but atof works fin
-      cout << "pDW: scalar = " << scalar << endl;
+      // cout << "pDW: scalar = " << scalar << endl;
     }
     
     if (key == "NAV_DEPTH") {
       vehicle_depth = dval;    // atof(sval.c_str());
     }
 
-    if (key == "ON_PAPA") {
-      if (strcasecmp(sval.c_str(), "true") == 0)
-	{
-	  ONPAPA = true;
-	}
-      else
-	{
-	  ONPAPA = false;
-	}
+    if (key == "TRACKING") {
+      //      if (dval > 0)
+      //	{
+      //  SDIR = 1;
+      //}
+      //else
+      //{
+      //  SDIR = -1;
+      //}
     }
-    
+
   }   
   return true;
 }
@@ -112,8 +134,8 @@ bool DW_MOOSApp::OnNewMail(MOOSMSG_LIST &NewMail)
 bool DW_MOOSApp::OnStartUp()
 {
   cout << "DataWatch Starting" << endl;
-
-  
+ 
+ 
   STRING_LIST sParams;
   m_MissionReader.GetConfiguration(GetAppName(), sParams);
     
@@ -125,13 +147,13 @@ bool DW_MOOSApp::OnStartUp()
    
     param = toupper(param);
  
-    if(param == "PAPA_TARGET"){
-      lo_thres = atof(value.c_str());
-      cout << "pDW: PAPA_TARGET (low threshold) = " << lo_thres << endl;
+    if(param == "ROMEO_TARGET"){
+      romeo_target = atof(value.c_str());
+      cout << "pDW: ROMEO_TARGET = " << romeo_target << endl;
     }
-    if(param == "ECHO_TARGET"){
-      hi_thres = atof(value.c_str());
-      cout << "pDW: ECHO_TARGET (high threshold) =  " << hi_thres << endl;
+    if(param == "OSCAR_TARGET"){
+      oscar_target = atof(value.c_str());
+      cout << "pDW: OSCAR_TARGET =  " << oscar_target << endl;
     }
     if(param == "SCALAR_SOURCE"){
       invar = value;
@@ -153,6 +175,12 @@ bool DW_MOOSApp::OnStartUp()
     sal[i] = 0;
   }  
   
+  if (romeo_target > oscar_target){
+    dSdx = 1;
+  } else {
+    dSdx = -1;
+  }
+	       
    
   RegisterVariables();
 
@@ -184,13 +212,13 @@ bool DW_MOOSApp::OnConnectToServer()
 
 //------------------------------------------------------------------------
 // Procedure: registerVariables()
-//     notes: subscribes to SCALAR_VALUE (as invar)
+//     notes: subscribes to invar (which defaults to SCALAR_VALUE)
 //
 void DW_MOOSApp::RegisterVariables()
 {
   m_Comms.Register(invar, 0);
   m_Comms.Register("NAV_DEPTH", 0);
-  m_Comms.Register("ON_PAPA", 0);
+  m_Comms.Register("TRACKING", 0);
 }
 
 //------------------------------------------------------------------------
@@ -211,18 +239,17 @@ bool DW_MOOSApp::OnDisconnectFromServer()
 bool DW_MOOSApp::Iterate()
 {
 
+  // We use the flag within iterate to notify the OnNewMail function 
+  // to increase future flexibility for allowing other functions to 
+  // change the tracking direction.
   if (count > points) {
-	cout << "pDW: TRACKING" << endl;
-    if (GradientTrackPlusMinus()){       // Returns true if outside threshold range
-      if (SGOAL == 1) {
-	Notify("ON_PAPA","true");
-        cout << "pDW: SGOAL == 1. Notify ON_PAPA = TRUE." << endl;
-       }
-      if (SGOAL == -1) {
-	Notify("ON_PAPA","false");
-        cout << "pDW: SGOAL == -1. Notify ON_PAPA = FALSE." << endl;
+    //	cout << "pDW: TRACKING" << endl;
+    GradientTrackPlusMinus();
+    if (SPOS * SDIR == -1){ 
+      SDIR = SPOS;  // change direction.
+      Notify("TRACKING",SDIR);
       }
-    }
+
     // Output to the log file
     std::time_t t = std::time(NULL);
     
@@ -230,9 +257,9 @@ bool DW_MOOSApp::Iterate()
     fout << vehicle_depth << ", ";
     fout << sal[points - 1] << ", ";
     fout << avg << ", ";
-    fout << PhaseShift << ", ";
-    fout << SGOAL << ", ";  
-    fout << ONPAPA << endl;  
+    fout << phase << ", ";
+    fout << SPOS << ", ";  
+    fout << SDIR << endl;  
   } else {
 	cout << "pDW: Too few points..." << endl;
     count ++;
@@ -244,34 +271,43 @@ bool DW_MOOSApp::Iterate()
 
 
 //------------------------------------------------------------------------
-//GradientTrackPlusMinus with splus and sminus flip
-//notes: Modified gradient tracking algorithm, purpose is to show when
-//       we're inbetween to isohalines and when we're in papa or echo
+//GradientTrackPlusMinus 
+//  This reports the position the vehicle in the scalar field (SPOS).
+//  When SPOS = 0, the vehicle is between the romeo and oscar targets.
+//  SPOS = -1 vehicle is landward of romeo target.
+//  SPOS = 1 is seaward of the oscar target.  
+//
+//  An iteration counter is implemented to ensure that target goals have
+//  been met for a fixed period of time.
 //
 bool DW_MOOSApp::GradientTrackPlusMinus(){
 
    avg = RunningAverage(scalar);
 
-   if(avg > hi_thres){
-     PhaseShift = PhaseShift++;
-     cout << "pDW: avg " << avg << " > " << hi_thres << " for " << PhaseShift << endl;
+   if(avg*dSdx < oscar_target*dSdx){
+     phase = phase++;
+     cout << "pDW: avg " << avg*dSdx << 
+       " < OSCAR_TARGET (" << oscar_target*dSdx << 
+       ") for " << phase << endl;
 
-     if (PhaseShift > tte){
-       SGOAL = 1;
+     if (phase > tte){
+       SPOS = 1;
        return true;
      } 
-   } else if (avg < lo_thres) {
-     PhaseShift = PhaseShift++;
-     cout << "pDW: avg " << avg << " < " << lo_thres << " for " << PhaseShift << endl;
+   } else if (avg*dSdx > romeo_target*dSdx) {
+     phase = phase++;
+     cout << "pDW: avg " << avg*dSdx <<
+       " > ROMEO_TARGET (" << romeo_target*dSdx << 
+       ") for " << phase << endl;
 
-     if (PhaseShift > tte){
-       SGOAL = -1;
+     if (phase > tte){
+       SPOS = -1;
        return true;
      }
    } else {
-     cout << "pDW: SGOAL == 0. Resetting counter" << endl;
-     PhaseShift = 0;
-     SGOAL = 0;
+     cout << "pDW: SPOS == 0. Resetting counter" << endl;
+     phase = 0;
+     SPOS = 0;
      return false;
    }
    

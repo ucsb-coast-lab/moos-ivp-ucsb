@@ -24,11 +24,6 @@ along with this program. If not, see http://www.gnu.org/licenses/.
 
 ===================================================================*/
 
-//pDataWatch looks constantly for data publishes under "SCALAR_VALUE" althought it can later be configured to look 
-//for whatever data is neccessary. it then takes the scalar data and after it gets six vlaues starts to take a
-//running average and checking to aee if it is above or below a threshold determined by the "THRESHOLD" paramter.
-//if it's above the threshold it publishes a variable s_plus as true and otherwise publishes it as false.
-
 
 #ifndef USC_MOOSAPP_HEADER
 #define USC_MOOSAPP_HEADER
@@ -65,9 +60,10 @@ class DW_MOOSApp : public CMOOSApp
  
  protected:
 
-  double hi_thres;
-  double lo_thres;
-  double PhaseShift; 
+  double oscar_target;
+  double romeo_target;
+  double dSdx;
+  double phase; 
   int points;
   std::string invar;
   std::string outvar1;
@@ -84,8 +80,9 @@ class DW_MOOSApp : public CMOOSApp
   double avg;
   double old_depth; 
   double vehicle_depth;
-  int   SGOAL;
-  bool   ONPAPA;
+  int   SPOS; // Position within the scalar field
+  int   SDIR; // Direction of travel, postive up-river.
+  std::string  TRACKING;
   
 
 
