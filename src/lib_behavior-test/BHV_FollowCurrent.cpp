@@ -141,6 +141,7 @@ IvPFunction *BHV_FollowCurrent::onRunState()
   if(!m_dir_set){      //I'd rather not check this every time, but I can't find a place
                        //to only call it once within a behavior. 
     cout << "direction parameter not set please set to \"upstream\" or \"downstream\"" << endl;
+    return(0);
   }
   
   // Part 1: Get vehicle position from InfoBuffer and post a 
