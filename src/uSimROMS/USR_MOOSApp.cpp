@@ -198,11 +198,22 @@ bool USR_MOOSApp::Iterate()
   //if nothing has failed we can safely publish
   Notify(scalar_output_var.c_str(), value);
   cout << "uSimROMS: publishing value :" << value << endl;
+
+
+  //the stringstream thing is a work around because to_string doesn't work (I think we're not using the most current version of c++?)
+  stringstream ss;
+  ss << east_value << "," << north_value;
+  string vec_string = ss.str();
+  
+  Notify("USR_OUTPUT" , vec_string);
+  cout << "uSimROMS: publishing vector value of : " << vec_string << endl;
+  
+  /*
   Notify(east_output_var.c_str(), east_value);
   cout << "uSimROMS: publishing east value of : " << east_value << endl;
   Notify(north_output_var.c_str(), north_value);
   cout << "uSimROMS: publishing north value of: " << north_value << endl;
-  
+  */
   return(true);
 }
     
