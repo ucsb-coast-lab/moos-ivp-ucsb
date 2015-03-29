@@ -29,7 +29,7 @@ link_directories(${MOOSGeodesy_LIBRARY_PATH})
  ADD_SUBDIRECTORY(uSendModemMsg)
  ADD_SUBDIRECTORY(pSendModemMsg)
  ADD_SUBDIRECTORY(pNodeZip)
-# ADD_SUBDIRECTORY(lib_behavior-test)
+ ADD_SUBDIRECTORY(lib_behavior-test)
 ##############################################################################
 #                           END of CMakeLists.txt
 ##############################################################################
