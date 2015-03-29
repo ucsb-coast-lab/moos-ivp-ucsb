@@ -129,7 +129,7 @@ bool USM_MOOSApp::Iterate(){
   return true;
 }
 
-
+//SG: got this from stack overflow, it does does some binary magic to convert to a string to hex
 std::string string_to_hex(const std::string& input)
 {
   static const char* const lut = "0123456789ABCDEF";
