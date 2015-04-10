@@ -105,8 +105,11 @@ protected: // intermediate or object global variables.
 
   bool      m_greedy_tour_pending;
 
-  string lat_origin;
-  string lon_origin;
+  //string lat_origin_s;
+  //string lon_origin_s;
+
+  double lat_origin_d;
+  double lon_origin_d;
 
   CMOOSGeodesy geodesy;
   CProcessConfigReader m_MissionReader;

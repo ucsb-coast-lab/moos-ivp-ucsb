@@ -84,13 +84,20 @@ BHV_Waypoint_latlon::BHV_Waypoint_latlon(IvPDomain gdomain) :
 
   m_greedy_tour_pending = false;
 
-  addInfoVars("NAV_X, NAV_Y, NAV_SPEED, LAT_ORIGIN, LON_ORIGIN");
+  addInfoVars("NAV_X, NAV_Y, NAV_SPEED");
 
 
-  m_MissionReader.GetValue("LatOrigin", lat_origin);
-  m_MissionReader.GetValue("LongOrigin", lon_origin);
+  // m_MissionReader.GetValue("LatOrigin", lat_origin);
+  //m_MissionReader.GetValue("LongOrigin", lon_origin);
 
 
+  //I'm being terrible and hard coding this to see if geodesy will
+  //do what we want before I commit to finding a way to get the
+  //behavior the actual origin. 
+  lat_origin_d = 42.358456;
+  lon_origin_d = -71.087589;
+
+  geodesy.Initialise(lat_origin_d, lon_origin_d);
   
   
   m_markpt.set_active(false);
@@ -128,6 +135,7 @@ bool BHV_Waypoint_latlon::setParam(string param, string param_val)
   cout << "param_val" << param_val << endl;
 
   if((param == "polygon") || (param == "points")) {
+    
     XYSegList new_seglist = string2SegList(param_val);
     if(new_seglist.size() == 0) {
       XYPolygon new_poly = string2Poly(param_val);
@@ -140,7 +148,11 @@ bool BHV_Waypoint_latlon::setParam(string param, string param_val)
     return(true);
   }
   else if(param == "point") {
-    XYPoint point = string2Point(param_val);
+    XYPoint point_latlon = string2Point(param_val);
+    double x,y;
+    geodesy.LatLong2LocalGrid(point_latlon.x(), point_latlon.y(), x, y);
+
+    XYPoint point(x,y);
     XYSegList new_seglist;
     new_seglist.add_vertex(point);
     if(new_seglist.size() == 0)
@@ -325,8 +337,8 @@ IvPFunction *BHV_Waypoint_latlon::onRunState()
     return(0);
   }
 
-  cout << "lat origin = " << lat_origin << endl;
-  cout << "long origin = " << lon_origin << endl;
+  //cout << "lat origin = " << lat_origin << endl;
+  //cout << "long origin = " << lon_origin << endl;
   
   // Note the waypoint prior to possibly incrementing the waypoint
   double this_x = m_waypoint_engine.getPointX();
