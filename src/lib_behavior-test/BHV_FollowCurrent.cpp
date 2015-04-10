@@ -35,6 +35,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "OF_Coupler.h"
 #include <stdio.h>
 
+
+#include "MOOS/libMOOS/Utils/MOOSUtilityFunctions.h"
+#include "MOOS/libMOOS/Utils/ProcessConfigReader.h"
+#include "MOOS/libMOOS/Utils/CommandLineParser.h"
+#include "MOOS/libMOOS/Utils/ProcInfo.h"
+
+
+#include "MOOS/libMOOS/Comms/MOOSCommClient.h"
+#include "MOOS/libMOOS/Comms/MOOSVariable.h"
+
 using namespace std;
 
 //-----------------------------------------------------------
@@ -158,7 +168,9 @@ IvPFunction *BHV_FollowCurrent::onRunState()
   
   string x_str;
   string y_str;
-  
+
+  string lat_origin;
+    
   if(ok1){
     parseCurrentVector(current_vec, x_str, y_str); 
     m_nextpt.shift_x(m_dir * atof(x_str.c_str()));

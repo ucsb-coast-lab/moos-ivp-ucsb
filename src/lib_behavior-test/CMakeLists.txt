@@ -26,7 +26,7 @@ MACRO(ADD_BHV BHV_NAME)
     bhvutil 
     mbutil 
     geometry 
-    ${SYSTEM_LIBS} )
+    ${SYSTEM_LIBS})
 ENDMACRO(ADD_BHV)
 
 
@@ -75,4 +75,21 @@ TARGET_LINK_LIBRARIES(BHV_FollowCurrent
    bhvutil 
    mbutil 
    geometry 
+   ${SYSTEM_LIBS} )
+
+#--------------------------------------------------------
+#                                      BHV_Waypoint_latlon
+#--------------------------------------------------------
+ADD_LIBRARY(BHV_Waypoint_latlon SHARED 
+   BHV_Waypoint_latlon.cpp)
+TARGET_LINK_LIBRARIES(BHV_Waypoint_latlon
+   helmivp
+   behaviors 
+   ivpbuild 
+   logic 
+   ivpcore 
+   bhvutil 
+   mbutil 
+   geometry
+   ${MOOSGeodesy_LIBRARIES}
    ${SYSTEM_LIBS} )

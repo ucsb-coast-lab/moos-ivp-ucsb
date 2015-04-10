@@ -28,7 +28,7 @@
 #include <cmath> 
 #include <cstdlib>
 #include <iostream>
-#include "BHV_Waypoint.h"
+#include "BHV_Waypoint_latlon.h"
 #include "OF_Reflector.h"
 #include "MBUtils.h"
 #include "AngleUtils.h"
@@ -49,7 +49,7 @@ using namespace std;
 //-----------------------------------------------------------
 // Procedure: Constructor
 
-BHV_Waypoint::BHV_Waypoint(IvPDomain gdomain) : 
+BHV_Waypoint_latlon::BHV_Waypoint_latlon(IvPDomain gdomain) : 
   IvPBehavior(gdomain)
 {
   // First set variables at the superclass level
@@ -86,15 +86,11 @@ BHV_Waypoint::BHV_Waypoint(IvPDomain gdomain) :
 
   addInfoVars("NAV_X, NAV_Y, NAV_SPEED, LAT_ORIGIN, LON_ORIGIN");
 
-  bool ok1 , ok2;
-  m_osx = getBufferDoubleVal("LAT_ORIGIN", ok1);
-  m_osy = getBufferDoubleVal("LON_ORIGIN", ok2);
+
+  m_MissionReader.GetValue("LatOrigin", lat_origin);
+  m_MissionReader.GetValue("LongOrigin", lon_origin);
 
 
-  if(!ok1)
-    cout << "did not find lat origin!" << endl;
-  if(!ok2)
-    cout << "did not find lon origin!" << endl;
   
   
   m_markpt.set_active(false);
@@ -102,13 +98,13 @@ BHV_Waypoint::BHV_Waypoint(IvPDomain gdomain) :
 
   m_prevpt.set_label("prev_pt");
 
-  geodesdy
+  //  geodesdy
 }
 
 //-----------------------------------------------------------
 // Procedure: onSetParamComplete()
 
-void BHV_Waypoint::onSetParamComplete()
+void BHV_Waypoint_latlon::onSetParamComplete()
 {
   m_trackpt.set_label(m_us_name + "'s track-point");
   m_trackpt.set_vertex_size(4);
@@ -124,7 +120,7 @@ void BHV_Waypoint::onSetParamComplete()
 //            The "radius" parameter indicates what it means to have
 //            arrived at the waypoint.
 
-bool BHV_Waypoint::setParam(string param, string param_val) 
+bool BHV_Waypoint_latlon::setParam(string param, string param_val) 
 {
   double dval = atof(param_val.c_str());
 
@@ -296,7 +292,7 @@ bool BHV_Waypoint::setParam(string param, string param_val)
 //      Note: Invoked automatically by the helm when the behavior
 //            first transitions from the Running to Idle state.
 
-void BHV_Waypoint::onRunToIdleState() 
+void BHV_Waypoint_latlon::onRunToIdleState() 
 {
   postErasables();
   m_waypoint_engine.resetCPA();
@@ -305,7 +301,7 @@ void BHV_Waypoint::onRunToIdleState()
 //-----------------------------------------------------------
 // Procedure: onRunState
 
-BehaviorReport BHV_Waypoint::onRunState(string input) 
+BehaviorReport BHV_Waypoint_latlon::onRunState(string input) 
 {
   IvPFunction *ipf = onRunState();
   BehaviorReport bhv_report(m_descriptor);
@@ -319,7 +315,7 @@ BehaviorReport BHV_Waypoint::onRunState(string input)
 //-----------------------------------------------------------
 // Procedure: onRunState
 
-IvPFunction *BHV_Waypoint::onRunState() 
+IvPFunction *BHV_Waypoint_latlon::onRunState() 
 {
   m_waypoint_engine.setPerpetual(m_perpetual);
 
@@ -329,6 +325,9 @@ IvPFunction *BHV_Waypoint::onRunState()
     return(0);
   }
 
+  cout << "lat origin = " << lat_origin << endl;
+  cout << "long origin = " << lon_origin << endl;
+  
   // Note the waypoint prior to possibly incrementing the waypoint
   double this_x = m_waypoint_engine.getPointX();
   double this_y = m_waypoint_engine.getPointY();
@@ -395,7 +394,7 @@ IvPFunction *BHV_Waypoint::onRunState()
 //            variable to false which will communicate the gravity
 //            of the situation to the helm.
 
-bool BHV_Waypoint::updateInfoIn()
+bool BHV_Waypoint_latlon::updateInfoIn()
 {
   bool ok1, ok2, ok3;
   m_osx = getBufferDoubleVal("NAV_X",     ok1);
@@ -427,7 +426,7 @@ bool BHV_Waypoint::updateInfoIn()
 //-----------------------------------------------------------
 // Procedure: setNextWaypoint
 
-bool BHV_Waypoint::setNextWaypoint()
+bool BHV_Waypoint_latlon::setNextWaypoint()
 {
   if(m_waypoint_engine.size() == 0)
     return(false);
@@ -524,7 +523,7 @@ bool BHV_Waypoint::setNextWaypoint()
 //-----------------------------------------------------------
 // Procedure: buildOF
 
-IvPFunction *BHV_Waypoint::buildOF(string method) 
+IvPFunction *BHV_Waypoint_latlon::buildOF(string method) 
 {
   IvPFunction *ipf = 0;
  
@@ -575,7 +574,7 @@ IvPFunction *BHV_Waypoint::buildOF(string method)
 //-----------------------------------------------------------
 // Procedure: postStatusReport()
 
-void BHV_Waypoint::postStatusReport()
+void BHV_Waypoint_latlon::postStatusReport()
 {
   int    current_waypt = m_waypoint_engine.getCurrIndex();
   unsigned int waypt_cycles = m_waypoint_engine.getCycleCount();
@@ -610,7 +609,7 @@ void BHV_Waypoint::postStatusReport()
 //            it must match in the label. For a seglist to be 
 //            "ignored" it must set active=false.
 
-void BHV_Waypoint::postViewableSegList()
+void BHV_Waypoint_latlon::postViewableSegList()
 {
   XYSegList seglist = m_waypoint_engine.getSegList();
   seglist.set_label(m_us_name + "_" + m_descriptor);
@@ -632,7 +631,7 @@ void BHV_Waypoint::postViewableSegList()
 //            it must match in the label. For a seglist to be 
 //            "ignored" it must set active=false.
 
-void BHV_Waypoint::postErasables()
+void BHV_Waypoint_latlon::postErasables()
 {
   postMessage("VIEW_POINT", m_trackpt.get_spec("active=false"), "trk");
   postMessage("VIEW_POINT", m_nextpt.get_spec("active=false"), "wpt");
@@ -648,7 +647,7 @@ void BHV_Waypoint::postErasables()
 //-----------------------------------------------------------
 // Procedure: postCycleFlags()
 
-void BHV_Waypoint::postCycleFlags()
+void BHV_Waypoint_latlon::postCycleFlags()
 {
   int vsize = m_cycle_flags.size();
   for(int i=0; i<vsize; i++) {
@@ -665,7 +664,7 @@ void BHV_Waypoint::postCycleFlags()
 //-----------------------------------------------------------
 // Procedure: postWptFlags()
 
-void BHV_Waypoint::postWptFlags(double x, double y)
+void BHV_Waypoint_latlon::postWptFlags(double x, double y)
 {
   string xpos = doubleToStringX(x,2);
   string ypos = doubleToStringX(y,2);
@@ -691,7 +690,7 @@ void BHV_Waypoint::postWptFlags(double x, double y)
 //-----------------------------------------------------------
 // Procedure: handleVisualHint()
 
-void BHV_Waypoint::handleVisualHint(string hint)
+void BHV_Waypoint_latlon::handleVisualHint(string hint)
 {
   string param = tolower(stripBlankEnds(biteString(hint, '=')));
   string value = stripBlankEnds(hint);

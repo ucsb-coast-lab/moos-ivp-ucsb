@@ -5,4 +5,5 @@ for bash users):
 
 setenv IVP_BEHAVIOR_DIRS '/home/bob/moos-ivp-hpl/lib'
 
+SG: you can also specifiy this in the .moos file in the IvPHelm config block 
 

@@ -20,8 +20,8 @@
 /* Boston, MA 02111-1307, USA.                                   */
 /*****************************************************************/
  
-#ifndef BHV_WAYPOINT_HEADER
-#define BHV_WAYPOINT_HEADER
+#ifndef BHV_WAYPOINT_LATLON_HEADER
+#define BHV_WAYPOINT_LATLON_HEADER
 
 #include <string>
 #include "IvPBehavior.h"
@@ -29,14 +29,24 @@
 #include "XYPoint.h"
 #include "MOOSGeodesy.h"
 
-class BHV_Waypoint : public IvPBehavior {
+
+#include "MOOS/libMOOS/Utils/MOOSUtilityFunctions.h"
+#include "MOOS/libMOOS/Utils/ProcessConfigReader.h"
+#include "MOOS/libMOOS/Utils/CommandLineParser.h"
+#include "MOOS/libMOOS/Utils/ProcInfo.h"
+
+
+#include "MOOS/libMOOS/Comms/MOOSCommClient.h"
+#include "MOOS/libMOOS/Comms/MOOSVariable.h"
+
+
+class BHV_Waypoint_latlon : public IvPBehavior {
 public:
-  BHV_Waypoint(IvPDomain);
-  ~BHV_Waypoint() {};
+  BHV_Waypoint_latlon(IvPDomain);
+  ~BHV_Waypoint_latlon() {};
   
   bool           setParam(std::string, std::string);
   IvPFunction*   onRunState();
-  IVP_EXPORT_FUNCTION IvPBehavior * createBehavior(std::string name, IvPDomain domain) 
 
   BehaviorReport onRunState(std::string);
   void           onRunToIdleState();
@@ -94,12 +104,28 @@ protected: // intermediate or object global variables.
   XYPoint   m_prevpt;
 
   bool      m_greedy_tour_pending;
-<<<<<<< HEAD
+
+  string lat_origin;
+  string lon_origin;
 
   CMOOSGeodesy geodesy;
-=======
->>>>>>> uSimROMS
+  CProcessConfigReader m_MissionReader;
+
 };
+
+
+//#ifdef WIN32
+	// Windows needs to explicitly specify functions to export from a dll
+//   #define IVP_EXPORT_FUNCTION __declspec(dllexport) 
+//#else
+ #define IVP_EXPORT_FUNCTION
+//#endif
+
+extern "C" {
+  IVP_EXPORT_FUNCTION IvPBehavior * createBehavior(std::string name, IvPDomain domain) 
+  {return new BHV_Waypoint_latlon(domain);}
+}
+
 #endif
 
 
