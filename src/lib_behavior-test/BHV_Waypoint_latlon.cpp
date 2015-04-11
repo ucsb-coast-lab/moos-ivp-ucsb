@@ -130,13 +130,20 @@ void BHV_Waypoint_latlon::onSetParamComplete()
 bool BHV_Waypoint_latlon::setParam(string param, string param_val) 
 {
   double dval = atof(param_val.c_str());
+  double x,y;
 
   cout << "param" << param << endl;
   cout << "param_val" << param_val << endl;
 
   if((param == "polygon") || (param == "points")) {
     
-    XYSegList new_seglist = string2SegList(param_val);
+    XYSegList seglist_ll = string2SegList(param_val);
+    XYSegList new_seglist;
+    for(int i = 0; i <= seglist_ll.length(); i++){
+      geodesy.LatLong2LocalGrid(seglist_ll.get_vx(i), seglist_ll.get_vy(i), x, y);
+      new_seglist.add_vertex(x,y,0," ");
+    }
+    
     if(new_seglist.size() == 0) {
       XYPolygon new_poly = string2Poly(param_val);
       new_seglist = new_poly.exportSegList(m_osx, m_osy);
@@ -148,10 +155,9 @@ bool BHV_Waypoint_latlon::setParam(string param, string param_val)
     return(true);
   }
   else if(param == "point") {
-    XYPoint point_latlon = string2Point(param_val);
-    double x,y;
-    geodesy.LatLong2LocalGrid(point_latlon.x(), point_latlon.y(), x, y);
-
+    XYPoint point_ll = string2Point(param_val);
+    geodesy.LatLong2LocalGrid(point_ll.x(), point_ll.y(), x, y); //SG: returns x/y in UTF 
+    
     XYPoint point(x,y);
     XYSegList new_seglist;
     new_seglist.add_vertex(point);
@@ -185,7 +191,7 @@ bool BHV_Waypoint_latlon::setParam(string param, string param_val)
       m_var_index = "silent";
     return(true);
   }
-  else if(param == "cycle_index_var") {   // Depricated
+  else if(param == "cycle_index_var") {   // Depreciated
     if(strContainsWhite(param_val) || (param_val == ""))
       return(false);
     m_var_cyindex = param_val;
