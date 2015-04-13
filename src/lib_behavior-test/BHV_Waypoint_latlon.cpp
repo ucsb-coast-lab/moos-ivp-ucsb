@@ -85,20 +85,6 @@ BHV_Waypoint_latlon::BHV_Waypoint_latlon(IvPDomain gdomain) :
   m_greedy_tour_pending = false;
 
   addInfoVars("NAV_X, NAV_Y, NAV_SPEED");
-
-
-  // m_MissionReader.GetValue("LatOrigin", lat_origin);
-  //m_MissionReader.GetValue("LongOrigin", lon_origin);
-
-
-  //I'm being terrible and hard coding this to see if geodesy will
-  //do what we want before I commit to finding a way to get the
-  //behavior the actual origin. 
-  lat_origin_d = 42.358456;
-  lon_origin_d = -71.087589;
-
-  geodesy.Initialise(lat_origin_d, lon_origin_d);
-  
   
   m_markpt.set_active(false);
   m_markpt.set_vertex_size(4);
@@ -113,6 +99,15 @@ BHV_Waypoint_latlon::BHV_Waypoint_latlon(IvPDomain gdomain) :
 
 void BHV_Waypoint_latlon::onSetParamComplete()
 {
+  if(!lat_origin_set || !lon_origin_set){
+    cout << endl << "!!!!!!!!!!!!!!!!!!!" << endl;
+    cout << "BHV_Waypoint_latlon: lat/lon origin not found, please set using lat_origin and lon_origin in the behavior file" << endl;
+    cout <<         "!!!!!!!!!!!!!!!!!!!" << endl << endl;
+    exit(0);
+  }
+  
+  geodesy.Initialise(lat_origin_d, lon_origin_d);
+  
   m_trackpt.set_label(m_us_name + "'s track-point");
   m_trackpt.set_vertex_size(4);
 
@@ -131,10 +126,19 @@ bool BHV_Waypoint_latlon::setParam(string param, string param_val)
 {
   double dval = atof(param_val.c_str());
   double x,y;
-
   cout << "param" << param << endl;
   cout << "param_val" << param_val << endl;
 
+  if(param == "lat_origin"){
+    lat_origin_d = dval;
+    lat_origin_set = 1;
+    return(true);
+  }
+  if(param == "lon_origin"){
+    lon_origin_d = dval;
+    lon_origin_set = 1;
+    return(true);
+  }
   if((param == "polygon") || (param == "points")) {
     
     XYSegList seglist_ll = string2SegList(param_val);
@@ -301,6 +305,7 @@ bool BHV_Waypoint_latlon::setParam(string param, string param_val)
       handleVisualHint(svector[i]);
     return(true);
   }
+  
   return(false);
 }
 

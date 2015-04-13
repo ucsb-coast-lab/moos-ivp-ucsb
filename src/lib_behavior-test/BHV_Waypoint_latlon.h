@@ -113,6 +113,8 @@ protected: // intermediate or object global variables.
 
   CMOOSGeodesy geodesy;
   CProcessConfigReader m_MissionReader;
+  bool lat_origin_set = 0;
+  bool lon_origin_set = 0;
 
 };
 
