@@ -25,12 +25,18 @@ iWhoiMicroModem/lib_YellowSubUtil: comes from the moos-ivp-uidaho tree, minor
 #=============================================================================
 # Introduction
 #=============================================================================
-TODO: write something nice here
+This is a collection of MOOS-ivp applications and behaviors that were
+developed by and for the University of Maryland's Horn Point Laboratory. the
+code is definitely a little rough in a few places but you are welcome to it
+if you think it will be of use to you.
+
+Most of the code was either written by Sean Gillen (sgillen@umd.edu) or Nick
+Nidzieko. You can direct any questions about the code to Sean.
 
 #=============================================================================
 # Directory Structure
 #=============================================================================
-The directory structure for the moos-ivp-hpl is decribed below:
+The directory structure for the moos-ivp-hpl is described below:
 
 bin              - Directory for generated executable files
 build            - Directory for build object files
