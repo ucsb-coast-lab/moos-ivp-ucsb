@@ -1,7 +1,7 @@
 ##############################################################################
-# FILE:        moos-ivp-hpl/README
-# DATE:        01/08/2015
-# DESCRIPTION: Contains important information regarding the moos-ivp-hpl
+# FILE:        moos-ivp-ucsb/README
+# DATE:        02/07/2019
+# DESCRIPTION: Contains important information regarding the moos-ivp-ucsb
 #              repository.
 ##############################################################################
 
@@ -13,30 +13,30 @@ This reposistory uses resources from other 3rd party MOOS Apps:
 iRecon: comes from the moos-ivp-remus tree, we've made minor tweaks to it but
         remains largely unchanged. original files can be found at:
 	http://oceanai.mit.edu/moos-ivp/pmwiki/pmwiki.php?n=Tree.Remus
-	
+
 iWhoiMicroModem/lib_YellowSubUtil: comes from the moos-ivp-uidaho tree, minor
         changes were made to get the libraries to build correctly on our system.
 	the original files can be found at:
 	http://oceanai.mit.edu/moos-ivp/pmwiki/pmwiki.php?n=Tree.Idaho
-	
-
-
 
 #=============================================================================
 # Introduction
 #=============================================================================
 This is a collection of MOOS-ivp applications and behaviors that were
-developed by and for the University of Maryland's Horn Point Laboratory. the
-code is definitely a little rough in a few places but you are welcome to it
-if you think it will be of use to you.
+developed by and for the University of Maryland's Horn Point Laboratory, as well
+as UC Santa Barbara's Coastal Oceanography and Autonomous Systems Laboratory.
+The code is definitely a little rough in a few places, and in many cases be
+considered 'under development' or incomplete.
 
-Most of the code was either written by Sean Gillen (sgillen@umd.edu) or Nick
-Nidzieko. You can direct any questions about the code to Sean.
+Most of the code was either written by Sean Gillen (sgillen@umd.edu), Nick
+Nidzieko, or Christopher Moran (christophermoran@ucsb.edu). You can direct
+questions about the code to Sean or Chris, although it's recommended to check
+the last contributor on the code of interest.
 
 #=============================================================================
 # Directory Structure
 #=============================================================================
-The directory structure for the moos-ivp-hpl is described below:
+The directory structure for the moos-ivp-ucsb is described below:
 
 bin              - Directory for generated executable files
 build            - Directory for build object files
@@ -45,7 +45,8 @@ CMakeLists.txt   - CMake configuration file for the project
 lib              - Directory for generated library files
 README           - Contains helpful information - (this file).
 src              - Directory for source code
-
+missions         - Directory containing code (.bhv, .moos files) for various
+                   missions
 
 #=============================================================================
 # Build Instructions
@@ -68,14 +69,13 @@ within this directory:
 #=============================================================================
 # Environment variables
 #=============================================================================
-The moos-ivp-hpl binaries files should be added to your path to allow them
-to be launched from pAntler. 
+The moos-ivp-ucsb binaries files should be added to your path to allow them
+to be launched from pAntler.
 
 In order for generated IvP Behaviors to be recognized by the IvP Helm, you
-should add the library directory to the "IVP_BEHAVIOR_DIRS" environment 
+should add the library directory to the "IVP_BEHAVIOR_DIRS" environment
 variable.
 
 ##############################################################################
 #                               END of README
 ##############################################################################
-
