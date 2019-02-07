@@ -4,6 +4,8 @@ PWD=`pwd`
 BUILD_DIR=./build
 HELP="no"
 CLEAN="no"
+#MOOSIVP_SOURCE_TREE_BASE=~/Desktop/moos-ivp-ucsb
+
 
 #-------------------------------------------------------------------
 # Define some terminal colors for convenience
