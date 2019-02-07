@@ -1,0 +1,13 @@
+//------------------------------------------------
+// pLineTurn config block
+
+ProcessConfig = pLineTurn
+{
+   AppTick   = 4
+   CommsTick = 4
+
+   NAV_X_RECEIVED = NAV_X
+   NAV_Y_RECEIVED = NAV_Y
+   NAV_HEADING_RECEIVED = NAV_HEADING
+   OUTGOING_VAR = UPDATES_TURNING
+}

@@ -1,0 +1,159 @@
+//--------    FILE: line_follow_w_dyn_wpts_and_smpl_data.bhv   -------------
+// Built off the s4_delta mission
+
+initialize   DEPLOY   = false
+initialize   RETURN   = false
+initialize   SURVEY   = false
+initialize   APPROACH = true
+initialize   TURN     = false
+
+//========================================================
+// Hierarchical Mode Declarations
+//  o ROOT                     o ROOT
+//  |--o INACTIVE              |--o PSURFACING
+//  |--o ACTIVE                |--o NOT_PSURFACING
+//     |--o RETURNING
+//     |--o APPROACHING
+//     |--o SURVEYING
+//        |--o TURNING
+//        |--o LINE_FOLLOWING
+//========================================================
+
+
+set MODE = ACTIVE {
+  DEPLOY = true
+} INACTIVE
+
+set MODE = RETURNING {
+  MODE = ACTIVE
+  RETURN = true
+}
+
+set MODE = APPROACHING {
+  MODE = ACTIVE
+  APPROACH = true
+  SURVEY   = false
+  TURN     = false
+  RETURN   = false
+}
+
+set MODE = SURVEYING {
+  MODE = ACTIVE
+  SURVEY = true
+  RETURN = false
+} RETURNING
+
+set MODE = TURNING {
+  MODE = ACTIVE:SURVEYING
+  TURN = true
+}
+
+set MODE = LINE_FOLLOWING {
+  MODE = ACTIVE:SURVEYING
+  TURN     = false
+}
+
+//----------------------------------------------
+Behavior = BHV_MaxDepth
+{
+  name = maxdepth
+  pwt  = 200
+  condition = MODE==ACTIVE
+
+  max_depth = 7
+  tolerance = 1
+  duration = no-time-limit
+}
+
+//----------------------------------------------
+Behavior = BHV_ConstantDepth
+{
+  name      = bhv_const_depth
+  pwt       = 100
+  duration  = no-time-limit
+  condition = MODE==ACTIVE
+  updates   = DEPTH_VALUE
+
+        depth = 50
+    peakwidth = 8
+    basewidth = 12
+  summitdelta = 10
+}
+
+//----------------------------------------------
+Behavior = BHV_Waypoint
+{
+  name       = waypt_line_follow
+  pwt        = 100
+  condition  = MODE==LINE_FOLLOWING
+  updates    = UPDATES_FOLLOWING
+  perpetual  = true
+
+  endflag    = SURVEY=false
+  endflag    = RETURN=true
+
+  speed = 2.0
+  radius = 2.0
+  nm_radius = 1.0
+  lead = 1
+  lead_damper = 1
+  radius = 1.0
+  points = format=lawnmower, label=henry_survey, x=100, y=-40, width=90, height=25, lane_width=15, rows=east, degs=0
+}
+
+//----------------------------------------------
+Behavior = BHV_Waypoint
+{
+  name       = waypt_approach
+  pwt        = 110
+  condition  = MODE==APPROACHING
+  // updates    = UPDATES_APPROACHING
+  perpetual  = true
+
+  endflag    = APPROACH=false
+  endflag    = SURVEY=true
+
+  speed = 2.0
+  radius = 2.0
+  nm_radius = 5.0
+  points = 50, -25
+}
+
+//----------------------------------------------
+Behavior = BHV_Waypoint
+{
+  name       = waypt_return
+  pwt        = 100
+  condition  = MODE == RETURNING
+  updates    = UPDATES_RETURNING
+  perpetual  = true
+  endflag    = RETURN = false
+  endflag    = DEPLOY = false
+  endflag    = SURVEY = false
+  endflag    = APPROACH = true
+  endflag    = TURN = false
+
+       speed = 2.0
+      radius = 5.0
+   nm_radius = 8.0
+       point = 0,0
+}
+
+
+//----------------------------------------------
+Behavior = BHV_Waypoint
+{
+  name       = waypt_turn
+  pwt        = 110
+  condition  = MODE==TURNING
+  updates    = UPDATES_TURNING
+  perpetual  = true
+
+  endflag    = RETURN=true
+  endflag    = TURN=false
+
+  speed = 2.0
+  radius = 2.0
+  nm_radius = 5.0
+  points = 100,0
+}

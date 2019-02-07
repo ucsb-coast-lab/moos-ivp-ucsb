@@ -1,0 +1,16 @@
+/------------------------------------------------
+// pIncludeSampleData config block
+
+ProcessConfig = pIncludeSampleData
+{
+   AppTick   = 2
+   CommsTick = 2
+
+   NAV_X_RECEIVED = NAV_X
+   NAV_Y_RECEIVED = NAV_Y
+   NAV_HEADING_RECEIVED = NAV_HEADING
+   SURVEY_RECEIVED = SURVEY
+   TURN_RECEIVED = TURN
+   MODE_RECEIVED = MODE
+
+}

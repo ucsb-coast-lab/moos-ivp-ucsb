@@ -1,0 +1,16 @@
+//------------------------------------------------
+// pLineFollow config block
+
+ProcessConfig = pLineFollow
+{
+   AppTick   = 1
+   CommsTick = 1
+
+   OUTGOING_VAR = UPDATES_SURVEYING
+   OUTGOING_STATE = TURN
+
+   NAV_X_RECEIVED = NAV_X
+   NAV_Y_RECEIVED = NAV_Y
+   NAV_HEADING_RECEIVED = NAV_HEADING
+   INCOMING_DISTANCE = SIM_DISTANCE
+}

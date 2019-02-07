@@ -1,0 +1,14 @@
+//------------------------------------------------
+// pSimDistanceGenerator config block
+
+ProcessConfig = pSimDistanceGenerator
+{
+   AppTick   = 1
+   CommsTick = 1
+
+   OUTGOING_VAR = SIM_DISTANCE
+
+   NAV_X_RECEIVED = NAV_X
+   NAV_Y_RECEIVED = NAV_Y
+   NAV_HEADING_RECEIVED = NAV_HEADING
+}
