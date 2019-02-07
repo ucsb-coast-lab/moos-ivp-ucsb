@@ -4,8 +4,6 @@ PWD=`pwd`
 BUILD_DIR=./build
 HELP="no"
 CLEAN="no"
-#MOOSIVP_SOURCE_TREE_BASE=~/Desktop/moos-ivp-ucsb
-
 
 #-------------------------------------------------------------------
 # Define some terminal colors for convenience
@@ -45,9 +43,9 @@ done
 
 if [ "${HELP}" = "yes" ]; then
     printf "${txtblu}%s [SWITCHES] ${txtrst}    \n" $0
-    printf "Switches:                           \n" 
-    printf "  --clean, clean                    \n" 
-    printf "  --help, -h                        \n" 
+    printf "Switches:                           \n"
+    printf "  --clean, clean                    \n"
+    printf "  --help, -h                        \n"
     printf "Notes:                              \n"
     printf " (1) All other command line args will be passed as args    \n"
     printf "     to \"make\" when it is eventually invoked.            \n"
@@ -86,4 +84,3 @@ cd ${PWD}
 ############################################################
 #                   END of build.sh
 ############################################################
-
