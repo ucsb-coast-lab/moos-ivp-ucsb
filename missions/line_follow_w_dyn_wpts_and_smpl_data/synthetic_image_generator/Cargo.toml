@@ -1,0 +1,12 @@
+[package]
+name = "image-from-scratch"
+version = "0.1.0"
+authors = ["cmoran"]
+
+[dependencies]
+image = ""
+imageproc = ""
+ndarray = ""
+ndarray-csv = ""
+csv = ""
+rand = ""
