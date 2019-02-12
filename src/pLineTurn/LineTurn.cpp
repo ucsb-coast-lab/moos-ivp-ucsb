@@ -2,7 +2,7 @@
 /*    NAME: cmoran                                               */
 /*    ORGN: UCSB Coastal Oceanography and Autonomous Systems Lab */
 /*    FILE: LineTurn.cpp                                         */
-/*    DATE: 7 February 2019                                      */
+/*    DATE: 11 February 2019                                     */
 /************************************************************/
 
 #include <iterator>
