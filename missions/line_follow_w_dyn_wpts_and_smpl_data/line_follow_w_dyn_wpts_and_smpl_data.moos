@@ -27,10 +27,10 @@ ProcessConfig = ANTLER
   Run = pLogger         @ NewConsole = false
   Run = uProcessWatch   @ NewConsole = false
   Run = uXMS            @ NewConsole = true
-  Run = pSimDistanceGenerator @ NewConsole = false ~ pSimDistanceGenerator
+  // Run = pSimDistanceGenerator @ NewConsole = false ~ pSimDistanceGenerator
   Run = pLineFollow @ NewConsole = false ~ pLineFollow
-  Run = pLineTurn @ NewConsole = false ~ pLineTurn
-  Run = pIncludeSampleData @ NewConsole = true ~ pIncludeSampleData
+  Run = pLineTurn @ NewConsole = true ~ pLineTurn
+  Run = pIncludeSampleData @ NewConsole = false ~ pIncludeSampleData
 
 }
 
@@ -215,21 +215,6 @@ ProcessConfig = pNodeReporter
 }
 
 //------------------------------------------------
-// pSimDistanceGenerator config block
-
-ProcessConfig = pSimDistanceGenerator
-{
-   AppTick   = 1
-   CommsTick = 1
-
-   OUTGOING_VAR = SIM_DISTANCE
-
-   NAV_X_RECEIVED = NAV_X
-   NAV_Y_RECEIVED = NAV_Y
-   NAV_HEADING_RECEIVED = NAV_HEADING
-}
-
-//------------------------------------------------
 // pLineFollow config block
 
 ProcessConfig = pLineFollow
@@ -257,6 +242,8 @@ ProcessConfig = pLineTurn
    NAV_X_RECEIVED = NAV_X
    NAV_Y_RECEIVED = NAV_Y
    NAV_HEADING_RECEIVED = NAV_HEADING
+   MODE_RECEIVED = MODE
+
    OUTGOING_VAR = UPDATES_TURNING
 }
 
@@ -267,6 +254,8 @@ ProcessConfig = pIncludeSampleData
 {
    AppTick   = 2
    CommsTick = 2
+
+   OUTGOING_VAR = SIM_DISTANCE
 
    NAV_X_RECEIVED = NAV_X
    NAV_Y_RECEIVED = NAV_Y

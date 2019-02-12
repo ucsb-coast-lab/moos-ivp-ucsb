@@ -20,6 +20,7 @@ LineTurn::LineTurn()
   m_nav_y = 0.0;
   m_nav_heading = 0.0;
   m_point_string = "point = 100,0";
+	m_mode = "";
 }
 
 //---------------------------------------------------------
@@ -34,6 +35,8 @@ bool LineTurn::OnNewMail(MOOSMSG_LIST &NewMail)
 
     string key   = msg.GetKey();
     double dval = msg.GetDouble();
+		string sval  = msg.GetString();
+
 
          if(key=="NAV_X") {
              m_nav_x = dval;
@@ -49,6 +52,10 @@ bool LineTurn::OnNewMail(MOOSMSG_LIST &NewMail)
              m_nav_heading = dval;
 						 //cout << "NAV_HEADING = " << m_nav_heading << endl;
          }
+
+				 if(key=="MODE") {
+						m_mode = sval;
+				 }
 
    }
 
@@ -80,6 +87,8 @@ void LineTurn::RegisterVariables()
 			 m_Comms.Register(m_nav_y_received, 0);
 	if(m_nav_heading_received != "")
 			 m_Comms.Register(m_nav_heading_received, 0);
+	if(m_mode_received != "")
+	 		 m_Comms.Register(m_mode_received, 0);
 }
 
 //---------------------------------------------------------
@@ -88,37 +97,50 @@ void LineTurn::RegisterVariables()
 
 bool LineTurn::Iterate()
 {
-	double vehicle_leader = 14.0;
-	double turn_radius = 10; // Looks like this should be > 5
+	// NOTE: The code for LineTurn and LineFollow behaviors is predicated on the assumption that the lines are located almost entirely East-West.
+	// This could be refactored to accept a variation of theta, s.t. the start and end points of the lines would come into play, but the most
+	// simple case of theta = 0 is implemented here. This could be a TO_DO in the future, but is being left alone for the moment while the general
+	// behavior mechanics are being worked out.
 
-	// TURNING BEHAVIORS, which should be seperated to new function at some point
-	// TO_DO: Declare boudaries as variables for easy modification
-	if (m_nav_x > 151) {
-		// TO_DO: Try making this a perfect circle radius using the radial or ellipse syntax (might not work, might need to do manually w/parameterization)
-		// Note: doesn't look like you can choose couter/clockwise turn direction, so probably won't work
-		// points = format=radial, label=foxtrot, x=0, y=40, radius=60, pts=6, snap=1
-		// points = format=ellipse, label=golf, x=0, y=40, degs=45, pts=14, snap=1, major=100, minor=70
-		// m_point_string = "points = format=radial, label=henry, x="+to_string(150)+",y="+to_string(-21.2)+", radius=20, pts=6, snap=0";
-		// m_point_string = "points = format=ellipse, label=henry, x="+to_string(150)+",y="+to_string(-21.2)+", degs=0, pts=14, snap=7, major=20, minor=20";
+	double turn_radius = 25; // Looks like this should be > 5
+	double sqrt_2 = 1.414; // square root of 2, defined as a constant for octagonal geometry
+	double s = turn_radius/(1+sqrt_2); // equation for side-length of a regular octagon
 
+	double left_boundary = 49;
+	double right_boundary = 151;
+	double bottom_boundary = -100;
+	// double top_boundary = ; // Not being used at the moment
 
-		m_point_string = "point = "+to_string(m_nav_x-90)+","+to_string(m_nav_y-turn_radius);
-		//m_point_string = "point = 170,-30:150,-40";
+	cout << "m_mode = " << m_mode  << endl;
+	cout << "(nav_x,nav_y) = (" << m_nav_x << ", " << m_nav_y << ")" << endl;
+
+	// TURNING BEHAVIORS
+	// Octagonal end boundary with last point inside of LineFollow zone for behavior hand-off
+	if (m_nav_x < right_boundary && m_nav_x > (right_boundary - left_boundary)/2) {
+		m_point_string = "points = "+to_string(m_nav_x + s)+","+to_string(m_nav_y) + ":"
+			+ to_string(m_nav_x + (s + (.707 * s ))) + "," + to_string(m_nav_y - (.707 * s) ) + ":"
+			+ to_string(m_nav_x + (s + (.707 * s ))) + "," + to_string(m_nav_y - (s + (.707 * s)) ) + ":"
+			+ to_string(m_nav_x + s) + "," + to_string(m_nav_y - turn_radius) + ":"
+			+ to_string(right_boundary - 10) + "," + to_string(m_nav_y - turn_radius) + ":";
 		cout << "Turning RIGHT" << endl;
 	}
 
-	if (m_nav_x < 49) {
-		m_point_string = "point = "+to_string(m_nav_x+90)+","+to_string(m_nav_y-turn_radius);
+	if (m_nav_x > left_boundary && m_nav_x < (right_boundary - left_boundary)/2 ) {
+		m_point_string = "points = "+to_string(m_nav_x-s)+","+to_string(m_nav_y) + ":"
+			+ to_string(m_nav_x - (s + (.707 * s ))) + "," + to_string(m_nav_y - (.707 * s) ) + ":"
+			+ to_string(m_nav_x - (s + (.707 * s ))) + "," + to_string(m_nav_y - (s + (.707 * s)) ) + ":"
+			+ to_string(m_nav_x - s) + "," + to_string(m_nav_y - turn_radius) + ":"
+			+ to_string(left_boundary + 10) + "," + to_string(m_nav_y - turn_radius) + ":";
 		cout << "Turning LEFT" << endl;
 	}
 
-	if (m_nav_y < -100) {
+	if (m_nav_y < bottom_boundary) {
 		m_point_string = "point = "+to_string(0)+","+to_string(-105);
 	}
 
-  cout << "m_point_string: " << m_point_string << endl;
+	cout << "m_point_string: " << m_point_string << endl;
 	//m_point_string = "point = 0,0";
-  Notify(m_outgoing_var,m_point_string);
+	Notify(m_outgoing_var,m_point_string);
 
   return(true);
 }
@@ -162,6 +184,11 @@ bool LineTurn::OnStartUp()
 		if(MOOSStrCmp(sVarName, "NAV_HEADING_RECEIVED")) {
 		    if(!strContains(sLine, " "))
 		  m_nav_heading_received = stripBlankEnds(sLine);
+		}
+
+		if(MOOSStrCmp(sVarName, "MODE_RECEIVED")) {
+				if(!strContains(sLine, " "))
+			m_mode_received = stripBlankEnds(sLine);
 		}
 
   }

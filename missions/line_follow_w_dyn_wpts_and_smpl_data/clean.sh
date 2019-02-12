@@ -26,4 +26,4 @@ done
 rm -rf  $VERBOSE   MOOSLog_*  LOG_* 
 rm -f   $VERBOSE   *~  targ_* *.moos++
 rm -f   $VERBOSE   .LastOpenedMOOSLogDirectory
-rm test.csv output.csv lf_greyscale.png csv_image_import.csv
+rm test.csv *output.csv csv_image_import.csv

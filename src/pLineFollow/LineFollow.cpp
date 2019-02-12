@@ -134,7 +134,6 @@ bool LineFollow::Iterate()
 		sum = sum + m_distance_saved[i];
 	}
 
-
 	// TO_DO: Something in here causes a weird transition from CASE 1 to CASE 2,
 	// where the sum value sits in the low 40's for a few iterations before
 	// stabilizing in the 50s where it ideally should
@@ -153,11 +152,11 @@ bool LineFollow::Iterate()
 	double dist_ideal = 10.5;
 
 	if (m_nav_heading > 60 && m_nav_heading < 130) {
-		cout << "Moving West, as NAV_HEADING = " << m_nav_heading << endl;
+		//cout << "Moving West, as NAV_HEADING = " << m_nav_heading << endl;
   	m_point_string = "point = "+to_string(m_nav_x+vehicle_leader)+","+to_string(m_nav_y+(dist_ideal - avg_dist));
 	}
 	if (m_nav_heading > 240 && m_nav_heading < 300) {
-		cout << "Moving East, as NAV_HEADING = " << m_nav_heading << endl;
+		//cout << "Moving East, as NAV_HEADING = " << m_nav_heading << endl;
 		m_point_string = "point = "+to_string(m_nav_x-vehicle_leader)+","+to_string(m_nav_y+(dist_ideal - avg_dist));
 	}
 
@@ -166,6 +165,7 @@ bool LineFollow::Iterate()
 		cout << "m_point_string: NADA "  << endl;
 	}
 	else {
+		printf("(nav_x, nav_y) = (%f, %f)\n",m_nav_x,m_nav_y);
 		cout << "m_point_string: " << m_point_string << endl;
 	}
   //cout << "m_point_string: " << m_point_string << endl;
@@ -182,8 +182,6 @@ bool LineFollow::Iterate()
 		Notify(m_sample_var,"true");
 	}
 	else { Notify(m_sample_var,"false"); }
-	//Notify(m_sample_var,"true");
-
 
   return(true);
 }

@@ -19,7 +19,7 @@ using namespace std;
 SimDistanceGenerator::SimDistanceGenerator()
 {
 		// Initialise all State and non-string Configuration variables
-	m_range = 0.0;
+		m_range = 0.0;
     m_nav_x = 0.0;
     m_nav_y = -60.0;
     m_nav_heading = 0.0;

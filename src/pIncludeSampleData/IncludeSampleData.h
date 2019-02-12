@@ -23,11 +23,13 @@ class IncludeSampleData : public CMOOSApp
    bool OnStartUp();
 
    void setIncomingVar(std::string s) {m_incoming_var=s;}
+   void setOutgoingVar(std::string s) {m_outgoing_var=s;}
 
  protected:
    void RegisterVariables();
 
  protected: // Configuration variables
+     std::string m_outgoing_var;
      std::string m_incoming_var;
 
      std::string m_nav_x_received;

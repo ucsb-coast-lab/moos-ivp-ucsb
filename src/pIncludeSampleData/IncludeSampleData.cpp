@@ -16,6 +16,8 @@
 #include <chrono>
 #include <thread>
 #include <unistd.h>
+#include <cmath>
+#include <random>
 
 
 #include "MBUtils.h"
@@ -115,11 +117,19 @@ void IncludeSampleData::RegisterVariables()
 bool IncludeSampleData::Iterate()
 {
 	cout << "m_mode = " << m_mode << endl;
+	ofstream output_file_position ("position_output.csv",ios::app);
+	int max_index = 82; // This needs to go here into order to be available during lifetimes
+										  // Estimated this value, since we don't want it to ever be unassigned
+											// TO_DO: Make this more resilient
+	int max_index_padded = 82;
 	// TO_DO: Feels like this could be the place for a switch statement or other FSM pattern
+
 	if (m_mode == "ACTIVE:SURVEYING:LINE_FOLLOWING") {
 			// Open the input and output files, output file such that values append
 			ifstream input_file (m_input_filename);
 			ofstream output_file (m_output_filename,ios::app);
+			ofstream output_file_padded ("padded_output.csv",ios::app);
+			ofstream output_file_maximums ("maximums_output.csv",ios::app);
 
 			// Opens array
 			// TO_DO: Is this actually necessary? Or should be just go straight from vect(i), declaring here instead?
@@ -162,8 +172,76 @@ bool IncludeSampleData::Iterate()
 				}
 
 				// NOTE: Here's where any operations on the line array should occur; could end up publishing resulting value
+				// Finds the maximum value of the ping for standard arr[]
+				int max = arr[0]; // First assignment of the max value and index
+				max_index = 0;
+				int j = 0;
+				int bottom_edge = 150; // This is a value at which the bottom return of the acoustic image appears
+				for (j = 0; j < bottom_edge; j++) {
+					if (arr[j] > max) {
+						max = arr[j];
+						max_index = j;
+					}
+				}
 
-				// Appends row values to the end of the output file
+				// Writes maximum values to file
+				output_file_maximums << max_index << "," << max << endl;
+
+				// Intermediate step of padding output and fluctuating arr[]'s locations within it
+				// Not actually going to perform operations on arr[]; prefer to leave it alone, at least while we're still in simulation
+
+				double pad_percentage = 0.2;
+			  int offset = round(pad_percentage * m_colCount / 2);
+			  int padded_size = m_colCount + (offset * 2);
+			  int padded_arr[padded_size] = {};
+
+				// Generates oscillation of using a random number generator
+				int bounds = 10; // sets the max and min bounds
+				random_device rd;     // used to initialise (seed) engine
+				mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
+				uniform_int_distribution<int> uni(-bounds,bounds); // guaranteed unbiased; uni(min,max)
+				int wiggle = uni(rng);
+
+				// Needs to make sure the the wiggle bounding stays inside the maximum array size
+				if (bounds < offset) {
+				  for (int k = 0; k < padded_size; k++) {
+				    if (k >= (offset + wiggle) && k < (offset + wiggle + m_colCount) ) {
+				        padded_arr[k] = arr[k-(offset + wiggle)];
+				    }
+				    else {
+				      padded_arr[k] = 0;
+				    }
+				  }
+
+					// Finds the maximum value of the ping for the padded_arr[]
+					int max_padded = padded_arr[0]; // First assignment of the max value and index
+					max_index_padded = 0;
+					int h = 0;
+					int bottom_edge_padded = 150; // This is a value at which the bottom return of the acoustic image appears
+					for (h = 0; h < bottom_edge_padded; h++) {
+						if (padded_arr[h] > max_padded) {
+							max_padded = padded_arr[h];
+							max_index_padded = h;
+						}
+					}
+
+					// Printing padded_arr[] to file; appends row values to the end of the output file
+					for (int n = 0; n < padded_size; n++) {
+						if (n == (padded_size - 1)) {
+							output_file_padded << padded_arr[n] << "\n";
+						}
+						else {
+							output_file_padded << padded_arr[n] << ",";
+						}
+					}
+				}
+				else {
+					output_file_padded << "$bounds is less that $offset, would write out of bounds" << endl;
+					cout << "$bounds is less that $offset, would write out of bounds" << endl;
+				}
+
+
+				// Printing arr[] to file; appends row values to the end of the output file
 				for (int m = 0; m < m_colCount; m++) {
 					if (m == (m_colCount - 1)) {
 						//printf("%d \n",arr[m]);
@@ -181,6 +259,14 @@ bool IncludeSampleData::Iterate()
 	m_iterations++; // Putting this INSIDE the if-statement, so that we don't end up with discontinuities in the image
 	}
 
+	cout << "Max value index is: " << max_index << endl;
+	// TO_DO: This conversion factor's NOT ACCURATE, but is chosen for convenience in the simulation for the moment
+	double conversion_factor = 10.5/100; // meters per pixel, 200 m / 500 pixel width? 200/m_colCount
+	double distance_from_pixels = max_index * conversion_factor;
+	Notify(m_outgoing_var,distance_from_pixels);
+
+	output_file_position << m_nav_x << "," << m_nav_y << ","<< m_nav_heading << "," << max_index << "," << distance_from_pixels << "," << endl;
+
   return(true);
 }
 
@@ -196,7 +282,7 @@ bool IncludeSampleData::OnStartUp()
 	// NOTE: Rust binary and the image file need to be located in the mission directory
 	cout << "STARTING image->.csv file conversion using Rust binary" << endl;
 	const char *exe_path = "./convert-to-csv";
-	const char *image_path = "./lf_cropped.png";
+	const char *image_path = "./synthetic_image.png";
 	const char *csv_image_export = "csv_image_import.csv";
   int pid = fork();
   switch(pid) {
@@ -241,6 +327,11 @@ bool IncludeSampleData::OnStartUp()
     string sLine     = *p;
     string sVarName  = MOOSChomp(sLine, "=");
     sLine = stripBlankEnds(sLine);
+
+		if(MOOSStrCmp(sVarName, "OUTGOING_VAR")) {
+			if(!strContains(sLine, " "))
+	  m_outgoing_var = stripBlankEnds(sLine);
+	  }
 
     if(MOOSStrCmp(sVarName, "NAV_X_RECEIVED")) {
       if(!strContains(sLine, " "))

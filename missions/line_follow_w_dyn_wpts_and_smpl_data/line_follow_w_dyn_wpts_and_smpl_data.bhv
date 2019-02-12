@@ -149,11 +149,11 @@ Behavior = BHV_Waypoint
   updates    = UPDATES_TURNING
   perpetual  = true
 
-  endflag    = RETURN=true
   endflag    = TURN=false
+  endflag    = RETURN=true
 
-  speed = 2.0
+  speed = 1.0
   radius = 2.0
-  nm_radius = 5.0
+  nm_radius = 3.0
   points = 100,0
 }
