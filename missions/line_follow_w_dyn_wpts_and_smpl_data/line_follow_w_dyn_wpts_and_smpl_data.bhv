@@ -92,10 +92,12 @@ Behavior = BHV_Waypoint
   endflag    = SURVEY=false
   endflag    = RETURN=true
 
+  // Need to have lead > radius in order for LineTurn -> LineFollow hand-off to work properly
+
   speed = 2.0
   radius = 2.0
   nm_radius = 1.0
-  lead = 1
+  lead = 3
   lead_damper = 1
   radius = 1.0
   points = format=lawnmower, label=henry_survey, x=100, y=-40, width=90, height=25, lane_width=15, rows=east, degs=0
@@ -116,7 +118,7 @@ Behavior = BHV_Waypoint
   speed = 2.0
   radius = 2.0
   nm_radius = 5.0
-  points = 50, -25
+  points = 30,-25:40,-25:50,-25
 }
 
 //----------------------------------------------
@@ -135,7 +137,7 @@ Behavior = BHV_Waypoint
 
        speed = 2.0
       radius = 5.0
-   nm_radius = 8.0
+   nm_radius = 5.0
        point = 0,0
 }
 
@@ -152,8 +154,8 @@ Behavior = BHV_Waypoint
   endflag    = TURN=false
   endflag    = RETURN=true
 
-  speed = 1.0
+  speed = 1.5
   radius = 2.0
-  nm_radius = 3.0
+  nm_radius = 5.0
   points = 100,0
 }

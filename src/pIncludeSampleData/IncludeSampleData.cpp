@@ -2,7 +2,7 @@
 /*    NAME: cmoran                                               */
 /*    ORGN: UCSB Coastal Oceanography and Autonomous Systems Lab */
 /*    FILE: IncludeSampleData.cpp                                */
-/*    DATE: 6 February 2019                                      */
+/*    DATE: 13 February 2019                                     */
 /************************************************************/
 
 #include <iostream>
@@ -18,7 +18,6 @@
 #include <unistd.h>
 #include <cmath>
 #include <random>
-
 
 #include "MBUtils.h"
 #include "IncludeSampleData.h"
@@ -261,7 +260,7 @@ bool IncludeSampleData::Iterate()
 
 	cout << "Max value index is: " << max_index << endl;
 	// TO_DO: This conversion factor's NOT ACCURATE, but is chosen for convenience in the simulation for the moment
-	double conversion_factor = 10.5/100; // meters per pixel, 200 m / 500 pixel width? 200/m_colCount
+	double conversion_factor = 10.5/105; // meters per pixel, 200 m / 500 pixel width? 200/m_colCount
 	double distance_from_pixels = max_index * conversion_factor;
 	Notify(m_outgoing_var,distance_from_pixels);
 
