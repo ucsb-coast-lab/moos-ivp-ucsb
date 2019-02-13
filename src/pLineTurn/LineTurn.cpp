@@ -102,9 +102,10 @@ bool LineTurn::Iterate()
 	// simple case of theta = 0 is implemented here. This could be a TO_DO in the future, but is being left alone for the moment while the general
 	// behavior mechanics are being worked out.
 
-	double turn_radius = 25; // Looks like this should be > 5
+	double turn_radius = 20; // Looks like this should be > 5
 	double sqrt_2 = 1.414; // square root of 2, defined as a constant for octagonal geometry
 	double s = turn_radius/(1+sqrt_2); // equation for side-length of a regular octagon
+	double dext = 1.5;
 
 	double left_boundary = 49;
 	double right_boundary = 151;
@@ -116,20 +117,20 @@ bool LineTurn::Iterate()
 
 	// TURNING BEHAVIORS
 	// Octagonal end boundary with last point inside of LineFollow zone for behavior hand-off
-	if (m_nav_x < right_boundary && m_nav_x > (right_boundary - left_boundary)/2) {
-		m_point_string = "points = "+to_string(m_nav_x + s)+","+to_string(m_nav_y) + ":"
-			+ to_string(m_nav_x + (s + (.707 * s ))) + "," + to_string(m_nav_y - (.707 * s) ) + ":"
-			+ to_string(m_nav_x + (s + (.707 * s ))) + "," + to_string(m_nav_y - (s + (.707 * s)) ) + ":"
-			+ to_string(m_nav_x + s) + "," + to_string(m_nav_y - turn_radius) + ":"
-			+ to_string(right_boundary - 10) + "," + to_string(m_nav_y - turn_radius) + ":";
+	if (m_nav_x < right_boundary && m_nav_x > (right_boundary - left_boundary)/2 && m_nav_heading > 60 && m_nav_heading < 130) {
+			m_point_string = "points = "+to_string(m_nav_x + dext * s)+","+to_string(m_nav_y) + ":"
+				+ to_string(m_nav_x + dext * (s + (.707 * s ))) + "," + to_string(m_nav_y - (.707 * s) ) + ":"
+				+ to_string(m_nav_x + dext * (s + (.707 * s ))) + "," + to_string(m_nav_y - (s + (.707 * s)) ) + ":"
+				+ to_string(m_nav_x + s) + "," + to_string(m_nav_y - (turn_radius - 1.5)) + ":"
+				+ to_string(right_boundary - 10) + "," + to_string(m_nav_y - turn_radius) + ":";
 		cout << "Turning RIGHT" << endl;
 	}
 
-	if (m_nav_x > left_boundary && m_nav_x < (right_boundary - left_boundary)/2 ) {
-		m_point_string = "points = "+to_string(m_nav_x-s)+","+to_string(m_nav_y) + ":"
-			+ to_string(m_nav_x - (s + (.707 * s ))) + "," + to_string(m_nav_y - (.707 * s) ) + ":"
-			+ to_string(m_nav_x - (s + (.707 * s ))) + "," + to_string(m_nav_y - (s + (.707 * s)) ) + ":"
-			+ to_string(m_nav_x - s) + "," + to_string(m_nav_y - turn_radius) + ":"
+	if (m_nav_x > left_boundary && m_nav_x < (right_boundary - left_boundary)/2 && m_nav_heading > 240 && m_nav_heading < 300) {
+		m_point_string = "points = "+to_string(m_nav_x - dext * s)+","+to_string(m_nav_y) + ":"
+			+ to_string(m_nav_x - dext * (s + (.707 * s ))) + "," + to_string(m_nav_y - (.707 * s) ) + ":"
+			+ to_string(m_nav_x - dext *  (s + (.707 * s ))) + "," + to_string(m_nav_y - (s + (.707 * s)) ) + ":"
+			+ to_string(m_nav_x - s) + "," + to_string(m_nav_y - (turn_radius - 1.5)) + ":"
 			+ to_string(left_boundary + 10) + "," + to_string(m_nav_y - turn_radius) + ":";
 		cout << "Turning LEFT" << endl;
 	}

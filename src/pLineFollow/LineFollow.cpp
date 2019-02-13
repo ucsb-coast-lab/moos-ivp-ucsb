@@ -2,7 +2,7 @@
 /*   NAME: cmoran                                               */
 /*   ORGN: UCSB Coastal Oceanography and Autonomous Systems Lab */
 /*   FILE: LineFollow.cpp                                       */
-/*   DATE: 7 February 2019                                      */
+/*   DATE: 13 February 2019                                     */
 /****************************************************************/
 // TO_DO: Lots of debugging code w/ 'cout' still exists. Will need to remove at
 // some point.
@@ -150,6 +150,8 @@ bool LineFollow::Iterate()
 	double vehicle_leader = 15.0;
 	double turn_radius = 7.0;
 	double dist_ideal = 10.5;
+	double left_boundary = 50;
+	double right_boundary = 150;
 
 	if (m_nav_heading > 60 && m_nav_heading < 130) {
 		//cout << "Moving West, as NAV_HEADING = " << m_nav_heading << endl;
@@ -160,7 +162,7 @@ bool LineFollow::Iterate()
 		m_point_string = "point = "+to_string(m_nav_x-vehicle_leader)+","+to_string(m_nav_y+(dist_ideal - avg_dist));
 	}
 
-	if (m_nav_x > 150 || m_nav_x < 50) {
+	if (m_nav_x > right_boundary || m_nav_x < left_boundary) {
 		m_point_string = "Out of specified range";
 		cout << "m_point_string: NADA "  << endl;
 	}
@@ -174,11 +176,11 @@ bool LineFollow::Iterate()
 
 
 	// TURN = true/false LOGIC
-	if (m_nav_x > 50) {
+	if (m_nav_x > left_boundary) {
 		m_turn_iterator++;
 	}
 
-	if ((m_nav_x > 150 || m_nav_x < 50) && m_turn_iterator > 1)  {
+	if ((m_nav_x > right_boundary || m_nav_x < left_boundary) && m_turn_iterator > 1)  {
 		Notify(m_sample_var,"true");
 	}
 	else { Notify(m_sample_var,"false"); }
