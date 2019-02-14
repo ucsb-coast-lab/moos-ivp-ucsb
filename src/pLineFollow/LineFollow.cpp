@@ -114,23 +114,26 @@ bool LineFollow::Iterate()
   //cout << "Iterate() was called" << endl;
 	//cout << "m_distance = " << m_distance << endl;
 
+	// NOTE: filter_size MUST match the value declared in the .h file and the function constructor
+	int filter_size = 5;
 
 	// Moving average filter of distance reports
-	if (m_iterations < 5) {
+	if (m_iterations < filter_size) {
 		m_distance_saved[m_iterations] = m_distance;
 	}
 	else {
-		m_distance_saved[0] = m_distance_saved[1];
-		m_distance_saved[1] = m_distance_saved[2];
-		m_distance_saved[2] = m_distance_saved[3];
-		m_distance_saved[3] = m_distance_saved[4];
-		m_distance_saved[4] = m_distance_saved[5];
-		m_distance_saved[5] = m_distance;
+		for (int h = 0; h < filter_size; h++) {
+			m_distance_saved[h] = m_distance_saved[h + 1];
+		}
+		m_distance_saved[filter_size] = m_distance;
 	}
 	m_iterations++;
 
+	// Note: For debugging of moving average filter
+	// for (int h = 0; h < filter_size; h++) { printf("m_distance_saved[%d] = %f\n",h,m_distance_saved[h]); }
+
 	double sum = 0.0;
-	for (int i = 0; i < 5; i++) {
+	for (int i = 0; i < filter_size; i++) {
 		sum = sum + m_distance_saved[i];
 	}
 

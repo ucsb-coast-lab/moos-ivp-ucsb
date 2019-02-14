@@ -28,8 +28,8 @@ ProcessConfig = ANTLER
   Run = uProcessWatch   @ NewConsole = false
   Run = uXMS            @ NewConsole = true
   // Run = pSimDistanceGenerator @ NewConsole = false ~ pSimDistanceGenerator
-  Run = pLineFollow @ NewConsole = false ~ pLineFollow
-  Run = pLineTurn @ NewConsole = true ~ pLineTurn
+  Run = pLineFollow @ NewConsole = true ~ pLineFollow
+  Run = pLineTurn @ NewConsole = false ~ pLineTurn
   Run = pIncludeSampleData @ NewConsole = false ~ pIncludeSampleData
 
 }

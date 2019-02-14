@@ -50,6 +50,9 @@ title('Histogram of Indices for Max Ping Return Value')
 xlabel('Ping Index [pixel]')
 ylabel('Count Number')
 
+pause
+
+
 for k = 1:length(q-1)
   roc(k) = (q(k) - q(k+1));
 end
@@ -59,7 +62,7 @@ figure(2)
 % nav_x, nav_y, nav_heading, max_index, distance_from_pixels
 % ideal_distance is set to 10.5
 subplot(2,3,[1 2 4 5])
-scatter(q(:,1),q(:,2),'b.') % plots position during run
+scatter(q(:,1),q(:,2),'b') % plots position during run
 hold on
 line([50,50],ylim,'Color','black','LineWidth',2)
 line([150,150],ylim,'Color','black','LineWidth',2)
@@ -68,11 +71,9 @@ title('Vehicle Position (x,y)')
 subplot(2,3,3)
 plot(1:length(q(:,3)),q(:,3),'b-','Linewidth',2) % plots heading during run
 hold on
-hline1 = refline([0 90]);
-hline1.Color = 'k';
+line(xlim,[90 90],'Color','black','LineWidth',1)
 hold on
-hline2 = refline([0 270]);
-hline2.Color = 'k';
+line(xlim,[270 270],'Color','black','LineWidth',1)
 title('Vehicle Heading')
 xlabel('time (s)')
 ylabel('[degrees]')
@@ -85,3 +86,5 @@ plot(1:length(roc),roc,'b-','Linewidth',1) % plots mvg avg variation of heading 
 title('Variation of Vehicle Heading')
 xlabel('time (s)')
 ylabel('[degrees]')
+
+pause
