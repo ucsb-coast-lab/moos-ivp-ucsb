@@ -38,9 +38,11 @@ class LineFollow : public CMOOSApp
     std::string m_nav_y_received;
     std::string m_nav_heading_received;
     std::string m_incoming_distance;
+    std::string m_mode_received;
 
 
  protected: // State variables
+     std::string m_mode;
      double m_nav_x;
      double m_nav_y;
      double m_nav_heading;

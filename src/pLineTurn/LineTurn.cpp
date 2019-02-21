@@ -6,8 +6,24 @@
 /************************************************************/
 
 #include <iterator>
+#include <cmath>
 #include "MBUtils.h"
 #include "LineTurn.h"
+
+// Struct and method should be identical in pLineFollow
+struct Coordinate {
+   double x,y;
+};
+
+struct Coordinate angle_transform(struct Coordinate c_1, double theta)
+{
+   struct Coordinate c_2 = c_1;
+   c_2.x = c_1.x * cos(theta * PI / 180) - c_1.y * sin(theta * PI / 180);
+   c_2.y = c_1.x * sin(theta * PI / 180) + c_1.y * cos(theta * PI / 180);
+   
+   return c_2;
+}
+
 
 using namespace std;
 
@@ -97,10 +113,9 @@ void LineTurn::RegisterVariables()
 
 bool LineTurn::Iterate()
 {
-	// NOTE: The code for LineTurn and LineFollow behaviors is predicated on the assumption that the lines are located almost entirely East-West.
-	// This could be refactored to accept a variation of theta, s.t. the start and end points of the lines would come into play, but the most
-	// simple case of theta = 0 is implemented here. This could be a TO_DO in the future, but is being left alone for the moment while the general
-	// behavior mechanics are being worked out.
+	// TO_DO: Add'l improvements for non-East/West lines can be added
+	// TO_DO: There's a some asymmetry on the left/right turning behaviors, although not sure why. Both seems robust and work well,
+	// so this should probably be considered low-priority
 
 	double turn_radius = 20; // Looks like this should be > 5
 	double sqrt_2 = 1.414; // square root of 2, defined as a constant for octagonal geometry
@@ -110,28 +125,62 @@ bool LineTurn::Iterate()
 	double left_boundary = 49;
 	double right_boundary = 151;
 	double bottom_boundary = -100;
+	double line_angle = 60;
+	double theta = 90 - line_angle; // Note: defines the angle of the longlines; is hard-coded to avoid accidental run-time changes
 	// double top_boundary = ; // Not being used at the moment
 
 	cout << "m_mode = " << m_mode  << endl;
 	cout << "(nav_x,nav_y) = (" << m_nav_x << ", " << m_nav_y << ")" << endl;
 
 	// TURNING BEHAVIORS
-	// Octagonal end boundary with last point inside of LineFollow zone for behavior hand-off
+	// Appx. octagonal end boundary with last point inside of LineFollow zone for behavior hand-off
 	if (m_nav_x < right_boundary && m_nav_x > (right_boundary - left_boundary)/2 && m_nav_heading > 60 && m_nav_heading < 130) {
-			m_point_string = "points = "+to_string(m_nav_x + dext * s)+","+to_string(m_nav_y) + ":"
-				+ to_string(m_nav_x + dext * (s + (.707 * s ))) + "," + to_string(m_nav_y - (.707 * s) ) + ":"
-				+ to_string(m_nav_x + dext * (s + (.707 * s ))) + "," + to_string(m_nav_y - (s + (.707 * s)) ) + ":"
-				+ to_string(m_nav_x + s) + "," + to_string(m_nav_y - (turn_radius - 1.5)) + ":"
-				+ to_string(right_boundary - 10) + "," + to_string(m_nav_y - turn_radius) + ":";
+			struct Coordinate c1 = { dext * s , 0 };
+			struct Coordinate c2 = { dext * (s + (.707 * s )) ,  -(.707 * s) };
+			struct Coordinate c3 = { dext * (s + (.707 * s )) , - (s + (.707 * s)) };
+			struct Coordinate c4 = {s , - (turn_radius - 1.5) };
+
+			c1 = angle_transform(c1,theta);
+			c2 = angle_transform(c2,theta);
+			c3 = angle_transform(c3,theta);
+			c4 = angle_transform(c4,theta);
+
+			struct Coordinate c5 = {right_boundary - 10, m_nav_y };
+			double dx = (m_nav_x + c4.x - c5.x) / cos(line_angle * PI / 180) ;
+			cout << "c4.x = " << c4.x+ m_nav_x << ", right_boundary - 10 = " << right_boundary - 10 << " -> dx = " << dx << endl;
+			c5.y = dx * tan(theta * PI/ 180);
+
+				m_point_string = "points = "+to_string(m_nav_x + c1.x)+","+to_string(m_nav_y + c1.y) + ":"
+				+ to_string(m_nav_x + c2.x ) + "," + to_string(m_nav_y + c2.y ) + ":"
+				+ to_string(m_nav_x + c3.x ) + "," + to_string(m_nav_y + c3.y ) + ":"
+				+ to_string(m_nav_x + c4.x ) + "," + to_string(m_nav_y + c4.y ) + ":"
+				+ to_string( c5.x ) + "," + to_string(m_nav_y - c5.y ) + ":";
 		cout << "Turning RIGHT" << endl;
 	}
 
 	if (m_nav_x > left_boundary && m_nav_x < (right_boundary - left_boundary)/2 && m_nav_heading > 240 && m_nav_heading < 300) {
-		m_point_string = "points = "+to_string(m_nav_x - dext * s)+","+to_string(m_nav_y) + ":"
-			+ to_string(m_nav_x - dext * (s + (.707 * s ))) + "," + to_string(m_nav_y - (.707 * s) ) + ":"
-			+ to_string(m_nav_x - dext *  (s + (.707 * s ))) + "," + to_string(m_nav_y - (s + (.707 * s)) ) + ":"
-			+ to_string(m_nav_x - s) + "," + to_string(m_nav_y - (turn_radius - 1.5)) + ":"
-			+ to_string(left_boundary + 10) + "," + to_string(m_nav_y - turn_radius) + ":";
+		struct Coordinate c1 = { dext * s , 0 };
+		struct Coordinate c2 = { dext * (s + (.707 * s )) ,  -(.707 * s) };
+		struct Coordinate c3 = { dext * (s + (.707 * s )) , - (s + (.707 * s)) };
+		struct Coordinate c4 = {s , - (turn_radius - 1.5) };
+		
+		c1 = angle_transform(c1, -theta);
+		c2 = angle_transform(c2, -theta);
+		c3 = angle_transform(c3, -theta);
+		c4 = angle_transform(c4, -theta);
+		
+		struct Coordinate c5 = {left_boundary + 10, -turn_radius / abs (sin (theta) ) };
+		double dx = (m_nav_x + c4.x - c5.x) / cos(line_angle * PI / 180) ;
+		cout << "c4.x = " << c4.x+ m_nav_x << ", right_boundary - 10 = " << right_boundary - 10 << " -> dx = " << dx << endl;
+		c5.y = dx * tan(theta * PI/ 180);
+
+
+		m_point_string = "points = "+to_string(m_nav_x - c1.x)+","+to_string(m_nav_y + c1.y) + ":"
+				+ to_string(m_nav_x - c2.x ) + "," + to_string(m_nav_y + c2.y ) + ":"
+				+ to_string(m_nav_x - c3.x ) + "," + to_string(m_nav_y + c3.y ) + ":"
+				+ to_string(m_nav_x - c4.x ) + "," + to_string(m_nav_y + c4.y ) + ":"
+				+ to_string( c5.x  ) + "," + to_string(m_nav_y + c5.y ) + ":";
+
 		cout << "Turning LEFT" << endl;
 	}
 

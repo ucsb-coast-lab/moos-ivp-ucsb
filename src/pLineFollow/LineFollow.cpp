@@ -7,9 +7,24 @@
 // TO_DO: Lots of debugging code w/ 'cout' still exists. Will need to remove at
 // some point.
 #include <iterator>
+#include <cmath>
 #include <random>
 #include "MBUtils.h"
 #include "LineFollow.h"
+
+// Struct and method should be identical in pLineTurn
+struct Coordinate {
+   double x,y;
+};
+
+struct Coordinate angle_transform(struct Coordinate c_1, double theta)
+{
+   struct Coordinate c_2 = c_1;
+   c_2.x = c_1.x * cos(theta * PI / 180) - c_1.y * sin(theta * PI / 180);
+   c_2.y = c_1.x * sin(theta * PI / 180) + c_1.y * cos(theta * PI / 180);
+   
+   return c_2;
+}
 
 using namespace std;
 
@@ -27,6 +42,7 @@ LineFollow::LineFollow()
       m_iterator = 0;
       m_point_string = "point = 100,0";
 			m_turn_iterator = 0;
+			m_mode = "";
 
 			m_distance_received = 0.0;
 		  m_distance_saved[5] = {};
@@ -47,6 +63,7 @@ bool LineFollow::OnNewMail(MOOSMSG_LIST &NewMail)
     m_iterator++;
     string key   = msg.GetKey();
     double dval = msg.GetDouble();
+		string sval = msg.GetString();
 
          if(key=="NAV_X") {
              m_nav_x = dval;
@@ -67,6 +84,10 @@ bool LineFollow::OnNewMail(MOOSMSG_LIST &NewMail)
              m_distance = dval;
              //cout << "SIM_DISTANCE = " << m_nav_x << endl;
          }
+
+				 if(key=="MODE") {
+						m_mode = sval;
+				 }
 
    }
 
@@ -102,6 +123,8 @@ void LineFollow::RegisterVariables()
 		   m_Comms.Register(m_nav_y_received, 0);
 	if(m_nav_heading_received != "")
 			 m_Comms.Register(m_nav_heading_received, 0);
+	if(m_mode_received != "")
+	 		 m_Comms.Register(m_mode_received, 0);
 }
 
 
@@ -111,6 +134,8 @@ void LineFollow::RegisterVariables()
 
 bool LineFollow::Iterate()
 {
+	// TO_DO: Make it easier to distinguish recommended 'tuning knobs' for changing mission parameters
+
   //cout << "Iterate() was called" << endl;
 	//cout << "m_distance = " << m_distance << endl;
 
@@ -139,7 +164,7 @@ bool LineFollow::Iterate()
 
 	// TO_DO: Something in here causes a weird transition from CASE 1 to CASE 2,
 	// where the sum value sits in the low 40's for a few iterations before
-	// stabilizing in the 50s where it ideally should
+	// stabilizing in the 50s where it ideally should (low priority)
 	double avg_dist;
 	if (m_iterations <= 4) {
 		avg_dist = sum/m_iterations;
@@ -150,22 +175,38 @@ bool LineFollow::Iterate()
 		cout << avg_dist << " = " << sum << " / " << "5" << ": CASE 2" << endl;
 	}
 
-	double vehicle_leader = 15.0;
+	// Note: it's important to remember that in this reference frame, 0 degrees is aligned with North
+	// and 90 degrees with West
+	double vehicle_leader = 25.0;
 	double turn_radius = 7.0;
 	double dist_ideal = 10.5;
 	double left_boundary = 50;
 	double right_boundary = 150;
+	double line_angle = 60 ; // Note: defines the angle of the longlines in ROBOT reference frame; is hard-coded to avoid accidental run-time changes
+	double theta = 90 - line_angle; 
 
-	if (m_nav_heading > 60 && m_nav_heading < 130) {
+	if (m_nav_heading > 10 && m_nav_heading < 170 ) {
 		//cout << "Moving West, as NAV_HEADING = " << m_nav_heading << endl;
-  	m_point_string = "point = "+to_string(m_nav_x+vehicle_leader)+","+to_string(m_nav_y+(dist_ideal - avg_dist));
+	  double x_init = vehicle_leader;
+		double y_init = (dist_ideal - avg_dist);
+		struct Coordinate c_orig = {x_init,y_init};
+		struct Coordinate c_tfmd = angle_transform(c_orig,theta);
+		m_point_string = "point = "+to_string(m_nav_x + c_tfmd.x)+","+to_string(m_nav_y + c_tfmd.y);
+		
 	}
-	if (m_nav_heading > 240 && m_nav_heading < 300) {
+	else if (m_nav_heading > 190 && m_nav_heading < 350 ) {
 		//cout << "Moving East, as NAV_HEADING = " << m_nav_heading << endl;
-		m_point_string = "point = "+to_string(m_nav_x-vehicle_leader)+","+to_string(m_nav_y+(dist_ideal - avg_dist));
+		double x_init = vehicle_leader;
+		double y_init = (dist_ideal - avg_dist);
+		struct Coordinate c_orig = {x_init,y_init};
+		struct Coordinate c_tfmd = angle_transform(c_orig,theta);
+		m_point_string = "point = "+to_string(m_nav_x - c_tfmd.x)+","+to_string(m_nav_y - c_tfmd.y);
+	}
+	else {
+		cout << "Not in specificed angle range!" << endl;
 	}
 
-	if (m_nav_x > right_boundary || m_nav_x < left_boundary) {
+	if (m_nav_x > right_boundary || m_nav_x < left_boundary ) {
 		m_point_string = "Out of specified range";
 		cout << "m_point_string: NADA "  << endl;
 	}
@@ -179,11 +220,15 @@ bool LineFollow::Iterate()
 
 
 	// TURN = true/false LOGIC
-	if (m_nav_x > left_boundary) {
+	if (m_nav_x > left_boundary ) {
 		m_turn_iterator++;
 	}
+	else if (m_mode == "INACTIVE") {
+		cout << "Setting m_turn_iterator to zero" << endl;
+		m_turn_iterator = 0;
+	}
 
-	if ((m_nav_x > right_boundary || m_nav_x < left_boundary) && m_turn_iterator > 1)  {
+	if ( m_nav_x > right_boundary || m_nav_x < left_boundary && m_turn_iterator > 1 )  {
 		Notify(m_sample_var,"true");
 	}
 	else { Notify(m_sample_var,"false"); }
@@ -236,6 +281,11 @@ bool LineFollow::OnStartUp()
 	     if(!strContains(sLine, " "))
 	  m_incoming_distance = stripBlankEnds(sLine);
 	     }
+
+		if(MOOSStrCmp(sVarName, "MODE_RECEIVED")) {
+				if(!strContains(sLine, " "))
+			m_mode_received = stripBlankEnds(sLine);
+		}
 
   }
 
