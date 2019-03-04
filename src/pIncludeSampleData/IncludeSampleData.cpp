@@ -29,15 +29,23 @@ using namespace std;
 
 IncludeSampleData::IncludeSampleData()
 {
+		// m_nav_x,m_nav_y, and m_nav_heading are the real-time x,y, and vehicle-reference frame heading
+		// data read in from MOOSDB
     m_nav_x = 0.0;
     m_nav_y = 0.0;
     m_nav_heading = 0.0;
 
+		// Is the iterator used to mark which ping/signal vector from the data file is currently being accessed
     m_iterations = 0;
+		// TO_DO: Think about making filenames specifiable in a config file
+		// Specifies the image file (of .csv format) and the output file that the data will be written to, as a check
+		// that none of our operations have messed up that file during processing
 		m_input_filename = "csv_image_import.csv";
 		m_output_filename = "output.csv";
+		// m_row/colCount will be assigned the number of rows/columns in the input image file during OnStartUp()
 		m_colCount = 0;
 		m_rowCount = 0;
+		// Reads the MODE from MOOSDB, which can be used to dictate certain conditional behaviors
 		m_mode = "";
 
 }
@@ -51,7 +59,6 @@ bool IncludeSampleData::OnNewMail(MOOSMSG_LIST &NewMail)
 
   for(p=NewMail.begin(); p!=NewMail.end(); p++) {
   	CMOOSMsg &msg = *p;
-    //m_iterator++;
     string key   = msg.GetKey();
     double dval  = msg.GetDouble();
 		string sval  = msg.GetString();
@@ -117,6 +124,9 @@ bool IncludeSampleData::Iterate()
 {
 	cout << "m_mode = " << m_mode << endl;
 	ofstream output_file_position ("position_output.csv",ios::app);
+	// TO_DO: Once file size is known, set these indices as a fraction of mColCount to prevent breaking
+	// max_index variables are supposed to the 'best guess' as a initialized index for max returned value, to make sure we never
+	// have a null or completely wrong value in this field. See above TO_DO for making this a little more dynamic
 	int max_index = 82; // This needs to go here into order to be available during lifetimes
 										  // Estimated this value, since we don't want it to ever be unassigned
 											// TO_DO: Make this more resilient
@@ -153,6 +163,7 @@ bool IncludeSampleData::Iterate()
 						int i;
 						while (ss >> i)
 						{
+								// Writes non-delimiter values to the signal vector
 								vect.push_back(i);
 								if (ss.peek() == ',') {
 										ss.ignore();
@@ -177,6 +188,7 @@ bool IncludeSampleData::Iterate()
 				int j = 0;
 				int bottom_edge = 150; // This is a value at which the bottom return of the acoustic image appears
 				for (j = 0; j < bottom_edge; j++) {
+					// If the next value is larger than the existing maximum, set that and the values index to 'max' and record its index
 					if (arr[j] > max) {
 						max = arr[j];
 						max_index = j;
@@ -188,20 +200,19 @@ bool IncludeSampleData::Iterate()
 
 				// Intermediate step of padding output and fluctuating arr[]'s locations within it
 				// Not actually going to perform operations on arr[]; prefer to leave it alone, at least while we're still in simulation
-
-				double pad_percentage = 0.2;
+				double pad_percentage = 0.2; // Percentage of the total number of columns we're going to pad the image array with, based on the original image's size
 			  int offset = round(pad_percentage * m_colCount / 2);
 			  int padded_size = m_colCount + (offset * 2);
-			  int padded_arr[padded_size] = {};
+			  int padded_arr[padded_size] = {}; // Creates array with padded size
 
 				// Generates oscillation of using a random number generator
 				int bounds = 10; // sets the max and min bounds
 				random_device rd;     // used to initialise (seed) engine
 				mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
 				uniform_int_distribution<int> uni(-bounds,bounds); // guaranteed unbiased; uni(min,max)
-				int wiggle = uni(rng);
+				int wiggle = uni(rng); // assigns the generated random number to the value 'wiggle', which gets used to assign values in the padded array
 
-				// Needs to make sure the the wiggle bounding stays inside the maximum array size
+				// Needs to make sure the the wiggle bounding stays inside the maximum array size, so checks before assigning the values to the padded array
 				if (bounds < offset) {
 				  for (int k = 0; k < padded_size; k++) {
 				    if (k >= (offset + wiggle) && k < (offset + wiggle + m_colCount) ) {
@@ -212,6 +223,7 @@ bool IncludeSampleData::Iterate()
 				    }
 				  }
 
+					// Finds the max value and max value index for the padded array using the same method as the unpadded image above
 					// Finds the maximum value of the ping for the padded_arr[]
 					int max_padded = padded_arr[0]; // First assignment of the max value and index
 					max_index_padded = 0;
@@ -235,6 +247,8 @@ bool IncludeSampleData::Iterate()
 					}
 				}
 				else {
+					// If we're out of bounds, will notify us that that's the case, and write that to file. Be careful of this when
+					// setting these values in the mission before compiling
 					output_file_padded << "$bounds is less that $offset, would write out of bounds" << endl;
 					cout << "$bounds is less that $offset, would write out of bounds" << endl;
 				}
@@ -260,10 +274,11 @@ bool IncludeSampleData::Iterate()
 
 	cout << "Max value index is: " << max_index << endl;
 	// TO_DO: This conversion factor's NOT ACCURATE, but is chosen for convenience in the simulation for the moment
-	double conversion_factor = 10.5/105; // meters per pixel, 200 m / 500 pixel width? 200/m_colCount
-	double distance_from_pixels = max_index * conversion_factor;
-	Notify(m_outgoing_var,distance_from_pixels);
+	double conversion_factor = 10.5/105; // dist_ideal/m_colCount
+	double distance_from_pixels = max_index * conversion_factor; //
+	Notify(m_outgoing_var,distance_from_pixels); // Writes the "distance" of the signal return (should be longline distance) to MOOSDB for pLineFollow
 
+	// Writes position and heading data to file for use in post-run analytics
 	output_file_position << m_nav_x << "," << m_nav_y << ","<< m_nav_heading << "," << max_index << "," << distance_from_pixels << "," << endl;
 
   return(true);
@@ -283,36 +298,40 @@ bool IncludeSampleData::OnStartUp()
 	const char *exe_path = "./convert-to-csv";
 	const char *image_path = "./synthetic_image.png";
 	const char *csv_image_export = "csv_image_import.csv";
+	// In order to run the executable, the MOOS process needs to spawn a new thread
   int pid = fork();
+	// In the newly spawned thread, tries to execute the executable at the specified path using execl(), and
+	// returns either success (0) or failure (-1)
   switch(pid) {
       case -1: perror("The following error occurred: ");
                break;
        case 0: execl(exe_path,exe_path,image_path,csv_image_export,(char*)0);
                _exit (EXIT_FAILURE);
   }
+	// In order to make sure that the threads execute in the right order, a small pause is implemented here
 	// NOTE: If $duration is too short, then the input file will not appear in time to row/colCount to open it, and will return counts=0
 	chrono::milliseconds duration(500); // This is a not-great hack for making sure the threads execute in the proper order
   this_thread::sleep_for(duration);  // Sleep thread for $<duration> ms
 	cout << "FINISHED image->.csv conversion using Rust " << endl;
 
-	// Open input file and find rowCount and colCount numbers
+	// Opens input file and find rowCount and colCount numbers
 	string line;
-	char delim = ',';
+	char delim = ','; // Both 'delim' and 'delimiter' name the type of delimter used in the csv file (could be a colon or something)
 	string delimiter = ",";
 	size_t num_of_delim;
 	ifstream input_file (m_input_filename);
-	if (input_file.is_open())   // Accurately return the number of rows and columns in file
+	if (input_file.is_open())   // IF we can open the file...
   {
-    while ( getline (input_file,line) )
+    while ( getline (input_file,line) ) // ... iterate through each row until EOF and increase m_rowCount each time
     {
-      // Counts columns, dynamically evaluates 'colCount'
+      // If we're on the first line, use the number of delimters to determine the number of columns in the file
       if (m_rowCount == 0) {
         num_of_delim = std::count(line.begin(), line.end(), delim);
         m_colCount = (num_of_delim+1);
       }
       m_rowCount++; // Increases rowCount by 1 until the EOF
     }
-  } else { cout << "Unable to open file"; }
+  } else { cout << "Unable to open file"; } // Otherwise return an error saying that the file hasn't been opened
 	cout << "In OnStartUp, m_rowCount and m_colCount are " << m_rowCount << " " << m_colCount << endl;
 
 

@@ -20,7 +20,7 @@ struct Coordinate angle_transform(struct Coordinate c_1, double theta)
    struct Coordinate c_2 = c_1;
    c_2.x = c_1.x * cos(theta * PI / 180) - c_1.y * sin(theta * PI / 180);
    c_2.y = c_1.x * sin(theta * PI / 180) + c_1.y * cos(theta * PI / 180);
-   
+
    return c_2;
 }
 
@@ -32,10 +32,17 @@ using namespace std;
 
 LineTurn::LineTurn()
 {
+	// m_nav_x,m_nav_y, and m_nav_heading are the real-time x,y, and vehicle-reference frame heading
+	// data read in from MOOSDB
   m_nav_x = 0.0;
   m_nav_y = 0.0;
   m_nav_heading = 0.0;
+
+	// m_point_string gets written to UPDATES_TURNING, which the Helm subscribes to, s.t. when in the turning
+	// mode, the m_point_string is dynamically written by the behavior to indicate the next waypoint the
+	// vehicle will attempt to reach
   m_point_string = "point = 100,0";
+	// m_mode is a string representing the active mode in the behavioral mode tree, read in from MOOSDB
 	m_mode = "";
 }
 
@@ -53,7 +60,7 @@ bool LineTurn::OnNewMail(MOOSMSG_LIST &NewMail)
     double dval = msg.GetDouble();
 		string sval  = msg.GetString();
 
-
+				 // Assigns MOOSDB variables to member variables
          if(key=="NAV_X") {
              m_nav_x = dval;
              //cout << "NAV_X = " << m_nav_x << endl;
@@ -125,7 +132,7 @@ bool LineTurn::Iterate()
 	double left_boundary = 49;
 	double right_boundary = 151;
 	double bottom_boundary = -100;
-	double line_angle = 60;
+	double line_angle = 70;
 	double theta = 90 - line_angle; // Note: defines the angle of the longlines; is hard-coded to avoid accidental run-time changes
 	// double top_boundary = ; // Not being used at the moment
 
@@ -163,12 +170,12 @@ bool LineTurn::Iterate()
 		struct Coordinate c2 = { dext * (s + (.707 * s )) ,  -(.707 * s) };
 		struct Coordinate c3 = { dext * (s + (.707 * s )) , - (s + (.707 * s)) };
 		struct Coordinate c4 = {s , - (turn_radius - 1.5) };
-		
+
 		c1 = angle_transform(c1, -theta);
 		c2 = angle_transform(c2, -theta);
 		c3 = angle_transform(c3, -theta);
 		c4 = angle_transform(c4, -theta);
-		
+
 		struct Coordinate c5 = {left_boundary + 10, -turn_radius / abs (sin (theta) ) };
 		double dx = (m_nav_x + c4.x - c5.x) / cos(line_angle * PI / 180) ;
 		cout << "c4.x = " << c4.x+ m_nav_x << ", right_boundary - 10 = " << right_boundary - 10 << " -> dx = " << dx << endl;
@@ -194,7 +201,6 @@ bool LineTurn::Iterate()
 
   return(true);
 }
-
 //---------------------------------------------------------
 // Procedure: OnStartUp()
 //            happens before connection is open

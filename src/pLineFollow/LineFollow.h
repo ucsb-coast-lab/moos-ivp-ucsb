@@ -31,7 +31,7 @@ class LineFollow : public CMOOSApp
 
  protected: // Configuration variables
     std::string m_outgoing_var;
-    std::string m_sample_var;
+    std::string m_outgoing_state;
 
     std::string m_incoming_var;
     std::string m_nav_x_received;
@@ -47,13 +47,12 @@ class LineFollow : public CMOOSApp
      double m_nav_y;
      double m_nav_heading;
      double m_distance;
-     int m_iterator;
      std::string m_point_string;
 
      // Filter variables
      unsigned long int m_iterations;
      unsigned long int m_turn_iterator;
-     double m_distance_received;
+
      double m_distance_saved[5];
      double m_distance_averaged;
 
