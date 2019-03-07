@@ -1,0 +1,125 @@
+//--------    FILE: farm_w_sams_executive.bhv   -------------
+// Built off the s4_delta mission
+
+initialize   DEPLOY   = false
+initialize   RETURN   = false
+initialize   PROCEED  = true
+initialize   FOLLOW   = false
+
+//========================================================
+// Hierarchical Mode Declarations
+//  o ROOT                     o ROOT
+//  |--o INACTIVE              |--o PSURFACING
+//  |--o ACTIVE                |--o NOT_PSURFACING
+//     |--o RETURNING
+//     |--o LINE_FOLLOWING
+//     |--o PROCEEDING
+//        |--o TURNING
+//        |--o LINE_FOLLOWING
+//========================================================
+
+
+set MODE = ACTIVE {
+  DEPLOY = true
+} INACTIVE
+
+set MODE = RETURNING {
+  MODE = ACTIVE
+  RETURN = true
+}
+
+set MODE = PROCEEDING {
+  MODE = ACTIVE
+  FOLLOW = false
+  PROCEED = true
+}
+
+set MODE = LINE_FOLLOWING {
+  MODE = ACTIVE
+  PROCEED = true
+  FOLLOW = true
+}
+
+
+//----------------------------------------------
+Behavior = BHV_MaxDepth
+{
+  name = maxdepth
+  pwt  = 200
+  condition = MODE==ACTIVE
+
+  max_depth = 7
+  tolerance = 1
+  duration = no-time-limit
+}
+
+//----------------------------------------------
+Behavior = BHV_ConstantDepth
+{
+  name      = bhv_const_depth
+  pwt       = 100
+  duration  = no-time-limit
+  condition = MODE==ACTIVE
+  updates   = DEPTH_VALUE
+
+        depth = 50
+    peakwidth = 8
+    basewidth = 12
+  summitdelta = 10
+}
+
+//----------------------------------------------
+Behavior = BHV_Waypoint
+{
+  name       = waypt_line_follow
+  pwt        = 100
+  condition  = MODE==LINE_FOLLOWING
+  updates    = UPDATES_FOLLOWING
+  perpetual  = true
+
+  //endflag    = RETURN=true
+
+  // Need to have lead > radius in order for LineTurn -> LineFollow hand-off to work properly
+
+  speed = 2.0
+  radius = 2.0
+  nm_radius = 1.0
+  lead = 3
+  lead_damper = 1
+  radius = 1.0
+  points = format=lawnmower, label=henry_survey, x=100, y=-40, width=90, height=25, lane_width=15, rows=east, degs=0
+}
+
+//----------------------------------------------
+Behavior = BHV_Waypoint
+{
+  name       = waypt_proceed
+  pwt        = 110
+  condition  = MODE==PROCEEDING
+  updates    = UPDATES_PROCEEDING
+  perpetual  = true
+
+  // endflag    = FOLLOW=true
+
+  speed = 2.0
+  radius = 3.0
+  nm_radius = 5.0
+  points = 100,100
+}
+
+//----------------------------------------------
+Behavior = BHV_Waypoint
+{
+  name       = waypt_return
+  pwt        = 100
+  condition  = MODE == RETURNING
+  updates    = UPDATES_RETURNING
+  perpetual  = true
+  endflag    = RETURN = false
+  endflag    = DEPLOY = false
+
+       speed = 2.0
+      radius = 5.0
+   nm_radius = 5.0
+       point = 0,0
+}

@@ -1,0 +1,15 @@
+//------------------------------------------------
+// pSAMSExecutive config block
+
+ProcessConfig = pSAMSExecutive
+{
+   AppTick   = 1
+   CommsTick = 1
+
+   OUTGOING_STATE = FOLLOW
+   OUTGOING_
+
+   NAV_X_RECEIVED = NAV_X
+   NAV_Y_RECEIVED = NAV_Y
+   NAV_HEADING_RECEIVED = NAV_HEADING
+}

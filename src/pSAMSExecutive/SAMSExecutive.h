@@ -1,0 +1,55 @@
+/************************************************************/
+/*    NAME: cmoran                                              */
+/*    ORGN: MIT                                             */
+/*    FILE: SAMSExecutive.h                                          */
+/*    DATE:                                                 */
+/************************************************************/
+
+#ifndef SAMSExecutive_HEADER
+#define SAMSExecutive_HEADER
+
+#include "MOOS/libMOOS/MOOSLib.h"
+#include "lib_mariner_sams.h"
+
+class SAMSExecutive : public CMOOSApp
+{
+ public:
+   SAMSExecutive();
+   //~SAMSExecutive();
+
+ protected: // Standard MOOSApp functions to overload
+   bool OnNewMail(MOOSMSG_LIST &NewMail);
+   bool Iterate();
+   bool OnConnectToServer();
+   bool OnStartUp();
+
+ protected:
+   void RegisterVariables();
+
+ protected: // Configuration variables
+   std::string m_outgoing_state;
+
+   std::string m_nav_x_received;
+   std::string m_nav_y_received;
+   std::string m_nav_heading_received;
+   std::string m_incoming_distance;
+   std::string m_mode_received;
+
+ protected: // State variables
+   std::string m_mode;
+   double m_nav_x;
+   double m_nav_y;
+   double m_nav_heading;
+
+   // m_farm NEEDS to be declared here and not in the function constructor, or an error will occur
+   Coordinate m_farm[8] = { {25,-50,false}, {200,-50,false} , {200,-75,false}, {100,-100,false} , {100,-125,false}, {225,-175,false} , {225,-200,false}, {100,-200,false} };
+   //Coordinate m_farm[2] = { {25,0,false}, {200,-50,false} };
+
+
+
+   std::string m_point_string;
+   int m_iterator;
+
+};
+
+#endif
