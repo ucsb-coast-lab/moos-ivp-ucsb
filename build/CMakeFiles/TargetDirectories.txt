@@ -1,2 +1,0 @@
-/home/chrism/Desktop/moos-ivp-ucsb/build/CMakeFiles/rebuild_cache.dir
-/home/chrism/Desktop/moos-ivp-ucsb/build/CMakeFiles/edit_cache.dir

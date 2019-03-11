@@ -54,6 +54,8 @@ LineFollow::LineFollow()
 			m_turn_iterator = 0;
 			// m_mode subscribes to MOOSDB for the MODE, which is presented as a string that helps to govern when behaviors happen
 			m_mode = "";
+      // subscribed to the ideal angle that the long-line is following in the global reference frame
+      m_line_theta = 0;
 
 			// These variables all help form the moving average filter
 		  m_distance_saved[5] = {};
@@ -99,6 +101,11 @@ bool LineFollow::OnNewMail(MOOSMSG_LIST &NewMail)
 						m_mode = sval;
 				 }
 
+         if(key=="LINE_THETA") {
+             m_line_theta = dval;
+             //cout << "LINE_THETA = " << m_line_theta << endl;
+         }
+
    }
 
    return(true);
@@ -135,6 +142,8 @@ void LineFollow::RegisterVariables()
 			 m_Comms.Register(m_nav_heading_received, 0);
 	if(m_mode_received != "")
 	 		 m_Comms.Register(m_mode_received, 0);
+  if(m_line_theta_received != "")
+   		 m_Comms.Register(m_line_theta_received, 0);
 }
 
 
@@ -190,15 +199,14 @@ bool LineFollow::Iterate()
 
 	// Note: it's important to remember that in the vehicle's reference frame, 0 degrees is aligned with North and 90 degrees with West
 	double vehicle_leader = 25.0; // This is preliminary leading distance of the dynamically spawned waypoint in the x-direction
-	double dist_ideal = 10.5; // Represents the ideal distance that the received signal should be at; will try to spawn waypoint such that the signal does
-														// appear to be this far away
-	double left_boundary = 50; // Sets the left-hand boundary of the behavior switched box (ideally aligned with the edge of the longline)
-	double right_boundary = 150; // Sets the right-hand boundary, same as above
-	double line_angle = 70; // Note: defines the angle of the longlines in ROBOT reference frame; is hard-coded to avoid accidental run-time changes
-	double theta = 90 - line_angle; // Adjusts for the difference between <cmath> angle functions and robot local reference frame
+	double dist_ideal = 10.5; // Represents the ideal distance that the received signal should be at; will spawn waypoint such that the signal appears to be this far away
+
+  // TO_DO: Need to check that this angle (based on the published LINE_THETA) is correct
+  cout << "m_line_theta = " << m_line_theta << endl;
+	double theta = m_line_theta;
 
 	// TO_DO: Modify these conditionals so they don't use hard-coded angles, and eliminate any deadzones
-	if (m_nav_heading > 10 && m_nav_heading < 170 ) {
+	/*if (m_nav_heading > 10 && m_nav_heading < 170 ) {
 		//cout << "Moving West, as NAV_HEADING = " << m_nav_heading << endl;
 	  double x_init = vehicle_leader;
 		double y_init = (dist_ideal - avg_dist);
@@ -216,38 +224,17 @@ bool LineFollow::Iterate()
 		m_point_string = "point = "+to_string(m_nav_x - c_tfmd.x)+","+to_string(m_nav_y - c_tfmd.y);
 	}
 	else {
-		cout << "Not in specificed angle range!" << endl;
-	}
+		cout << "Not in specified angle range!" << endl;
+	}*/
 
-	// TO_DO: Modify s.t. using a boundary box rather than a left/right bounding line
-	if (m_nav_x > right_boundary || m_nav_x < left_boundary ) {
-		m_point_string = "Out of specified range";
-		cout << "m_point_string: Out of specified range "  << endl;
-	}
-	else {
-		printf("(nav_x, nav_y) = (%f, %f)\n",m_nav_x,m_nav_y);
-		cout << "m_point_string: " << m_point_string << endl;
-	}
-  //cout << "m_point_string: " << m_point_string << endl;
-	//cout << "m_nav_x: " << m_nav_x << " m_nav_y: " << m_nav_y << endl;
+  double x_init = vehicle_leader;
+  double y_init = (dist_ideal - avg_dist);
+  struct Coordinate c_orig = {x_init,y_init}; // creates a Coordinate using the vehicle leader and received signal distances
+  struct Coordinate c_tfmd = angle_transform(c_orig,theta); // transforms the Coordinate location according to theta
+  m_point_string = "point = "+to_string(m_nav_x + c_tfmd.x)+","+to_string(m_nav_y + c_tfmd.y);
 
 	// Writes the m_point_string to UPDATES_LINE_FOLLOWING
-  Notify(m_outgoing_var,m_point_string);
-
-
-	// TURN = true/false LOGIC
-	if (m_nav_x > left_boundary ) {
-		m_turn_iterator++;
-	}
-	else if (m_mode == "INACTIVE") {
-		cout << "Setting m_turn_iterator to zero" << endl;
-		m_turn_iterator = 0;
-	}
-
-	if ( m_nav_x > right_boundary || m_nav_x < left_boundary && m_turn_iterator > 1 )  {
-		Notify(m_outgoing_state,"true"); // modifies the outgoing state to toggle between TURN or LINE_FOLLOW, where m_outgoing_state == true -> TURNING
-	}
-	else { Notify(m_outgoing_state,"false"); }
+  Notify(m_outgoing_point,m_point_string);
 
   return(true);
 }
@@ -268,15 +255,16 @@ bool LineFollow::OnStartUp()
     string sVarName  = MOOSChomp(sLine, "=");
     sLine = stripBlankEnds(sLine);
 
-    if(MOOSStrCmp(sVarName, "OUTGOING_VAR")) {
+    if(MOOSStrCmp(sVarName, "OUTGOING_POINT")) {
       if(!strContains(sLine, " "))
-	  m_outgoing_var = stripBlankEnds(sLine);
-    }
+	  m_outgoing_point = stripBlankEnds(sLine);
+  }
 
+  /*
 		if(MOOSStrCmp(sVarName, "OUTGOING_STATE")) {
 			if(!strContains(sLine, " "))
 		m_outgoing_state = stripBlankEnds(sLine);
-	  }
+  }*/
 
     if(MOOSStrCmp(sVarName, "NAV_X_RECEIVED")) {
       if(!strContains(sLine, " "))
@@ -301,6 +289,11 @@ bool LineFollow::OnStartUp()
 		if(MOOSStrCmp(sVarName, "MODE_RECEIVED")) {
 				if(!strContains(sLine, " "))
 			m_mode_received = stripBlankEnds(sLine);
+		}
+
+    if(MOOSStrCmp(sVarName, "LINE_THETA_RECEIVED")) {
+				if(!strContains(sLine, " "))
+			m_line_theta_received = stripBlankEnds(sLine);
 		}
 
   }

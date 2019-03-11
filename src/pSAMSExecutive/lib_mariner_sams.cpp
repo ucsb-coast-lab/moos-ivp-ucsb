@@ -179,9 +179,11 @@ double get_theta(struct RunLine line) {
   double angle = atan(dy/dx) * 180 / PI;
   //cout << "(dx, dy) = (" << dx << "," << dy << ")" << endl;
 
+
+  // TO_DO: Run checks that these angle adjustments are valid for all sets of possible coordinate pairs
   // Need to adjust angle calclation based on the quadrant that the line leans into
   if ( (dy < 0) && (dx > 0)) {
-    angle = angle + 270;
+    angle = angle + 360;
     //cout << "Line ran into quadrant IV" << endl;
   }
   else if ( (dy < 0) && (dx < 0) ) {
@@ -191,6 +193,18 @@ double get_theta(struct RunLine line) {
   else if ( (dy > 0) && (dx < 0) ) {
     angle = angle + 90;
     //cout << "Line ran into quadrant II" << endl;
+  }
+  else if ( (dy == 0) && (dx < 0) ) {
+    angle = 180;
+  }
+  else if ( (dx == 0) && (dy < 0) ) {
+    angle = 270;
+  }
+  else if ( (dx == 0) && (dy > 0) ) {
+    angle = 90;
+  }
+  else if ( (dy == 0) && (dy > 0) ) {
+    angle = 0;
   }
   else {
     //cout << "Make no corrections" << endl;
