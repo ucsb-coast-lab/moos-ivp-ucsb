@@ -1,2 +1,0 @@
-This directory holds build files
-this particular file is here because you can't add empty directories to a git repository, but the build script wants an empty build directory anyway

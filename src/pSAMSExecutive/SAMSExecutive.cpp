@@ -187,8 +187,8 @@ bool SAMSExecutive::Iterate()
   // If we're out of bounds, return to starting point
   /*if( check_bounds(box_error_boundary,{m_nav_x,m_nav_y}) == true ) {
     cout << "Vehicle has exceeded ERROR boundary: returning to home" << endl;
-    Notify("RETURN","true");*/
-  }
+    Notify("RETURN","true");
+  }*/
 
   return(true);
 }
