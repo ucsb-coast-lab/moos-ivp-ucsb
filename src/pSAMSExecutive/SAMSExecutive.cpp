@@ -199,6 +199,8 @@ bool SAMSExecutive::Iterate()
 
 bool SAMSExecutive::OnStartUp()
 {
+  cout << "From moos-ivp-UCSB" << endl;
+
   list<string> sParams;
   m_MissionReader.EnableVerbatimQuoting(false);
   m_MissionReader.GetConfiguration(GetAppName(), sParams);

@@ -12,8 +12,13 @@ row_count = sum(1 for row in pos_file)  # fileObject is your csv.reader
 print ("Data file has  ",row_count," lines in it")
 data = np.genfromtxt('../position_output.csv', delimiter=',',names=['x', 'y'])
 
-wpx = [0,100,200,200,100,100,225,225,100];
-wpy = [0,-50,-50,-75,-100,-125,-175,-200,-200];
+# Farm version #1 (~horizontal lines)
+#wpx = [0,100,200,200,100,100,225,225,100];
+#wpy = [0,-50,-50,-75,-100,-125,-175,-200,-200];
+# Farm version #2 (~vertical lines)
+wpx = [50,50,75,75,110,125,150,175];
+wpy = [-50,-150,-175,-25,-25,-175,-175,-50];
+
 
 print("Generating graph: ")
 fig = plt.figure()  # Generates figure
@@ -26,5 +31,3 @@ ax.set_ylabel('y-axis [m]')
 
 plt.show()
 fig.savefig("graph.png")
-
-quit()
