@@ -6,6 +6,7 @@
 /************************************************************/
 
 #include <iterator>
+#include <string>
 #include "MBUtils.h"
 #include "SAMSExecutive.h"
 
@@ -199,7 +200,25 @@ bool SAMSExecutive::Iterate()
 
 bool SAMSExecutive::OnStartUp()
 {
-  cout << "From moos-ivp-UCSB" << endl;
+  cout << "From moos-ivp-ucsb in the home directory!" << endl;
+  // Notifying VIEW_SEGLIST with a list of points pulled from the m_farm Coordinates and
+  // will plot a path, in order of appearance, between all of those points
+  // TO_DO: This isn't done in the recommended way (see MOOS docs "Serializing Geometric Objects for pMarineViewer Consumption")
+  int farm_size = sizeof(m_farm)/sizeof(*m_farm);
+  std::string point_list = "pts={";
+  for (int h = 0; h < farm_size; h++) {
+    if (h == (farm_size - 1 ) ) {
+      point_list = point_list+to_string(m_farm[h].x)+","+to_string(m_farm[h].y);
+    }
+    else {
+      point_list = point_list+to_string(m_farm[h].x)+","+to_string(m_farm[h].y)+":";
+    }
+  }
+  point_list = point_list+"}";
+  //cout << "point_list = " << point_list << endl;
+  std::string pl_configs = "edge_color=white,vertex_color=white,vertex_size=10,edge_size=1";
+  Notify("VIEW_SEGLIST",point_list+","+pl_configs);
+
 
   list<string> sParams;
   m_MissionReader.EnableVerbatimQuoting(false);
