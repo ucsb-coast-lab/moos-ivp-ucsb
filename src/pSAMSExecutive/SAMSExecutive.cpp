@@ -156,13 +156,20 @@ bool SAMSExecutive::Iterate()
     m_farm[m_iterator*2 + 1].searched = true;
   }
 
-  // Building a couple of 'primer' points before actually hitting the approach
-  double primer_length = 10.0;
+  // Building a set of 3 'primer' points before actually hitting the approach
+  double pl_1 = 15.0;
+  double pl_2 = 25; // pl_1 * 1.666
+  double pl_3 = 35.0; // pl_1 * 2.333
   double primer_angle = line_theta + 180;
   if (primer_angle > 360) {
     primer_angle = primer_angle - 360;
   }
-  string primer_point_string = to_string(m_farm[m_iterator*2].x + cos(primer_angle * PI / 180) * primer_length )+","+to_string(m_farm[m_iterator*2].y + sin(primer_angle * PI / 180) * primer_length)+":";
+  double pa_2 = 15;
+  double pa_3 = 30;
+  string primer_point_1 = to_string(m_farm[m_iterator*2].x + cos(primer_angle * PI / 180) * pl_1 )+","+to_string(m_farm[m_iterator*2].y + sin(primer_angle * PI / 180) * pl_1);
+  string primer_point_2 = to_string(m_farm[m_iterator*2].x + cos((primer_angle + pa_2) * PI / 180) * pl_2 )+","+to_string(m_farm[m_iterator*2].y + sin((primer_angle + pa_2) * PI / 180) * pl_2);
+  string primer_point_3 = to_string(m_farm[m_iterator*2].x + cos((primer_angle + pa_3) * PI / 180) * pl_3 )+","+to_string(m_farm[m_iterator*2].y + sin((primer_angle + pa_3) * PI / 180) * pl_3);
+  string primer_point_string = primer_point_3+":"+primer_point_2+":"+primer_point_1+":";
 
   // Keeps the AUV moving from point to point during PROCEEDING (if all are searched, RETURN)
   // Writes that value to UPDATES_PROCEEDING, which the waypoint behavior PROCEEDING is subscribed to
