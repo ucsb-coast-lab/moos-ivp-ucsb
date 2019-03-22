@@ -1,8 +1,8 @@
 /************************************************************/
-/*    NAME: cmoran                                              */
-/*    ORGN: MIT                                             */
-/*    FILE: SAMSExecutive.h                                          */
-/*    DATE:                                                 */
+/*    NAME: cmoran                                               */
+/*    ORGN: UCSB Coastal Oceanography and Autonomous Systems Lab */
+/*    FILE: SAMSExecutive.h                                */
+/*    DATE: 22 March 2019                                     */
 /************************************************************/
 
 #ifndef SAMSExecutive_HEADER
@@ -46,6 +46,7 @@ class SAMSExecutive : public CMOOSApp
    //Coordinate m_farm[8] = { {25,-50,false}, {200,-50,false} , {200,-75,false}, {100,-100,false} , {100,-125,false}, {225,-175,false} , {225,-200,false}, {100,-200,false} };
    // Farm variation #2 (~vertical lines)
    Coordinate m_farm[8] = { {50,-50,false}, {50,-150,false} , {75,-175,false}, {75,-25,false} , {110,-25,false}, {125,-175,false} , {150,-175,false}, {175,-50,false} };
+
    // Basic coordinate for testing
    //Coordinate m_farm[2] = { {25,0,false}, {200,-50,false} };
 

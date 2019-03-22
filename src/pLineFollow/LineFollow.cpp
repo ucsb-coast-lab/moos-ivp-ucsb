@@ -153,12 +153,6 @@ void LineFollow::RegisterVariables()
 
 bool LineFollow::Iterate()
 {
-	// TO_DO: Make it easier to distinguish recommended 'tuning knobs' for changing mission parameters
-	// TO_DO: Use a bounding box rather than a left/right boundary line?
-
-  //cout << "Iterate() was called" << endl;
-	//cout << "m_distance = " << m_distance << endl;
-
 	// Reads the size of the moving average filter as declared in the header file and LineFollow's constructor function
 	int filter_size = (sizeof(m_distance_saved)/sizeof(*m_distance_saved));
 	// Moving average filter of distance reports
@@ -180,56 +174,40 @@ bool LineFollow::Iterate()
 	double sum = 0.0;
 	for (int i = 0; i < filter_size; i++) {
 		sum = sum + m_distance_saved[i];
+    // Print sum calculation for debugging
+  /*if (i == 0) {
+      cout << "sum = ";
+    }
+    else if (i < filter_size) {
+      cout << m_distance_saved[i] << " + ";
+    }
+    else {
+      cout << m_distance_saved[i] << " = " << sum << endl;
+    }*/
 	}
 
 	// Finds the avg value from the mvg avg filter, including when total number of values is less than the size
 	// of the filter
-	// TO_DO: Something in here causes a weird transition from CASE 1 to CASE 2,
-	// where the sum value sits in the low 40's for a few iterations before
-	// stabilizing in the 50s where it ideally should (low priority)
 	double avg_dist;
 	if (m_iterations <= 4) {
 		avg_dist = sum/m_iterations;
-		cout << avg_dist << " = " << sum << " / " << m_iterations << ": CASE 1" << endl;
+		//cout << avg_dist << " = " << sum << " / " << m_iterations << ": CASE 1" << endl;
 	}
 	else {
 		avg_dist = sum/5.0;
-		cout << avg_dist << " = " << sum << " / " << "5" << ": CASE 2" << endl;
+		//cout << avg_dist << " = " << sum << " / " << "5" << ": CASE 2" << endl;
 	}
 
 	// Note: it's important to remember that in the vehicle's reference frame, 0 degrees is aligned with North and 90 degrees with West
-	double vehicle_leader = 25.0; // This is preliminary leading distance of the dynamically spawned waypoint in the x-direction
+	double vehicle_leader = 10.0; // This is preliminary leading distance of the dynamically spawned waypoint in the x-direction
 	double dist_ideal = 10.5; // Represents the ideal distance that the received signal should be at; will spawn waypoint such that the signal appears to be this far away
 
-  // TO_DO: Need to check that this angle (based on the published LINE_THETA) is correct
-  cout << "m_line_theta = " << m_line_theta << endl;
+  //cout << "m_line_theta = " << m_line_theta << endl;
 	double theta = m_line_theta;
-
-	// TO_DO: Modify these conditionals so they don't use hard-coded angles, and eliminate any deadzones
-	/*if (m_nav_heading > 10 && m_nav_heading < 170 ) {
-		//cout << "Moving West, as NAV_HEADING = " << m_nav_heading << endl;
-	  double x_init = vehicle_leader;
-		double y_init = (dist_ideal - avg_dist);
-		struct Coordinate c_orig = {x_init,y_init}; // creates a Coordinate using the vehicle leader and received signal distances
-		struct Coordinate c_tfmd = angle_transform(c_orig,theta); // transforms the Coordinate location according to theta
-		m_point_string = "point = "+to_string(m_nav_x + c_tfmd.x)+","+to_string(m_nav_y + c_tfmd.y);
-
-	}
-	else if (m_nav_heading > 190 && m_nav_heading < 350 ) {
-		//cout << "Moving East, as NAV_HEADING = " << m_nav_heading << endl;
-		double x_init = vehicle_leader;
-		double y_init = (dist_ideal - avg_dist);
-		struct Coordinate c_orig = {x_init,y_init};
-		struct Coordinate c_tfmd = angle_transform(c_orig,theta);
-		m_point_string = "point = "+to_string(m_nav_x - c_tfmd.x)+","+to_string(m_nav_y - c_tfmd.y);
-	}
-	else {
-		cout << "Not in specified angle range!" << endl;
-	}*/
-
-  double x_init = vehicle_leader;
-  double y_init = (dist_ideal - avg_dist);
-  struct Coordinate c_orig = {x_init,y_init}; // creates a Coordinate using the vehicle leader and received signal distances
+  double dx = vehicle_leader;
+  double dy = (dist_ideal - avg_dist);
+  //cout << "dy = (" << dist_ideal << " -  " << avg_dist << ") = (dist_ideal - avg_dist) " << endl;
+  struct Coordinate c_orig = {dx,dy}; // creates a Coordinate using the vehicle leader and received signal distances
   struct Coordinate c_tfmd = angle_transform(c_orig,theta); // transforms the Coordinate location according to theta
   m_point_string = "point = "+to_string(m_nav_x + c_tfmd.x)+","+to_string(m_nav_y + c_tfmd.y);
 

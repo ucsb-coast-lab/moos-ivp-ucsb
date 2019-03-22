@@ -7,6 +7,7 @@
 
 #include <iterator>
 #include <string>
+#include <cmath>
 #include "MBUtils.h"
 #include "SAMSExecutive.h"
 
@@ -155,15 +156,33 @@ bool SAMSExecutive::Iterate()
     m_farm[m_iterator*2 + 1].searched = true;
   }
 
+  // Building a set of 3 'primer' points before actually hitting the approach
+  double pl_1 = 15.0;
+  double pl_2 = 25; // pl_1 * 1.666
+  double pl_3 = 35.0; // pl_1 * 2.333
+  double primer_angle = line_theta + 180;
+  if (primer_angle > 360) {
+    primer_angle = primer_angle - 360;
+  }
+  double pa_2 = 15;
+  double pa_3 = 30;
+  string primer_point_1 = to_string(m_farm[m_iterator*2].x + cos(primer_angle * PI / 180) * pl_1 )+","+to_string(m_farm[m_iterator*2].y + sin(primer_angle * PI / 180) * pl_1);
+  string primer_point_2 = to_string(m_farm[m_iterator*2].x + cos((primer_angle + pa_2) * PI / 180) * pl_2 )+","+to_string(m_farm[m_iterator*2].y + sin((primer_angle + pa_2) * PI / 180) * pl_2);
+  string primer_point_3 = to_string(m_farm[m_iterator*2].x + cos((primer_angle + pa_3) * PI / 180) * pl_3 )+","+to_string(m_farm[m_iterator*2].y + sin((primer_angle + pa_3) * PI / 180) * pl_3);
+  string primer_point_string = primer_point_3+":"+primer_point_2+":"+primer_point_1+":";
+
   // Keeps the AUV moving from point to point during PROCEEDING (if all are searched, RETURN)
   // Writes that value to UPDATES_PROCEEDING, which the waypoint behavior PROCEEDING is subscribed to
   if ((m_iterator >= 0) && ( m_iterator < sizeof(m_farm)/sizeof(*m_farm)/2 ) ) {
     if (m_farm[m_iterator*2].searched == false) {
-      m_point_string = "point = "+to_string(m_farm[m_iterator*2].x)+","+to_string(m_farm[m_iterator*2].y);
+      string waypoint_string = to_string(m_farm[m_iterator*2].x)+","+to_string(m_farm[m_iterator*2].y);
+      //m_point_string = "point = "+to_string(m_farm[m_iterator*2].x)+","+to_string(m_farm[m_iterator*2].y);
+      m_point_string = "points = "+primer_point_string+waypoint_string;
       Notify("UPDATES_PROCEEDING",m_point_string);
     }
     else {
-      m_point_string = "point = "+to_string(m_farm[m_iterator*2 + 1].x)+","+to_string(m_farm[m_iterator*2 + 1].y);
+      string waypoint_string = to_string(m_farm[m_iterator*2 + 1].x)+","+to_string(m_farm[m_iterator*2 + 1].y);
+      m_point_string = "points = "+waypoint_string;
       Notify("UPDATES_PROCEEDING",m_point_string);
     }
     //cout << "m_iterator = " << m_iterator << " and must be <= " << (sizeof(m_farm)/sizeof(*m_farm)-1) << endl;
@@ -201,6 +220,12 @@ bool SAMSExecutive::Iterate()
 bool SAMSExecutive::OnStartUp()
 {
   cout << "From moos-ivp-ucsb in the home directory!" << endl;
+
+  // TO_DO: figure out a way to do m_farm assignment here or in the constructor,
+  // so that we can read the config file in that place to create our array list
+  //m_farm[8] = { {50,-50,false}, {50,-150,false} , {75,-175,false}, {75,-25,false} , {110,-25,false}, {125,-175,false} , {150,-175,false}, {175,-50,false} };
+
+
   // Notifying VIEW_SEGLIST with a list of points pulled from the m_farm Coordinates and
   // will plot a path, in order of appearance, between all of those points
   // TO_DO: This isn't done in the recommended way (see MOOS docs "Serializing Geometric Objects for pMarineViewer Consumption")

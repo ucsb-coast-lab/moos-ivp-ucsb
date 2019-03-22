@@ -276,7 +276,9 @@ bool IncludeSampleData::Iterate()
 	// TO_DO: This conversion factor's NOT ACCURATE, but is chosen for convenience in the simulation for the moment
 	double conversion_factor = 10.5/105; // dist_ideal/m_colCount
 	double distance_from_pixels = max_index * conversion_factor; //
-	Notify(m_outgoing_var,distance_from_pixels); // Writes the "distance" of the signal return (should be longline distance) to MOOSDB for pLineFollow
+	//Notify(m_outgoing_var,distance_from_pixels); // Writes the "distance" of the signal return (should be longline distance) to MOOSDB for pLineFollow
+  Notify(m_outgoing_var,10.5); // Currently writing value == dist_ideal s.t. can check if ideal behavior works
+
 
 	// Writes position and heading data to file for use in post-run analytics
 	output_file_position << m_nav_x << "," << m_nav_y << ","<< m_nav_heading << "," << max_index << "," << distance_from_pixels << "," << endl;
