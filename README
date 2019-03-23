@@ -42,7 +42,6 @@ bin              - Directory for generated executable files
 build            - Directory for build object files
 build.sh         - Script for building moos-ivp-extend
 CMakeLists.txt   - CMake configuration file for the project
-lib              - Directory for generated library files
 README           - Contains helpful information - (this file).
 src              - Directory for source code
 missions         - Directory containing code (.bhv, .moos files) for various
@@ -51,6 +50,17 @@ missions         - Directory containing code (.bhv, .moos files) for various
 #=============================================================================
 # Build Instructions
 #=============================================================================
+Building this directory has several dependencies, including:
+  - cmake and make, recommended above v3.10
+  - A moos-ivp core directory, which has the binaries for tools like
+  pMarineViewer, which as a derivative of the moos-ivp-extend tree, this
+  project does not contain. This directory should be located in the same base
+  level directory as the main moos-ivp directory, and the core tree's binary
+  folder should also be included your environment path
+  - Rust, cargo and the `cbindgen` tool, most of which can be installed using
+  the rustup tool. For more information, please see rust-lang.org.
+  - Python and the numpy/scipy libraries are recommended for a few of the
+  data visualization scripts, but are not technically required.
 
 To build on Linux and Apple platforms, execute the build script within this
 directory:

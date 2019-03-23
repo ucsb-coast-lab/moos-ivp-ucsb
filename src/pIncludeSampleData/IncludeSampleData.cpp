@@ -21,6 +21,7 @@
 
 #include "MBUtils.h"
 #include "IncludeSampleData.h"
+// Header file for the Rust image processing function library used for the sample data -> .csv file conversion 
 #include "image_to_csv_rs.h"
 
 using namespace std;
@@ -295,32 +296,8 @@ bool IncludeSampleData::OnStartUp()
 {
 
 	// Start by converting the specified image to a .csv file
-	// Rust binary works like `$ ./convert-to-csv <path_to_image> <csv_image_export_path>`
-	// NOTE: Rust binary and the image file need to be located in the mission directory
-
+  // This process calls a Rust function from the image_to_csv_rs library
   cout << "STARTING image->.csv file conversion using Rust binary" << endl;
-  /*
-  const char *exe_path = "./convert-to-csv";
-	const char *image_path = "./synthetic_image.png";
-	const char *csv_image_export = "csv_image_import.csv";
-	// In order to run the executable, the MOOS process needs to spawn a new thread
-  int pid = fork();
-	// In the newly spawned thread, tries to execute the executable at the specified path using execl(), and
-	// returns either success (0) or failure (-1)
-  switch(pid) {
-      case -1: perror("The following error occurred: ");
-               break;
-       case 0: execl(exe_path,exe_path,image_path,csv_image_export,(char*)0);
-               _exit (EXIT_FAILURE);
-  }
-	// In order to make sure that the threads execute in the right order, a small pause is implemented here
-	// NOTE: If $duration is too short, then the input file will not appear in time to row/colCount to open it, and will return counts=0
-	chrono::milliseconds duration(500); // This is a not-great hack for making sure the threads execute in the proper order
-  this_thread::sleep_for(duration);  // Sleep thread for $<duration> ms
-	cout << "FINISHED image->.csv conversion using Rust " << endl;
-  */
-
-  hello_from_rust();
   string image_path = "./synthetic_image.png";
   string csv_export_path = "./csv_image_import.csv";
   int32_t image_return = process_image(image_path.c_str(),csv_export_path.c_str());
