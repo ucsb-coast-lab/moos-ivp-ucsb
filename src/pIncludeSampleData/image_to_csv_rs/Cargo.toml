@@ -1,0 +1,18 @@
+[package]
+name = "convert-to-csv"
+version = "0.1.0"
+authors = ["chrism"]
+edition = "2018"
+
+[dependencies]
+libc = "0.2"
+
+image = ""
+ndarray = ""
+ndarray-csv = ""
+csv = ""
+
+
+[lib]
+name = "image_to_csv_rs"
+crate-type = ["staticlib","cdylib"]

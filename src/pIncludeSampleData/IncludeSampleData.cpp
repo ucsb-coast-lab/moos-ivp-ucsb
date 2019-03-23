@@ -21,6 +21,7 @@
 
 #include "MBUtils.h"
 #include "IncludeSampleData.h"
+#include "image_to_csv_rs.h"
 
 using namespace std;
 
@@ -274,10 +275,10 @@ bool IncludeSampleData::Iterate()
 
 	cout << "Max value index is: " << max_index << endl;
 	// TO_DO: This conversion factor's NOT ACCURATE, but is chosen for convenience in the simulation for the moment
-	double conversion_factor = 10.5/105; // dist_ideal/m_colCount
+	double conversion_factor = 10.5/82; // dist_ideal/m_colCount
 	double distance_from_pixels = max_index * conversion_factor; //
-	//Notify(m_outgoing_var,distance_from_pixels); // Writes the "distance" of the signal return (should be longline distance) to MOOSDB for pLineFollow
-  Notify(m_outgoing_var,10.5); // Currently writing value == dist_ideal s.t. can check if ideal behavior works
+	Notify(m_outgoing_var,distance_from_pixels); // Writes the "distance" of the signal return (should be longline distance) to MOOSDB for pLineFollow
+  //Notify(m_outgoing_var,10.5); // Can write SIM_DISTANCE == dist_ideal s.t. produces ideal behavior
 
 
 	// Writes position and heading data to file for use in post-run analytics
@@ -296,8 +297,10 @@ bool IncludeSampleData::OnStartUp()
 	// Start by converting the specified image to a .csv file
 	// Rust binary works like `$ ./convert-to-csv <path_to_image> <csv_image_export_path>`
 	// NOTE: Rust binary and the image file need to be located in the mission directory
-	cout << "STARTING image->.csv file conversion using Rust binary" << endl;
-	const char *exe_path = "./convert-to-csv";
+
+  cout << "STARTING image->.csv file conversion using Rust binary" << endl;
+  /*
+  const char *exe_path = "./convert-to-csv";
 	const char *image_path = "./synthetic_image.png";
 	const char *csv_image_export = "csv_image_import.csv";
 	// In order to run the executable, the MOOS process needs to spawn a new thread
@@ -315,6 +318,18 @@ bool IncludeSampleData::OnStartUp()
 	chrono::milliseconds duration(500); // This is a not-great hack for making sure the threads execute in the proper order
   this_thread::sleep_for(duration);  // Sleep thread for $<duration> ms
 	cout << "FINISHED image->.csv conversion using Rust " << endl;
+  */
+
+  hello_from_rust();
+  string image_path = "./synthetic_image.png";
+  string csv_export_path = "./csv_image_import.csv";
+  int32_t image_return = process_image(image_path.c_str(),csv_export_path.c_str());
+  if (image_return == 0) {
+    cout << "Image processing in Rust function was SUCCESSFUL" << endl;
+  }
+  else {
+    cout << "Image processing in Rust function was NOT SUCESSFUL" << endl;
+  }
 
 	// Opens input file and find rowCount and colCount numbers
 	string line;
