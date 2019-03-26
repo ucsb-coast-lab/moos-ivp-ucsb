@@ -30,7 +30,7 @@ ProcessConfig = ANTLER
   // Run = pSimDistanceGenerator @ NewConsole = false ~ pSimDistanceGenerator
   Run = pLineFollow @ NewConsole = false ~ pLineFollow
   //Run = pLineTurn @ NewConsole = false ~ pLineTurn
-  Run = pIncludeSampleData @ NewConsole = false ~ pIncludeSampleData
+  Run = pIncludeSampleData @ NewConsole = true ~ pIncludeSampleData
   Run = pSAMSExecutive @ NewConsole = true ~ pSAMSExecutive
 
 }
