@@ -11,6 +11,8 @@
 #include "MBUtils.h"
 #include "SAMSExecutive.h"
 
+#include "parse_toml_rs.h"
+
 using namespace std;
 
 //---------------------------------------------------------
@@ -29,8 +31,6 @@ SAMSExecutive::SAMSExecutive()
   m_point_string = "";
   m_iterator = 0;
   m_odometer = 0.0;
-
-  // m_farm needs to get declared in the header file, or else an error will occur
 
 }
 
@@ -221,18 +221,31 @@ bool SAMSExecutive::OnStartUp()
 {
   cout << "From moos-ivp-ucsb in the home directory!" << endl;
 
-  // TO_DO: figure out a way to do m_farm assignment here or in the constructor,
-  // so that we can read the config file in that place to create our array list
-  //m_farm[8] = { {50,-50,false}, {50,-150,false} , {75,-175,false}, {75,-25,false} , {110,-25,false}, {125,-175,false} , {150,-175,false}, {175,-50,false} };
+  // Note: # of Coordinates in the farm can not exceed the size of the statically declared array in the header file
+  // In this case, can not exceed 64 points (32 lines)
 
+  // Farm variation #1 (~horizontal lines)
+  //Coordinate m_farm[8] = { {25,-50,false}, {200,-50,false} , {200,-75,false}, {100,-100,false} , {100,-125,false}, {225,-175,false} , {225,-200,false}, {100,-200,false} };
+  // Farm variation #2 (~vertical lines)
+  //Coordinate m_points[] = { {50,-50,false}, {50,-150,false} , {75,-175,false}, {75,-25,false} , {110,-25,false}, {125,-175,false} , {150,-175,false}, {175,-50,false} , {150,-10,false}, {100,0,false} };
+
+  string filename = "sams_config.toml";
+  // Get the number of farm points
+  int point_num = get_number_of_points(filename.c_str());
+  for (int i = 0; i < point_num; i++ ) {
+    Point toml_point = return_point_info(filename.c_str(),i);
+    //cout << toml_point.x << ", " << toml_point.y << endl;
+    m_farm[i] = {toml_point.x,toml_point.y,false};
+    //cout << "m_farm[" << i << "] = [" << m_farm[i].x << ", " << m_farm[i].y << "]" << endl;
+  }
 
   // Notifying VIEW_SEGLIST with a list of points pulled from the m_farm Coordinates and
   // will plot a path, in order of appearance, between all of those points
   // TO_DO: This isn't done in the recommended way (see MOOS docs "Serializing Geometric Objects for pMarineViewer Consumption")
-  int farm_size = sizeof(m_farm)/sizeof(*m_farm);
+  //int point_num = sizeof(m_farm)/sizeof(*m_farm);
   std::string point_list = "pts={";
-  for (int h = 0; h < farm_size; h++) {
-    if (h == (farm_size - 1 ) ) {
+  for (int h = 0; h < point_num; h++) {
+    if (h == (point_num - 1 ) ) {
       point_list = point_list+to_string(m_farm[h].x)+","+to_string(m_farm[h].y);
     }
     else {
@@ -243,7 +256,6 @@ bool SAMSExecutive::OnStartUp()
   //cout << "point_list = " << point_list << endl;
   std::string pl_configs = "edge_color=white,vertex_color=white,vertex_size=10,edge_size=1";
   Notify("VIEW_SEGLIST",point_list+","+pl_configs);
-
 
   list<string> sParams;
   m_MissionReader.EnableVerbatimQuoting(false);
