@@ -26,6 +26,7 @@ pub struct Config {
 #[repr(C)]
 #[derive(Deserialize)]
 pub struct GeoCoor {
+    location: String,
     lat: f32,
     lon: f32
 }

@@ -21,7 +21,7 @@
 
 #include "MBUtils.h"
 #include "IncludeSampleData.h"
-// Header file for the Rust image processing function library used for the sample data -> .csv file conversion 
+// Header file for the Rust image processing function library used for the sample data -> .csv file conversion
 #include "image_to_csv_rs.h"
 
 using namespace std;
@@ -135,7 +135,7 @@ bool IncludeSampleData::Iterate()
 	int max_index_padded = 82;
 	// TO_DO: Feels like this could be the place for a switch statement or other FSM pattern
 
-	if (m_mode == "ACTIVE:SURVEYING:LINE_FOLLOWING") {
+	if (m_mode == "ACTIVE:LINE_FOLLOWING") {
 			// Open the input and output files, output file such that values append
 			ifstream input_file (m_input_filename);
 			ofstream output_file (m_output_filename,ios::app);
@@ -276,7 +276,7 @@ bool IncludeSampleData::Iterate()
 
 	cout << "Max value index is: " << max_index << endl;
 	// TO_DO: This conversion factor's NOT ACCURATE, but is chosen for convenience in the simulation for the moment
-	double conversion_factor = 10.5/82; // dist_ideal/m_colCount
+	double conversion_factor = 10.5/106; // dist_ideal/m_colCount
 	double distance_from_pixels = max_index * conversion_factor; //
 	Notify(m_outgoing_var,distance_from_pixels); // Writes the "distance" of the signal return (should be longline distance) to MOOSDB for pLineFollow
   //Notify(m_outgoing_var,10.5); // Can write SIM_DISTANCE == dist_ideal s.t. produces ideal behavior

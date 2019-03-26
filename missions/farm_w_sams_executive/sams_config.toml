@@ -18,5 +18,6 @@ point = [
 ]
 
 [start_point]
+location = 'Goleta beach'
 lat = 34.408391
 lon = -119.839120
