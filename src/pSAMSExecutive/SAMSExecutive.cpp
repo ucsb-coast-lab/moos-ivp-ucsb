@@ -11,6 +11,7 @@
 #include "MBUtils.h"
 #include "SAMSExecutive.h"
 
+// Includes the Rust dependencies from parse_toml_rs directory
 #include "parse_toml_rs.h"
 
 using namespace std;
@@ -122,14 +123,14 @@ bool SAMSExecutive::Iterate()
   Coordinate * box_error_boundary = create_error_boundary(box,20,20);
 
   // Displays the boolean value of each farm waypoint, useful for debugging
-  for (int j = 0; j < sizeof(m_farm)/sizeof(*m_farm); j++ ) {
+  /*for (int j = 0; j < sizeof(m_farm)/sizeof(*m_farm); j++ ) {
     if (j == (sizeof(m_farm)/sizeof(*m_farm) - 1) ) {
       cout << m_farm[j].searched << endl;
     }
     else {
       cout << m_farm[j].searched << ",";
     }
-  }
+  }*/
 
   // Writes LINE_THETA to MOOSDB for LineFollow. LineLength is defined for convenience keeping a leash during LineFollow
   double line_theta = get_theta({ m_farm[m_iterator*2], m_farm[m_iterator*2 + 1]  });
@@ -230,22 +231,30 @@ bool SAMSExecutive::OnStartUp()
   //Coordinate m_points[] = { {50,-50,false}, {50,-150,false} , {75,-175,false}, {75,-25,false} , {110,-25,false}, {125,-175,false} , {150,-175,false}, {175,-50,false} , {150,-10,false}, {100,0,false} };
 
   string filename = "sams_config.toml";
-  // Get the number of farm points
-  int point_num = get_number_of_points(filename.c_str());
-  for (int i = 0; i < point_num; i++ ) {
-    Point toml_point = return_point_info(filename.c_str(),i);
+  // Get the number of farm points, from a Rust library function (tests implemented)
+  int task_num = get_number_of_tasks(filename.c_str());
+  // For each point in the task list, s
+  for (int i = 0; i < task_num; i++ ) {
+    // From a Rust function, return the GeoCoor of the waypoint that has the same label as the
+    // the first task in the toml file's 'task' array
+    GeoCoor toml_point = return_task_position(filename.c_str(),i);
     //cout << toml_point.x << ", " << toml_point.y << endl;
-    m_farm[i] = {toml_point.x,toml_point.y,false};
+    m_farm[i] = {toml_point.lat,toml_point.lon,false};
     //cout << "m_farm[" << i << "] = [" << m_farm[i].x << ", " << m_farm[i].y << "]" << endl;
   }
+
+  GeoCoor start_point = return_start_point(filename.c_str());
+  Coordinate start_coor = {start_point.lat,start_point.lon,false};
+  cout << "start_coor[x,y] = [" << start_coor.x << ", " << start_coor.y << "]" << endl;
+
 
   // Notifying VIEW_SEGLIST with a list of points pulled from the m_farm Coordinates and
   // will plot a path, in order of appearance, between all of those points
   // TO_DO: This isn't done in the recommended way (see MOOS docs "Serializing Geometric Objects for pMarineViewer Consumption")
-  //int point_num = sizeof(m_farm)/sizeof(*m_farm);
+  //int task_num = sizeof(m_farm)/sizeof(*m_farm);
   std::string point_list = "pts={";
-  for (int h = 0; h < point_num; h++) {
-    if (h == (point_num - 1 ) ) {
+  for (int h = 0; h < task_num; h++) {
+    if (h == (task_num - 1 ) ) {
       point_list = point_list+to_string(m_farm[h].x)+","+to_string(m_farm[h].y);
     }
     else {

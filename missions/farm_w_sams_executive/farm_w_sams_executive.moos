@@ -9,8 +9,10 @@ Community  = henry
 
 MOOSTimeWarp = 4
 
-LatOrigin  = 43.825300
-LongOrigin = -70.330400
+LatOrigin = 34.399805
+LongOrigin = -119.754533
+//LatOrigin  = 43.825300
+//LongOrigin = -70.330400
 
 //------------------------------------------
 // Antler configuration  block
@@ -30,7 +32,7 @@ ProcessConfig = ANTLER
   // Run = pSimDistanceGenerator @ NewConsole = false ~ pSimDistanceGenerator
   Run = pLineFollow @ NewConsole = false ~ pLineFollow
   //Run = pLineTurn @ NewConsole = false ~ pLineTurn
-  Run = pIncludeSampleData @ NewConsole = true ~ pIncludeSampleData
+  Run = pIncludeSampleData @ NewConsole = false ~ pIncludeSampleData
   Run = pSAMSExecutive @ NewConsole = true ~ pSAMSExecutive
 
 }
@@ -161,9 +163,10 @@ ProcessConfig = pMarineViewer
 
   appcast_viewable = true
 
-  //tiff_file            = simulated_kelp.tif
-  tiff_file            = forrest19.tif
-  tiff_file_b            = simulated_kelp.tif
+  tiff_file            = sbmariculture.tif
+  //tiff_file            = synthetic_image.tif
+  //tiff_file          = forrest19.tif
+  //tiff_file_b          = simulated_kelp.tif
   set_pan_x            = -90
   set_pan_y            = -280
   zoom                 = 0.65

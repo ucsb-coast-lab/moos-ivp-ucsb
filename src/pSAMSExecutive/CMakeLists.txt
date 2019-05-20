@@ -1,5 +1,5 @@
 #--------------------------------------------------------
-# The CMakeLists.txt for:                       pSAMSExecutive
+# The CMakeLists.txt for:                 pSAMSExecutive
 # Author(s):                              cmoran
 #--------------------------------------------------------
 
@@ -25,7 +25,7 @@ ExternalProject_Add (
   parse_toml_rs
   DOWNLOAD_COMMAND ""
   CONFIGURE_COMMAND ""
-  BUILD_COMMAND "" cargo build COMMAND cargo build --release COMMAND cbindgen -o binding/parse_toml_rs.h
+  BUILD_COMMAND "" cargo build --lib COMMAND cargo build --release --lib COMMAND cbindgen -o binding/parse_toml_rs.h
   BINARY_DIR "${PROJECT_SOURCE_DIR}/parse_toml_rs"
   INSTALL_COMMAND ""
   LOG_BUILD ON )
@@ -34,6 +34,7 @@ add_dependencies(pSAMSExecutive parse_toml_rs)
 
 TARGET_LINK_LIBRARIES(pSAMSExecutive
    ${MOOS_LIBRARIES}
+   ${MOOSGeodesy_LIBRARIES}
    debug "${PROJECT_SOURCE_DIR}/parse_toml_rs/target/debug/libparse_toml_rs.a"
    optimized "${PROJECT_SOURCE_DIR}/parse_toml_rs/target/release/libparse_toml_rs.a"
    mbutil

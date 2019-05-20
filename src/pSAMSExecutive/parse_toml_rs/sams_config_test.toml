@@ -25,9 +25,9 @@ auv = 'callinectes'
 # Can have any number of points, but will be limited to a total of 32 tasks (64 ordered points in farm)
 # For the moment, the waypoint field (lat,lon) are actually in local coordinates, not GPS. TO_DO, change that
 waypoints = [
-  {label='A',lat=50,lon=-50},
-  {label='B',lat=50,lon=-150},
-  {label='C',lat=75,lon=-175},
+  {label='alpha',lat=50,lon=-50},
+  {label='bravo',lat=50,lon=-150},
+  {label='charlie',lat=75,lon=-175},
   {label='D',lat=75,lon=-25},
   {label='E',lat=100,lon=-25},
   {label='F',lat=125,lon=-175},
@@ -48,7 +48,7 @@ tasks = [
     'A','B', # TASK 1
     'C','D', # TASK 2
     'E','F', # TASK 3
-    'G','H', # TASK 4
+    'G','H'  # TASK 4
 ]
 
 # lat = 34.408391, lon = -119.839120
@@ -57,7 +57,5 @@ tasks = [
 # considered as part of its fields
 [start_point]
   label = 'Goleta beach'
-  lat = 0
-  lon = 0
-  #lat = 34408391
-  #lon = -119839120
+  lat = 34408391
+  lon = -119839120

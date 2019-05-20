@@ -6,11 +6,8 @@ edition = "2018"
 
 [dependencies]
 libc = "0.2"
-
-toml = "0.4.2"
-serde_derive = ""
-serde = ""
-
+toml = ""
+serde = { version = "", features = ["derive"] }
 
 [lib]
 name = "parse_toml_rs"
