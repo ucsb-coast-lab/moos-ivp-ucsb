@@ -31,9 +31,6 @@ mod tests {
         assert_eq!(task_num, 8);
     }
 
-    // TO_DO: Right now, the info being returned here is in the form of a Point struct. This means
-    // that we can't do matching based on label, which we definitely want to do. That does mean
-    // that we'll end up also
     #[test]
     fn check_return_waypoint_info() {
         let mut file = File::open(FILENAME).expect("Specified .toml file does not exist");
@@ -69,11 +66,11 @@ mod tests {
 
     #[test]
     fn test_return_task_position() {
-        let mut file = File::open(FILENAME).expect("Specified .toml file does not exist");
+        let _file = File::open(FILENAME).expect("Specified .toml file does not exist");
         let number_of_tasks = get_number_of_tasks_rs(FILENAME);
         for j in 0..number_of_tasks {
             let task_position: GeoCoor = return_task_position_rs(FILENAME, j);
-            for task in 0..number_of_tasks {
+            for _ in 0..number_of_tasks {
                 println!("Checking task #{}", j);
                 let val = match j {
                     0 => (task_position.lat == 50) && (task_position.lon == -50),
