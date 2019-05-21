@@ -5,9 +5,9 @@ use std::ffi::CStr;
 use std::os::raw::c_char;
 
 // Other dependencies
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::fs::File;
-use std::io::{Read};
+use std::io::Read;
 
 #[repr(C)]
 #[derive(Serialize, Deserialize, Debug)]
@@ -16,16 +16,15 @@ pub struct SAMSConfig {
     pub auv: String,
     pub waypoints: Vec<Waypoint>,
     pub tasks: Vec<String>,
-    pub start_point: Waypoint
+    pub start_point: Waypoint,
 }
 
 #[repr(C)]
-#[derive(Serialize, Deserialize, Debug)]
-#[derive(Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Waypoint {
     pub label: String,
     pub lat: i32,
-    pub lon: i32
+    pub lon: i32,
 }
 
 // Since GeoCoor get passed to C code, need to figure out if trying to pass a Rust string works (probably need to convert to C_string)
@@ -51,44 +50,45 @@ pub fn mytest() -> int32_t {
 
 #[no_mangle]
 pub extern "C" fn get_toml_basics(filename_arg: *const c_char) {
-
     // TO_DO: These three lines are consistently re-used; might want to make this a separate function
     assert!(!filename_arg.is_null());
     let filename_c_str = unsafe { CStr::from_ptr(filename_arg) };
     let filename = filename_c_str.to_str().expect("Not a valid UTF-8 string");
 
     get_toml_basics_rs(filename);
-
 }
 
 pub fn get_toml_basics_rs(filename: &str) {
-
     // TO_DO: These four lines can also probably be wrapped in another function
-    let mut file = File::open(filename).expect("Specified .toml file does not exist");//?
+    let mut file = File::open(filename).expect("Specified .toml file does not exist"); //?
     let mut content = String::new();
-    file.read_to_string(&mut content).unwrap();//?
-    let config: SAMSConfig = toml::from_str(&content).unwrap();//?;
+    file.read_to_string(&mut content).unwrap(); //?
+    let config: SAMSConfig = toml::from_str(&content).unwrap(); //?;
 
-    println!("project_name: {}",config.project_name);
-    println!("auv: {}",config.auv);
-    println!("start GeoCoor in (lat,lon):\n               ({}, {})",config.start_point.lat, config.start_point.lon);
+    println!("project_name: {}", config.project_name);
+    println!("auv: {}", config.auv);
+    println!(
+        "start GeoCoor in (lat,lon):\n               ({}, {})",
+        config.start_point.lat, config.start_point.lon
+    );
     // let together = format!("{}\n{}\n{}\n{}", config.project_name, config.auv,config.start_point.lat, config.start_point.lon );
 
     println!("The waypoints in the farm are: ");
     for i in 0..config.waypoints.len() {
-        println!("\t(label =  {}, lat = {}, lon = {})", config.waypoints[i].label, config.waypoints[i].lat, config.waypoints[i].lon );
+        println!(
+            "\t(label =  {}, lat = {}, lon = {})",
+            config.waypoints[i].label, config.waypoints[i].lat, config.waypoints[i].lon
+        );
     }
 
     println!("which are organized into tasks in the following order:");
-    for i in 0..config.tasks.len()/2 {
-        println!("\t({}, {})", config.tasks[i],config.tasks[i+1] );
+    for i in 0..config.tasks.len() / 2 {
+        println!("\t({}, {})", config.tasks[i], config.tasks[i + 1]);
     }
 }
 
-
 #[no_mangle]
-pub extern "C" fn get_number_of_tasks(filename_arg: *const c_char ) -> uint32_t {
-
+pub extern "C" fn get_number_of_tasks(filename_arg: *const c_char) -> uint32_t {
     assert!(!filename_arg.is_null());
     let filename_c_str = unsafe { CStr::from_ptr(filename_arg) };
     let filename = filename_c_str.to_str().expect("Not a valid UTF-8 string");
@@ -99,7 +99,6 @@ pub extern "C" fn get_number_of_tasks(filename_arg: *const c_char ) -> uint32_t 
 }
 
 pub fn get_number_of_tasks_rs(filename: &str) -> uint32_t {
-
     // Opens a file with the specified name
     let mut file = File::open(filename).expect("Specified .toml file does not exist");
     let mut content = String::new();
@@ -112,41 +111,49 @@ pub fn get_number_of_tasks_rs(filename: &str) -> uint32_t {
     }
 
     (config.tasks.len() as u32)
-
 }
 
 #[no_mangle]
-pub extern "C" fn return_waypoint_info(filename_arg: *const c_char, waypoint_label: *const c_char) -> GeoCoor {
-
+pub extern "C" fn return_waypoint_info(
+    filename_arg: *const c_char,
+    waypoint_label: *const c_char,
+) -> GeoCoor {
     assert!(!filename_arg.is_null());
     let filename_c_str = unsafe { CStr::from_ptr(filename_arg) };
     let filename = filename_c_str.to_str().expect("Not a valid UTF-8 string");
 
     assert!(!waypoint_label.is_null());
     let waypoint_label_c_str = unsafe { CStr::from_ptr(filename_arg) };
-    let waypoint_label = waypoint_label_c_str.to_str().expect("Not a valid UTF-8 string");
+    let waypoint_label = waypoint_label_c_str
+        .to_str()
+        .expect("Not a valid UTF-8 string");
 
-    let point_as_coor: Waypoint  = return_waypoint_info_rs(filename,waypoint_label);
-    let return_point: GeoCoor =  GeoCoor { lat: point_as_coor.lat as i32, lon: point_as_coor.lon as i32};
+    let point_as_coor: Waypoint = return_waypoint_info_rs(filename, waypoint_label);
+    let return_point: GeoCoor = GeoCoor {
+        lat: point_as_coor.lat as i32,
+        lon: point_as_coor.lon as i32,
+    };
     return_point
 }
 
-pub fn return_waypoint_info_rs(filename: &str,waypoint_label: &str) -> Waypoint {
-
+pub fn return_waypoint_info_rs(filename: &str, waypoint_label: &str) -> Waypoint {
     // Opens a file with the specified name
     let mut file = File::open(filename).expect("Specified .toml file does not exist");
     let mut content = String::new();
     file.read_to_string(&mut content).unwrap();
     let config: SAMSConfig = toml::from_str(&content).unwrap();
 
-    let mut point_as_coor: Waypoint = Waypoint { label: "Origin".to_string(), lat: 0, lon: 0 };
+    let mut point_as_coor: Waypoint = Waypoint {
+        label: "Origin".to_string(),
+        lat: 0,
+        lon: 0,
+    };
     for j in 0..config.waypoints.len() {
         if config.waypoints[j].label == waypoint_label {
             point_as_coor = config.waypoints[j].clone();
         }
     }
     point_as_coor
-
 }
 
 // returns the GPS coordinates of the start GeoCoor as a signed 32-bit integer, which can then be converted to floating poin
@@ -167,13 +174,16 @@ pub fn return_start_point_rs(filename: &str) -> GeoCoor {
     let mut file = File::open(filename).expect("Specified .toml file does not exist");
     let mut content = String::new();
     file.read_to_string(&mut content).unwrap();
-    println!("toml file contents: {}\n",content);
-    let config: SAMSConfig = toml::from_str(&content).expect("converting toml text to Config struct has failed");// .unwrap();
+    println!("toml file contents: {}\n", content);
+    let config: SAMSConfig =
+        toml::from_str(&content).expect("converting toml text to Config struct has failed"); // .unwrap();
 
-    let return_point: GeoCoor = GeoCoor { lat: config.start_point.lat as i32, lon: config.start_point.lon as i32};
+    let return_point: GeoCoor = GeoCoor {
+        lat: config.start_point.lat as i32,
+        lon: config.start_point.lon as i32,
+    };
     return_point
 }
-
 
 #[no_mangle]
 pub extern "C" fn return_task_position(filename_arg: *const c_char, task_num: u32) -> GeoCoor {
@@ -181,7 +191,7 @@ pub extern "C" fn return_task_position(filename_arg: *const c_char, task_num: u3
     let filename_c_str = unsafe { CStr::from_ptr(filename_arg) };
     let filename = filename_c_str.to_str().expect("Not a valid UTF-8 string");
 
-    let task_position = return_task_position_rs(filename,task_num);
+    let task_position = return_task_position_rs(filename, task_num);
 
     task_position
 }
@@ -190,17 +200,20 @@ pub extern "C" fn return_task_position(filename_arg: *const c_char, task_num: u3
 // is not great.
 // TO_DO: Implement a function that will reject a .toml file as invalid if such an inconsistency exists
 pub fn return_task_position_rs(filename: &str, task_num: u32) -> GeoCoor {
-
     let mut file = File::open(filename).expect("Specified .toml file does not exist");
     let mut content = String::new();
     file.read_to_string(&mut content).unwrap();
-    println!("toml file contents: {}\n",content);
-    let config: SAMSConfig = toml::from_str(&content).expect("converting toml text to Config struct has failed");// .unwrap();
+    println!("toml file contents: {}\n", content);
+    let config: SAMSConfig =
+        toml::from_str(&content).expect("converting toml text to Config struct has failed"); // .unwrap();
 
     let mut task_position: GeoCoor = return_start_point_rs(filename);
     for i in 0..config.waypoints.len() {
         if config.waypoints[i].label == config.tasks[task_num as usize] {
-            println!("Task {}'s location in the points is point#{}",config.tasks[task_num as usize],i);
+            println!(
+                "Task {}'s location in the points is point#{}",
+                config.tasks[task_num as usize], i
+            );
             task_position.lat = config.waypoints[i].lat;
             task_position.lon = config.waypoints[i].lon;
         }

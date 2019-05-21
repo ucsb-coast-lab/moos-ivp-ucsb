@@ -45,8 +45,8 @@ waypoints = [
 # Okay, actually not going to say that tasks must be ordered pairs, just going to be a list of arbitary points
 # the number of which can not exceed 64
 tasks = [
-    'A','B', # TASK 1
-    'C','D', # TASK 2
+    'alpha','bravo', # TASK 1
+    'charlie','D', # TASK 2
     'E','F', # TASK 3
     'G','H'  # TASK 4
 ]
