@@ -9,7 +9,6 @@ use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::Read;
 
-#[repr(C)]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SAMSConfig {
     pub project_name: String,
@@ -19,7 +18,6 @@ pub struct SAMSConfig {
     pub start_point: Waypoint,
 }
 
-#[repr(C)]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Waypoint {
     pub label: String,
