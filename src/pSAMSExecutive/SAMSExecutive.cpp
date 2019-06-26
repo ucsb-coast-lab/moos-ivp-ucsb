@@ -120,6 +120,7 @@ bool SAMSExecutive::Iterate()
   Coordinate box[] = {d,a,b,c};
   // Using the specified bounding box to create an error boundary (box, m-meters, n-meters) outside of each vertex
   // If the vehicle moves beyond this bound, the RETURN behavior mode condition should be triggered
+  // TO_DO: See if this can be done with the "pass by reference" method
   Coordinate * box_error_boundary = create_error_boundary(box,20,20);
 
   // Displays the boolean value of each farm waypoint, useful for debugging
