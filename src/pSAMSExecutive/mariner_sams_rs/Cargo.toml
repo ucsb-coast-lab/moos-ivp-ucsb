@@ -1,0 +1,12 @@
+[package]
+name = "mariner_sams_rs"
+version = "0.1.0"
+authors = ["cmoran <christophermoran@ucsb.edu>"]
+edition = "2018"
+
+[dependencies]
+libc = "0.2"
+
+[lib]
+name = "mariner_sams_rs"
+crate-type = ["staticlib","cdylib"]

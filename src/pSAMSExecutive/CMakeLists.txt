@@ -30,13 +30,24 @@ ExternalProject_Add (
   INSTALL_COMMAND ""
   LOG_BUILD ON )
 
-add_dependencies(pSAMSExecutive parse_toml_rs)
+ExternalProject_Add (
+  mariner_sams_rs
+  DOWNLOAD_COMMAND ""
+  CONFIGURE_COMMAND ""
+  BUILD_COMMAND "" cargo build --lib COMMAND cargo build --release --lib COMMAND cbindgen -o binding/mariner_sams_rs.h
+  BINARY_DIR "${PROJECT_SOURCE_DIR}/mariner_sams_rs"
+  INSTALL_COMMAND ""
+  LOG_BUILD ON )
+
+add_dependencies(pSAMSExecutive parse_toml_rs mariner_sams_rs)
 
 TARGET_LINK_LIBRARIES(pSAMSExecutive
    ${MOOS_LIBRARIES}
    ${MOOSGeodesy_LIBRARIES}
    debug "${PROJECT_SOURCE_DIR}/parse_toml_rs/target/debug/libparse_toml_rs.a"
+   debug "${PROJECT_SOURCE_DIR}/mariner_sams_rs/target/debug/libmariner_sams_rs.a"
    optimized "${PROJECT_SOURCE_DIR}/parse_toml_rs/target/release/libparse_toml_rs.a"
+   optimized "${PROJECT_SOURCE_DIR}/mariner_sams_rs/target/release/libmariner_sams_rs.a"
    mbutil
    m
    dl
