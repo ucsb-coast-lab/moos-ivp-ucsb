@@ -1,18 +1,13 @@
-extern crate image;
-extern crate ndarray;
-extern crate ndarray_csv;
-extern crate csv;
-
 use image::{GenericImageView, ImageBuffer,Pixel};
 use std::env;
 use std::path::Path;
-use ndarray::{Array};
 use std::error::Error;
 use std::fs::File;
 use csv::{WriterBuilder};
 use ndarray_csv::{Array2Writer};
+use ndarray::prelude::*;
 
-fn main() -> Result<(), Box<Error>> {
+fn main() -> Result<(), Box<dyn Error>> {
 
     // Specifies an image to be opened by the image processing program
     let mut arg_vec: Vec<String> = Vec::new();
@@ -31,7 +26,7 @@ fn main() -> Result<(), Box<Error>> {
     let (dimx, dimy) = (width as usize, height as usize);
 
     //let mut arr = Array2::zeros_like((dimx,dimy));
-    let mut arr = Array::from_elem((dimy, dimx), 0u8);
+    let mut arr: Array2<u8> = Array2::zeros((dimy, dimx));
     let mut my_image = ImageBuffer::new(width as u32, height as u32);
     // Creates 2D array of same dimensions as image
     // let mut arr = Array2::zeros((dimx as usize,dimy as usize));
@@ -51,6 +46,5 @@ fn main() -> Result<(), Box<Error>> {
     let file = File::create(&arg_vec[2])?;
     let mut writer = WriterBuilder::new().has_headers(false).from_writer(file);
     writer.serialize_array2(&arr)?;
-
     Ok(())
 }

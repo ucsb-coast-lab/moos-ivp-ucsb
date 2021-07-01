@@ -7,10 +7,10 @@ edition = "2018"
 [dependencies]
 libc = "0.2"
 
-image = ""
-ndarray = ""
-ndarray-csv = ""
-csv = ""
+image = "0.23"
+ndarray = "0.12.1"
+ndarray-csv = "0.5.1"
+csv = "1.1"
 
 
 [lib]

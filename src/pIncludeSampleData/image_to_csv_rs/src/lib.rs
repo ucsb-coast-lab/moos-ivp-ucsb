@@ -1,18 +1,9 @@
 // General Rust FFI dependencies
-extern crate libc;
-
-use libc::int32_t;
 use std::ffi::CStr;
 use std::os::raw::c_char;
 
-// process_image() dependencies
-extern crate image;
-extern crate ndarray;
-extern crate ndarray_csv;
-extern crate csv;
-
 use image::{GenericImageView, ImageBuffer,Pixel};
-use ndarray::{Array};
+use ndarray::prelude::*;
 use std::error::Error;
 use std::fs::File;
 use csv::{WriterBuilder};
@@ -44,12 +35,12 @@ pub extern "C" fn process_image(image_path_arg: *const c_char, csv_export_path_a
     // Runs the image_processing_rs() function, and observes the return value
     // If the value is okay, returns a 0; otherwise, returns a -1 as the error code across the FFI boundary into the C++ file
     let version = match image_processing_rs(image_path,csv_export_path) {
-        Ok(n) => return 0,
+        Ok(_) => return 0,
         Err(_) => return -1
     };
 }
 
-fn image_processing_rs(image_path: &str, csv_export_path: &str) -> std::result::Result<(), Box<Error>> {
+fn image_processing_rs(image_path: &str, csv_export_path: &str) -> std::result::Result<(), Box<dyn Error>> {
 
     //dbg!("About to open and rotate the image:");
     // Opens image, rotates it 90 degrees, and re-saves.
@@ -65,7 +56,7 @@ fn image_processing_rs(image_path: &str, csv_export_path: &str) -> std::result::
     let (dimx, dimy) = (width as usize, height as usize);
 
     // Creates an array of zeros the same size as the image file
-    let mut arr = Array::from_elem((dimy, dimx), 0u8);
+    let mut arr: Array2<u8> = Array2::zeros((dimy, dimx));
     let mut my_image = ImageBuffer::new(width as u32, height as u32);
     arr[[0 as usize,0]] = 4;
     // Fills the image array with 0-255 values taken from the imported image
